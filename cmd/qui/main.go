@@ -38,6 +38,7 @@ import (
 	"github.com/autobrr/qui/internal/services/arr"
 	"github.com/autobrr/qui/internal/services/automations"
 	"github.com/autobrr/qui/internal/services/crossseed"
+	"github.com/autobrr/qui/internal/services/dailytransfer"
 	"github.com/autobrr/qui/internal/services/dirscan"
 	"github.com/autobrr/qui/internal/services/externalprograms"
 	"github.com/autobrr/qui/internal/services/filesmanager"
@@ -675,6 +676,11 @@ func (app *Application) runServer() {
 	reannounceService.SetActivityPublisher(activityHub)
 	automationService := automations.NewService(automations.DefaultConfig(), instanceStore, automationStore, automationActivityStore, trackerCustomizationStore, syncManager, notificationService, externalProgramService, crossSeedService)
 	automationService.SetActivityPublisher(activityHub)
+	dailyTransferStore := models.NewDailyTransferStatsStore(db)
+	dailyTransferService := dailytransfer.NewService(instanceStore, clientPool, dailyTransferStore, time.Local)
+	dailyTransferCtx, dailyTransferCancel := context.WithCancel(context.Background())
+	defer dailyTransferCancel()
+	dailyTransferService.Start(dailyTransferCtx)
 
 	orphanScanStore := models.NewOrphanScanStore(db)
 	orphanScanService := orphanscan.NewService(orphanscan.DefaultConfig(), instanceStore, orphanScanStore, syncManager, notificationService)
@@ -815,6 +821,7 @@ func (app *Application) runServer() {
 		OrphanScanStore:                  orphanScanStore,
 		OrphanScanService:                orphanScanService,
 		DirScanService:                   dirScanService,
+		DailyTransferService:             dailyTransferService,
 		ArrInstanceStore:                 arrInstanceStore,
 		ArrService:                       arrService,
 		ActivityHub:                      activityHub,

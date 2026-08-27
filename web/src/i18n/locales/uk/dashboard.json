@@ -105,12 +105,16 @@
     "title": "Статистика сервера",
     "ratio": "Співвідношення:",
     "peers": "Піри:",
+    "todayDownloaded": "Завантажено сьогодні",
+    "todayUploaded": "Вивантажено сьогодні",
     "tableHeaders": {
       "instance": "Екземпляр",
       "downloaded": "Завантажено",
+      "downloadedToday": "Завантажено сьогодні",
       "downloadedSession": "Завантажено (сесія)",
       "uploadedSession": "Вивантажено (сесія)",
       "uploaded": "Вивантажено",
+      "uploadedToday": "Вивантажено сьогодні",
       "ratio": "Співвідношення",
       "peers": "Піри"
     }

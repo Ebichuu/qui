@@ -1226,6 +1226,29 @@ paths:
         '503':
           description: Instance unavailable
 
+  /api/instances/{instanceID}/daily-transfer:
+    get:
+      tags:
+        - Instances
+      summary: Get today's transfer totals
+      description: >-
+        Retrieve qui's persisted upload and download totals for the current
+        local calendar day. Totals begin with the first sample after the
+        feature is enabled and are updated from qBittorrent's all-time counters.
+      parameters:
+        - $ref: '#/components/parameters/instanceID'
+      responses:
+        '200':
+          description: Today's transfer totals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyTransferStats'
+        '400':
+          description: Invalid instance ID
+        '503':
+          description: Daily transfer statistics unavailable
+
   /api/instances/{instanceID}/getDirectoryContent:
     get:
       tags:
@@ -6271,6 +6294,32 @@ components:
         alltime_ul:
           type: integer
           description: All-time uploaded bytes. Absent until the instance completes its first sync.
+
+    DailyTransferStats:
+      type: object
+      required:
+        - instanceId
+        - date
+        - downloaded
+        - uploaded
+        - updatedAt
+      properties:
+        instanceId:
+          type: integer
+        date:
+          type: string
+          format: date
+        downloaded:
+          type: integer
+          format: int64
+          description: Downloaded bytes recorded for the current local calendar day.
+        uploaded:
+          type: integer
+          format: int64
+          description: Uploaded bytes recorded for the current local calendar day.
+        updatedAt:
+          type: string
+          format: date-time
 
 
     Torrent:

@@ -42,6 +42,7 @@ import type {
   CrossSeedTorrentSearchSelection,
   DashboardSettings,
   DashboardSettingsInput,
+  DailyTransferStats,
   DirScanDirectory,
   DirScanDirectoryCreate,
   DirScanTriggerResponse,
@@ -654,6 +655,10 @@ class ApiClient {
 
   async getTransferInfo(id: number): Promise<TransferInfo> {
     return this.request<TransferInfo>(`/instances/${id}/transfer-info`)
+  }
+
+  async getDailyTransferStats(id: number): Promise<DailyTransferStats> {
+    return this.request<DailyTransferStats>(`/instances/${id}/daily-transfer`)
   }
 
   async getInstanceReannounceActivity(

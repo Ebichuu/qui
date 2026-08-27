@@ -105,12 +105,16 @@
     "title": "服务器统计",
     "ratio": "分享率：",
     "peers": "节点：",
+    "todayDownloaded": "今日下载",
+    "todayUploaded": "今日上传",
     "tableHeaders": {
       "instance": "实例",
       "downloaded": "已下载",
+      "downloadedToday": "今日下载",
       "downloadedSession": "已下载（本次）",
       "uploadedSession": "已上传（本次）",
       "uploaded": "已上传",
+      "uploadedToday": "今日上传",
       "ratio": "分享率",
       "peers": "节点"
     }

@@ -387,6 +387,14 @@ export interface TransferInfo {
   up_rate_limit: number
 }
 
+export interface DailyTransferStats {
+  instanceId: number
+  date: string
+  downloaded: number
+  uploaded: number
+  updatedAt: string
+}
+
 export interface TorrentPeer {
   ip: string
   port: number

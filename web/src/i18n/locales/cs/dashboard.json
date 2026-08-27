@@ -105,12 +105,16 @@
     "title": "Statistiky serveru",
     "ratio": "Poměr:",
     "peers": "Peer připojení:",
+    "todayDownloaded": "Dnes staženo",
+    "todayUploaded": "Dnes nahráno",
     "tableHeaders": {
       "instance": "Instance",
       "downloaded": "Stáhnuto",
+      "downloadedToday": "Dnes staženo",
       "downloadedSession": "Stáhnuto (relace)",
       "uploadedSession": "Nahráno (relace)",
       "uploaded": "Nahráno",
+      "uploadedToday": "Dnes nahráno",
       "ratio": "Poměr",
       "peers": "Peer připojení"
     }

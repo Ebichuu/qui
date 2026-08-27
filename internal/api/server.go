@@ -32,6 +32,7 @@ import (
 	"github.com/autobrr/qui/internal/services/arr"
 	"github.com/autobrr/qui/internal/services/automations"
 	"github.com/autobrr/qui/internal/services/crossseed"
+	"github.com/autobrr/qui/internal/services/dailytransfer"
 	"github.com/autobrr/qui/internal/services/dirscan"
 	"github.com/autobrr/qui/internal/services/externalprograms"
 	"github.com/autobrr/qui/internal/services/filesmanager"
@@ -90,6 +91,7 @@ type Server struct {
 	orphanScanStore                  *models.OrphanScanStore
 	orphanScanService                *orphanscan.Service
 	dirScanService                   *dirscan.Service
+	dailyTransferService             *dailytransfer.Service
 	arrInstanceStore                 *models.ArrInstanceStore
 	arrService                       *arr.Service
 	activityHub                      *activity.Hub
@@ -134,6 +136,7 @@ type Dependencies struct {
 	OrphanScanStore                  *models.OrphanScanStore
 	OrphanScanService                *orphanscan.Service
 	DirScanService                   *dirscan.Service
+	DailyTransferService             *dailytransfer.Service
 	ArrInstanceStore                 *models.ArrInstanceStore
 	ArrService                       *arr.Service
 	ActivityHub                      *activity.Hub
@@ -201,6 +204,7 @@ func NewServer(deps *Dependencies) *Server {
 		orphanScanStore:                  deps.OrphanScanStore,
 		orphanScanService:                deps.OrphanScanService,
 		dirScanService:                   deps.DirScanService,
+		dailyTransferService:             deps.DailyTransferService,
 		arrInstanceStore:                 deps.ArrInstanceStore,
 		arrService:                       deps.ArrService,
 		activityHub:                      deps.ActivityHub,
@@ -350,6 +354,7 @@ func (s *Server) Handler() (*chi.Mux, error) {
 		return nil, err
 	}
 	instancesHandler := handlers.NewInstancesHandler(s.instanceStore, s.instanceReannounce, s.reannounceCache, s.clientPool, s.syncManager, s.reannounceService)
+	dailyTransferHandler := handlers.NewDailyTransferHandler(s.dailyTransferService)
 	torrentsHandler := handlers.NewTorrentsHandler(s.syncManager, s.jackettService, s.instanceStore)
 	preferencesHandler := handlers.NewPreferencesHandler(s.syncManager)
 	clientAPIKeysHandler := handlers.NewClientAPIKeysHandler(s.clientAPIKeyStore, s.instanceStore, s.config.Config.BaseURL)
@@ -590,6 +595,7 @@ func (s *Server) Handler() (*chi.Mux, error) {
 
 					r.Get("/capabilities", instancesHandler.GetInstanceCapabilities)
 					r.Get("/transfer-info", instancesHandler.GetTransferInfo)
+					r.Get("/daily-transfer", dailyTransferHandler.GetCurrent)
 					r.Get("/reannounce/activity", instancesHandler.GetReannounceActivity)
 					r.Get("/reannounce/candidates", instancesHandler.GetReannounceCandidates)
 

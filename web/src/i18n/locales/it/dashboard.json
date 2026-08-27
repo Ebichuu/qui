@@ -105,12 +105,16 @@
     "title": "Statistiche del server",
     "ratio": "Rapporto:",
     "peers": "Peer:",
+    "todayDownloaded": "Scaricato oggi",
+    "todayUploaded": "Caricato oggi",
     "tableHeaders": {
       "instance": "Istanza",
       "downloaded": "Scaricato",
+      "downloadedToday": "Scaricato oggi",
       "downloadedSession": "Scaricato (sessione)",
       "uploadedSession": "Caricato (sessione)",
       "uploaded": "Caricato",
+      "uploadedToday": "Caricato oggi",
       "ratio": "Rapporto",
       "peers": "Peer"
     }

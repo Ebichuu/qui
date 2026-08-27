@@ -69,6 +69,7 @@ import {
 import { copyTextToClipboard, formatBytes, formatBytesOrFallback, formatDuration, getRatioColor } from "@/lib/utils"
 import type {
   CacheMetadata,
+  DailyTransferStats,
   DashboardSettings,
   InstanceMeta,
   InstanceResponse,
@@ -1318,6 +1319,7 @@ function GlobalStatsCards({ globalStats }: { globalStats: GlobalStats }) {
 
 interface GlobalAllTimeStatsProps {
   statsData: DashboardInstanceStats[]
+  dailyTransferByInstance: Map<number, DailyTransferStats>
   isCollapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
 }
@@ -1341,7 +1343,7 @@ function MetricGrid({ metrics, className }: { metrics: DrawerMetric[]; className
 const alltimeRatio = (serverState: ServerState | null) =>
   serverState?.alltime_dl ? (serverState.alltime_ul || 0) / serverState.alltime_dl : 0
 
-function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: GlobalAllTimeStatsProps) {
+function GlobalAllTimeStats({ statsData, dailyTransferByInstance, isCollapsed, onCollapsedChange }: GlobalAllTimeStatsProps) {
   const { t } = useTranslation("dashboard")
   // Accordion value is "server-stats" when expanded, "" when collapsed
   const accordionValue = isCollapsed ? "" : "server-stats"
@@ -1355,6 +1357,10 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
       sum + (serverState?.alltime_dl || 0), 0)
     const alltimeUl = statsData.reduce((sum, { serverState }) =>
       sum + (serverState?.alltime_ul || 0), 0)
+    const todayDl = Array.from(dailyTransferByInstance.values()).reduce((sum, stats) =>
+      sum + stats.downloaded, 0)
+    const todayUl = Array.from(dailyTransferByInstance.values()).reduce((sum, stats) =>
+      sum + stats.uploaded, 0)
     const totalPeers = statsData.reduce((sum, { serverState }) =>
       sum + (serverState?.total_peer_connections || 0), 0)
 
@@ -1367,19 +1373,24 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
     return {
       alltimeDl,
       alltimeUl,
+      todayDl,
+      todayUl,
       globalRatio,
       totalPeers,
     }
-  }, [statsData])
+  }, [dailyTransferByInstance, statsData])
 
   // Apply color grading to ratio
   const ratioColor = getRatioColor(globalStats.globalRatio)
 
-  const reportingInstances = statsData.filter(({ serverState }) => serverState?.alltime_dl || serverState?.alltime_ul)
+  const reportingInstances = statsData.filter(({ instance, serverState }) => {
+    const daily = dailyTransferByInstance.get(instance.id)
+    return serverState?.alltime_dl || serverState?.alltime_ul || daily?.downloaded || daily?.uploaded
+  })
   const detailsInstance = reportingInstances.find(({ instance }) => instance.id === detailsInstanceId)
 
   // Don't show if no data
-  if (globalStats.alltimeDl === 0 && globalStats.alltimeUl === 0) {
+  if (globalStats.alltimeDl === 0 && globalStats.alltimeUl === 0 && globalStats.todayDl === 0 && globalStats.todayUl === 0) {
     return null
   }
 
@@ -1417,6 +1428,10 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
                 {/* peers omitted: a fourth value wraps the summary onto a second line */}
               </div>
             </div>
+            <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground tabular-nums">
+              <span>{t("serverStats.todayDownloaded")}: <span className="font-semibold text-foreground">{formatBytes(globalStats.todayDl)}</span></span>
+              <span>{t("serverStats.todayUploaded")}: <span className="font-semibold text-foreground">{formatBytes(globalStats.todayUl)}</span></span>
+            </div>
           </div>
 
           {/* Desktop layout */}
@@ -1428,12 +1443,26 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
             </div>
             <div className="flex flex-wrap items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
+                <Download className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{t("serverStats.todayDownloaded")}</span>
+                <span className="text-lg font-semibold">{formatBytes(globalStats.todayDl)}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Upload className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{t("serverStats.todayUploaded")}</span>
+                <span className="text-lg font-semibold">{formatBytes(globalStats.todayUl)}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{t("serverStats.tableHeaders.downloaded")}</span>
                 <span className="text-lg font-semibold">{formatBytes(globalStats.alltimeDl)}</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{t("serverStats.tableHeaders.uploaded")}</span>
                 <span className="text-lg font-semibold">{formatBytes(globalStats.alltimeUl)}</span>
               </div>
 
@@ -1461,6 +1490,7 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
           <div className="sm:hidden divide-y">
             {reportingInstances.map(({ instance, serverState }) => {
               const instanceRatio = alltimeRatio(serverState)
+              const daily = dailyTransferByInstance.get(instance.id)
 
               return (
                 <button
@@ -1482,6 +1512,10 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
                         {instanceRatio.toFixed(2)}
                       </span>
                     </div>
+                    <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
+                      <span>{t("serverStats.todayDownloaded")}: {formatBytes(daily?.downloaded || 0)}</span>
+                      <span>{t("serverStats.todayUploaded")}: {formatBytes(daily?.uploaded || 0)}</span>
+                    </div>
                   </div>
                   <MoreVertical className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </button>
@@ -1500,12 +1534,22 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
+                    <span>{t("serverStats.tableHeaders.downloadedToday")}</span>
+                  </div>
+                </TableHead>
+                <TableHead className="text-center">
+                  <div className="flex items-center justify-center gap-1">
                     <span>{t("serverStats.tableHeaders.downloadedSession")}</span>
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
                     <span>{t("serverStats.tableHeaders.uploaded")}</span>
+                  </div>
+                </TableHead>
+                <TableHead className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <span>{t("serverStats.tableHeaders.uploadedToday")}</span>
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
@@ -1521,6 +1565,7 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
               {reportingInstances.map(({ instance, serverState }) => {
                 const instanceRatio = alltimeRatio(serverState)
                 const instanceRatioColor = getRatioColor(instanceRatio)
+                const daily = dailyTransferByInstance.get(instance.id)
 
                 return (
                   <TableRow key={instance.id}>
@@ -1529,10 +1574,16 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
                       {formatBytes(serverState?.alltime_dl || 0)}
                     </TableCell>
                     <TableCell className="text-center font-semibold">
+                      {formatBytes(daily?.downloaded || 0)}
+                    </TableCell>
+                    <TableCell className="text-center font-semibold">
                       {formatBytes(serverState?.dl_info_data || 0)}
                     </TableCell>
                     <TableCell className="text-center font-semibold">
                       {formatBytes(serverState?.alltime_ul || 0)}
+                    </TableCell>
+                    <TableCell className="text-center font-semibold">
+                      {formatBytes(daily?.uploaded || 0)}
                     </TableCell>
                     <TableCell className="text-center font-semibold">
                       {formatBytes(serverState?.up_info_data || 0)}
@@ -1557,10 +1608,13 @@ function GlobalAllTimeStats({ statsData, isCollapsed, onCollapsedChange }: Globa
           {detailsInstance && (() => {
             const { instance, serverState } = detailsInstance
             const instanceRatio = alltimeRatio(serverState)
+            const daily = dailyTransferByInstance.get(instance.id)
             const metrics: DrawerMetric[] = [
               { label: t("serverStats.tableHeaders.downloaded"), value: formatBytes(serverState?.alltime_dl || 0) },
+              { label: t("serverStats.tableHeaders.downloadedToday"), value: formatBytes(daily?.downloaded || 0) },
               { label: t("serverStats.tableHeaders.downloadedSession"), value: formatBytes(serverState?.dl_info_data || 0) },
               { label: t("serverStats.tableHeaders.uploaded"), value: formatBytes(serverState?.alltime_ul || 0) },
+              { label: t("serverStats.tableHeaders.uploadedToday"), value: formatBytes(daily?.uploaded || 0) },
               { label: t("serverStats.tableHeaders.uploadedSession"), value: formatBytes(serverState?.up_info_data || 0) },
               { label: t("serverStats.tableHeaders.ratio"), value: instanceRatio.toFixed(2), color: getRatioColor(instanceRatio) },
               { label: t("serverStats.tableHeaders.peers"), value: serverState?.total_peer_connections !== undefined ? String(serverState.total_peer_connections || 0) : "-" },
@@ -3111,6 +3165,21 @@ export function Dashboard() {
   // poll transfer info for title bar speeds.
   const statsData = useAllInstanceStats(activeInstances, { enabled: !isHiddenDelayed })
   const globalStats = useGlobalStats(statsData)
+  const dailyTransferQueries = useQueries({
+    queries: activeInstances.map(instance => ({
+      queryKey: ["daily-transfer", instance.id],
+      queryFn: () => api.getDailyTransferStats(instance.id),
+      enabled: !isHiddenDelayed && hasActiveInstances && settings.sectionVisibility["server-stats"] !== false,
+      refetchInterval: 30_000,
+      staleTime: 15_000,
+    })),
+  })
+  const dailyTransferByInstance = new Map<number, DailyTransferStats>()
+  dailyTransferQueries.forEach((query, index) => {
+    if (query.data) {
+      dailyTransferByInstance.set(activeInstances[index].id, query.data)
+    }
+  })
   const transferInfoQueries = useQueries({
     queries: activeInstances.map(instance => ({
       queryKey: ["transfer-info", instance.id],
@@ -3239,6 +3308,7 @@ export function Dashboard() {
                       <GlobalAllTimeStats
                         key={sectionId}
                         statsData={statsData}
+                        dailyTransferByInstance={dailyTransferByInstance}
                         isCollapsed={settings.sectionCollapsed["server-stats"] ?? false}
                         onCollapsedChange={(collapsed) => handleSectionCollapsedChange("server-stats", collapsed)}
                       />

@@ -105,12 +105,16 @@
     "title": "서버 통계",
     "ratio": "비율:",
     "peers": "피어:",
+    "todayDownloaded": "오늘 다운로드",
+    "todayUploaded": "오늘 업로드",
     "tableHeaders": {
       "instance": "인스턴스",
       "downloaded": "다운로드됨",
+      "downloadedToday": "오늘 다운로드",
       "downloadedSession": "다운로드됨 (세션)",
       "uploadedSession": "업로드됨 (세션)",
       "uploaded": "업로드됨",
+      "uploadedToday": "오늘 업로드",
       "ratio": "비율",
       "peers": "피어"
     }

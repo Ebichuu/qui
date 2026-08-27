@@ -105,12 +105,16 @@
     "title": "Server-Statistiken",
     "ratio": "Ratio:",
     "peers": "Peers:",
+    "todayDownloaded": "Heute heruntergeladen",
+    "todayUploaded": "Heute hochgeladen",
     "tableHeaders": {
       "instance": "Instanz",
       "downloaded": "Heruntergeladen",
+      "downloadedToday": "Heute heruntergeladen",
       "downloadedSession": "Heruntergeladen (Sitzung)",
       "uploadedSession": "Hochgeladen (Sitzung)",
       "uploaded": "Hochgeladen",
+      "uploadedToday": "Heute hochgeladen",
       "ratio": "Ratio",
       "peers": "Peers"
     }
