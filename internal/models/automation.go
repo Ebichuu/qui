@@ -728,6 +728,7 @@ const (
 	// Numeric fields (speeds)
 	FieldDlSpeed    ConditionField = "DL_SPEED"
 	FieldUpSpeed    ConditionField = "UP_SPEED"
+	// FieldUpSpeedAvg is the lifetime average: uploaded bytes divided by active seconds.
 	FieldUpSpeedAvg ConditionField = "UP_SPEED_AVG"
 	FieldDlLimit    ConditionField = "DL_LIMIT"
 	FieldUpLimit    ConditionField = "UP_LIMIT"
