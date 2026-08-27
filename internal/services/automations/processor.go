@@ -521,6 +521,9 @@ func processRuleForTorrent(rule *models.Automation, torrent qbt.Torrent, state *
 			}
 		} else {
 			shouldApply := EvaluateConditionWithContext(conditions.Delete.Condition, torrent, evalCtx, 0)
+			if evalCtx != nil && evalCtx.DeleteConditionGate != nil {
+				shouldApply = evalCtx.DeleteConditionGate(rule, torrent, shouldApply)
+			}
 			if shouldApply {
 				if stats != nil {
 					stats.DeleteApplied++

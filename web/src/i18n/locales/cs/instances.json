@@ -1401,6 +1401,9 @@
       },
       "delete": {
         "mode": "Režim",
+        "conditionDuration": "Doba trvání shody podmínek",
+        "conditionDurationHelp": "Podmínky mazání musí zůstat splněné při po sobě jdoucích kontrolách pracovního postupu. Jakákoli neshoda časovač vynuluje; 0 maže okamžitě.",
+        "minutes": "minuty (0 = okamžitě)",
         "keepFiles": "Odebrat (zachovat soubory)",
         "keepFilesDisabledReason": "Vypnuto při použití podmínky Volného místa. Režim ponechání souborů nemůže splnit cíl volného místa, protože neuvolní žádný diskový prostor.",
         "withFiles": "Odebrat se soubory",
@@ -1605,6 +1608,7 @@
         "selectTracker": "Vyberte alespoň jeden tracker",
         "enableAction": "Povolit alespoň jednu akci",
         "deleteRequiresCondition": "Smazání vyžaduje alespoň jednu podmínku",
+        "deleteConditionDurationInvalid": "Doba trvání podmínky mazání musí být 0 nebo alespoň 1 minuta",
         "moveRequiresPath": "Přesunutí vyžaduje cestu",
         "invalidRegexPatternUnsupported": "Neplatný regex vzor - Go/RE2 nepodporuje Perl funkce jako lookahead/lookbehind",
         "selectExternalProgram": "Vyberte externí program",

@@ -1395,6 +1395,9 @@
       },
       "delete": {
         "mode": "Mode",
+        "conditionDuration": "Durée de correspondance des conditions",
+        "conditionDurationHelp": "Les conditions de suppression doivent rester satisfaites lors de contrôles consécutifs du workflow. Toute non-correspondance réinitialise le minuteur ; 0 supprime immédiatement.",
+        "minutes": "minutes (0 = immédiat)",
         "keepFiles": "Supprimer (conserver les fichiers)",
         "keepFilesDisabledReason": "Désactivé avec la condition Espace libre. Ce mode ne libère pas d'espace disque.",
         "withFiles": "Supprimer avec les fichiers",
@@ -1599,6 +1602,7 @@
         "selectTracker": "Sélectionnez au moins un tracker",
         "enableAction": "Activez au moins une action",
         "deleteRequiresCondition": "La suppression nécessite au moins une condition",
+        "deleteConditionDurationInvalid": "La durée de la condition de suppression doit être 0 ou d’au moins 1 minute",
         "moveRequiresPath": "Le déplacement nécessite un chemin",
         "invalidRegexPatternUnsupported": "Motif regex invalide - Go/RE2 ne prend pas en charge lookahead/lookbehind",
         "selectExternalProgram": "Sélectionnez un programme externe",

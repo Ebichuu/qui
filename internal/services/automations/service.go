@@ -549,11 +549,12 @@ type Service struct {
 
 	// keep lightweight memory of recent deletions to avoid acting on torrents
 	// that havent disappeared from sync data yet
-	lastApplied           map[int]map[string]time.Time // instanceID -> hash -> timestamp
-	lastRuleRun           map[ruleKey]time.Time        // per-rule cadence tracking
-	lastFreeSpaceDeleteAt map[int]time.Time            // instanceID -> last FREE_SPACE delete timestamp
-	inFlightExports       map[string]struct{}          // "targetInstanceID:hash" -> in-progress export
-	mu                    sync.RWMutex
+	lastApplied            map[int]map[string]time.Time // instanceID -> hash -> timestamp
+	lastRuleRun            map[ruleKey]time.Time        // per-rule cadence tracking
+	lastFreeSpaceDeleteAt  map[int]time.Time            // instanceID -> last FREE_SPACE delete timestamp
+	deleteConditionMatches map[deleteConditionMatchKey]deleteConditionMatchState
+	inFlightExports        map[string]struct{} // "targetInstanceID:hash" -> in-progress export
+	mu                     sync.RWMutex
 
 	activityPublisher activity.Publisher
 }
@@ -592,6 +593,7 @@ func NewService(cfg Config, instanceStore *models.InstanceStore, ruleStore *mode
 		lastApplied:               make(map[int]map[string]time.Time),
 		lastRuleRun:               make(map[ruleKey]time.Time),
 		lastFreeSpaceDeleteAt:     make(map[int]time.Time),
+		deleteConditionMatches:    make(map[deleteConditionMatchKey]deleteConditionMatchState),
 		inFlightExports:           make(map[string]struct{}),
 		activityPublisher:         activity.NopPublisher{},
 	}
@@ -625,6 +627,15 @@ func (s *Service) cleanupStaleEntries() {
 	for key, ts := range s.lastRuleRun {
 		if ts.Before(ruleCutoff) {
 			delete(s.lastRuleRun, key)
+		}
+	}
+
+	for key, state := range s.deleteConditionMatches {
+		// Preserve valid long-running condition timers. The extra day still
+		// bounds orphaned entries after their configured duration has elapsed.
+		retention := max(24*time.Hour, state.duration+24*time.Hour)
+		if state.lastSeen.Before(time.Now().Add(-retention)) {
+			delete(s.deleteConditionMatches, key)
 		}
 	}
 
@@ -1970,6 +1981,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 			// Skip delete rules that use FREE_SPACE condition
 			if rule.Conditions != nil && rule.Conditions.Delete != nil && rule.Conditions.Delete.Enabled {
 				if ConditionUsesField(rule.Conditions.Delete.Condition, FieldFreeSpace) {
+					s.pruneDeleteConditionMatches(instanceID, []*models.Automation{rule}, dryRun, nil)
 					log.Debug().
 						Int("instanceID", instanceID).
 						Int("ruleID", rule.ID).
@@ -2006,6 +2018,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 	}
 
 	if len(torrents) == 0 {
+		s.pruneDeleteConditionMatches(instanceID, eligibleRules, dryRun, nil)
 		return nil, nil
 	}
 
@@ -2174,6 +2187,17 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 		return exists && now.Sub(ts) < s.cfg.SkipWithin
 	}
 
+	deleteDurationSeen := make(map[deleteConditionMatchKey]struct{})
+	evalCtx.DeleteConditionGate = func(rule *models.Automation, torrent qbt.Torrent, matched bool) bool {
+		duration := deleteConditionDuration(rule)
+		if duration <= 0 {
+			return matched
+		}
+		key := newDeleteConditionMatchKey(instanceID, rule, torrent, dryRun)
+		deleteDurationSeen[key] = struct{}{}
+		return s.deleteConditionReady(now, key, duration, matched)
+	}
+
 	// Compute which rules actually have matching torrents that won't be skipped.
 	// This must happen after skipCheck is defined so we only stamp lastRuleRun
 	// for rules that will actually process at least one torrent.
@@ -2193,6 +2217,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 
 	// Group rules into batches based on sorting config equality
 	s.buildAndExecuteBatches(instanceID, eligibleRules, torrents, evalCtx, skipCheck, ruleStats, states)
+	s.pruneDeleteConditionMatches(instanceID, eligibleRules, dryRun, deleteDurationSeen)
 
 	if len(states) == 0 {
 		log.Trace().

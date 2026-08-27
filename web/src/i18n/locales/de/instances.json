@@ -1401,6 +1401,9 @@
       },
       "delete": {
         "mode": "Modus",
+        "conditionDuration": "Dauer der Bedingungserfüllung",
+        "conditionDurationHelp": "Die Löschbedingungen müssen bei aufeinanderfolgenden Workflow-Prüfungen erfüllt bleiben. Eine Abweichung setzt den Timer zurück; 0 löscht sofort.",
+        "minutes": "Minuten (0 = sofort)",
         "keepFiles": "Entfernen (Dateien behalten)",
         "keepFilesDisabledReason": "Deaktiviert bei Verwendung der Bedingung \"Freier Speicherplatz\". Der Modus \"Dateien behalten\" kann kein Speicherplatzziel erreichen, da kein Speicherplatz freigegeben wird.",
         "withFiles": "Mit Dateien entfernen",
@@ -1605,6 +1608,7 @@
         "selectTracker": "Wähle mindestens einen Tracker",
         "enableAction": "Aktiviere mindestens eine Aktion",
         "deleteRequiresCondition": "Löschen erfordert mindestens eine Bedingung",
+        "deleteConditionDurationInvalid": "Die Dauer der Löschbedingung muss 0 oder mindestens 1 Minute betragen",
         "moveRequiresPath": "Verschieben erfordert einen Pfad",
         "invalidRegexPatternUnsupported": "Ungültiges Regex-Muster - Go/RE2 unterstützt keine Perl-Funktionen wie Lookahead/Lookbehind",
         "selectExternalProgram": "Wähle ein externes Programm",

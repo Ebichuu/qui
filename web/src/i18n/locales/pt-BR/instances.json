@@ -1401,6 +1401,9 @@
       },
       "delete": {
         "mode": "Opções de Exclusão",
+        "conditionDuration": "Duração da correspondência das condições",
+        "conditionDurationHelp": "As condições de exclusão devem permanecer correspondentes em verificações consecutivas do fluxo de trabalho. Qualquer divergência reinicia o temporizador; 0 exclui imediatamente.",
+        "minutes": "minutos (0 = imediato)",
         "keepFiles": "Remover (manter arquivos)",
         "keepFilesDisabledReason": "Desativado ao usar a condição de Espaço Livre. O modo manter arquivos não consegue atingir uma meta de espaço livre porque nenhum espaço em disco é liberado.",
         "withFiles": "Remover com arquivos",
@@ -1605,6 +1608,7 @@
         "selectTracker": "Precisa englobar minimamente um indexador ou (All Trackers).",
         "enableAction": "Ative pelo menos uma ação",
         "deleteRequiresCondition": "Excluir requer pelo menos uma condição",
+        "deleteConditionDurationInvalid": "A duração da condição de exclusão deve ser 0 ou pelo menos 1 minuto",
         "moveRequiresPath": "Preencha o caminho destino da ação Mover.",
         "invalidRegexPatternUnsupported": "Cuidado com seus Regex. (Lookahead não existe).",
         "selectExternalProgram": "Preencha o app que o qui precisará rodar no menu externo.",

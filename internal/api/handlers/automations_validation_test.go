@@ -197,6 +197,34 @@ func TestValidateFreeSpaceSource(t *testing.T) {
 	}
 }
 
+func TestValidateDeleteConditionDuration(t *testing.T) {
+	tests := []struct {
+		name       string
+		conditions *models.ActionConditions
+		wantErr    bool
+	}{
+		{name: "nil conditions", conditions: nil},
+		{name: "disabled delete ignored", conditions: &models.ActionConditions{Delete: &models.DeleteAction{Enabled: false, ConditionMatchDurationSeconds: 1}}},
+		{name: "zero disables duration", conditions: &models.ActionConditions{Delete: &models.DeleteAction{Enabled: true}}},
+		{name: "one minute accepted", conditions: &models.ActionConditions{Delete: &models.DeleteAction{Enabled: true, ConditionMatchDurationSeconds: 60}}},
+		{name: "longer duration accepted", conditions: &models.ActionConditions{Delete: &models.DeleteAction{Enabled: true, ConditionMatchDurationSeconds: 300}}},
+		{name: "negative rejected", conditions: &models.ActionConditions{Delete: &models.DeleteAction{Enabled: true, ConditionMatchDurationSeconds: -1}}, wantErr: true},
+		{name: "sub-minute rejected", conditions: &models.ActionConditions{Delete: &models.DeleteAction{Enabled: true, ConditionMatchDurationSeconds: 59}}, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg, err := validateDeleteConditionDuration(tt.conditions)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateDeleteConditionDuration() err = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr && msg == "" {
+				t.Error("expected a user-facing validation message")
+			}
+		})
+	}
+}
+
 // TestValidateFreeSpaceSource_PlatformSpecific tests path source validation on different platforms.
 // On Windows, path-based free space is not supported and returns 400.
 // On other platforms, it's valid when local filesystem access is enabled.

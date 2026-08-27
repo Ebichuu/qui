@@ -525,6 +525,8 @@ Remove torrents from qBittorrent. **Must be standalone** - cannot combine with o
 | `deleteWithFilesPreserveCrossSeeds` | Remove files but preserve if cross-seeds detected                             |
 | `deleteWithFilesIncludeCrossSeeds`  | Remove files and also delete all cross-seeded torrents sharing the same files |
 
+**Optional condition match duration:** Set `conditionMatchDurationSeconds` to require the delete condition to remain matched across consecutive workflow runs before deletion. The minimum non-zero value is 60 seconds; omit it or use `0` for immediate deletion. Any non-match resets the timer. Choose a workflow interval no longer than the duration so qui can observe the condition, and note that restarting qui resets active timers.
+
 **Optional grouping (advanced):**
 
 Delete actions can specify a `groupId` to expand the deletion to all torrents in that group.

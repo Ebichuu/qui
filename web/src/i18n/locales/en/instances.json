@@ -1401,6 +1401,9 @@
       },
       "delete": {
         "mode": "Mode",
+        "conditionDuration": "Condition match duration",
+        "conditionDurationHelp": "Require the delete conditions to remain matched across consecutive workflow checks. Any non-match resets the timer; 0 deletes immediately.",
+        "minutes": "minutes (0 = immediate)",
         "keepFiles": "Remove (keep files)",
         "keepFilesDisabledReason": "Disabled when using Free Space condition. Keep-files mode cannot satisfy a free space target because no disk space is freed.",
         "withFiles": "Remove with files",
@@ -1605,6 +1608,7 @@
         "selectTracker": "Select at least one tracker",
         "enableAction": "Enable at least one action",
         "deleteRequiresCondition": "Delete requires at least one condition",
+        "deleteConditionDurationInvalid": "Delete condition duration must be 0 or at least 1 minute",
         "moveRequiresPath": "Move requires a path",
         "invalidRegexPatternUnsupported": "Invalid regex pattern - Go/RE2 does not support Perl features like lookahead/lookbehind",
         "selectExternalProgram": "Select an external program",

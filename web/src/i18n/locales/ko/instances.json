@@ -1382,6 +1382,9 @@
       },
       "delete": {
         "mode": "모드",
+        "conditionDuration": "조건 일치 지속 시간",
+        "conditionDurationHelp": "연속된 워크플로 검사에서 삭제 조건이 계속 일치해야 합니다. 한 번이라도 일치하지 않으면 타이머가 초기화되며, 0은 즉시 실행합니다.",
+        "minutes": "분 (0 = 즉시)",
         "keepFiles": "제거(파일 유지)",
         "keepFilesDisabledReason": "여유 공간 조건을 사용할 때 비활성화됩니다. 디스크 공간이 확보되지 않으므로 파일 유지 모드는 여유 공간 목표를 충족할 수 없습니다.",
         "withFiles": "파일과 함께 제거",
@@ -1586,6 +1589,7 @@
         "selectTracker": "트래커를 하나 이상 선택하세요",
         "enableAction": "작업을 하나 이상 활성화하세요",
         "deleteRequiresCondition": "삭제에는 조건이 하나 이상 필요합니다",
+        "deleteConditionDurationInvalid": "삭제 조건 지속 시간은 0 또는 1분 이상이어야 합니다",
         "moveRequiresPath": "이동에는 경로가 필요합니다",
         "invalidRegexPatternUnsupported": "잘못된 정규식 패턴 - Go/RE2는 lookahead/lookbehind 같은 Perl 기능을 지원하지 않습니다",
         "selectExternalProgram": "외부 프로그램을 선택하세요",

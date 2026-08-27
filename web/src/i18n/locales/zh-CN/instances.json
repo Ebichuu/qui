@@ -1382,6 +1382,9 @@
       },
       "delete": {
         "mode": "模式",
+        "conditionDuration": "条件持续时间",
+        "conditionDurationHelp": "删除条件必须在连续的工作流检查中保持匹配。任意一次不匹配都会重置计时；设为 0 时立即执行。",
+        "minutes": "分钟（0 = 立即执行）",
         "keepFiles": "移除（保留文件）",
         "keepFilesDisabledReason": "使用可用空间条件时已禁用。保留文件模式无法满足可用空间目标，因为不会释放磁盘空间。",
         "withFiles": "移除并清除文件",
@@ -1586,6 +1589,7 @@
         "selectTracker": "请至少选择一个 Tracker",
         "enableAction": "请至少启用一个操作",
         "deleteRequiresCondition": "删除操作需要至少一个条件",
+        "deleteConditionDurationInvalid": "删除条件持续时间必须为 0 或至少 1 分钟",
         "moveRequiresPath": "移动操作需要路径",
         "invalidRegexPatternUnsupported": "无效的正则表达式 - Go/RE2 不支持 Perl 特性如前瞻/后顾",
         "selectExternalProgram": "请选择一个外部程序",

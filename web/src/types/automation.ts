@@ -202,6 +202,7 @@ export interface DeleteAction {
   includeHardlinks?: boolean // Only valid when mode is "deleteWithFilesIncludeCrossSeeds"
   groupId?: string
   atomic?: "all"
+  conditionMatchDurationSeconds?: number
   condition?: RuleCondition
 }
 

@@ -1401,6 +1401,9 @@
       },
       "delete": {
         "mode": "Modalità",
+        "conditionDuration": "Durata corrispondenza condizioni",
+        "conditionDurationHelp": "Le condizioni di eliminazione devono rimanere soddisfatte nei controlli consecutivi del flusso di lavoro. Una mancata corrispondenza azzera il timer; 0 elimina subito.",
+        "minutes": "minuti (0 = immediato)",
         "keepFiles": "Rimuovi (conserva i file)",
         "keepFilesDisabledReason": "Disabilitato quando si usa la condizione Spazio libero. La modalità conserva-file non può soddisfare un obiettivo di spazio libero perché non viene liberato spazio su disco.",
         "withFiles": "Rimuovi con i file",
@@ -1605,6 +1608,7 @@
         "selectTracker": "Seleziona almeno un tracker",
         "enableAction": "Abilita almeno un'azione",
         "deleteRequiresCondition": "L'eliminazione richiede almeno una condizione",
+        "deleteConditionDurationInvalid": "La durata della condizione di eliminazione deve essere 0 o almeno 1 minuto",
         "moveRequiresPath": "Lo spostamento richiede un percorso",
         "invalidRegexPatternUnsupported": "Pattern regex non valido - Go/RE2 non supporta funzionalità Perl come lookahead/lookbehind",
         "selectExternalProgram": "Seleziona un programma esterno",

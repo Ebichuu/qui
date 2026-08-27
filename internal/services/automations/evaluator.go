@@ -53,6 +53,10 @@ type FreeSpaceSourceState struct {
 
 // EvalContext provides additional context for condition evaluation.
 type EvalContext struct {
+	// DeleteConditionGate can defer a matched delete condition until a service-level
+	// requirement, such as continuous match duration, has been satisfied.
+	DeleteConditionGate func(rule *models.Automation, torrent qbt.Torrent, matched bool) bool
+
 	// UnregisteredSet contains hashes of unregistered torrents (from SyncManager health counts)
 	UnregisteredSet map[string]struct{}
 	// TrackerDownSet contains hashes of torrents whose trackers are down (from SyncManager health counts)

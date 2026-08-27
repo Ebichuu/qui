@@ -388,6 +388,9 @@ func (h *AutomationHandler) validatePayload(ctx context.Context, instanceID int,
 	if payload.IntervalSeconds != nil && *payload.IntervalSeconds < 60 {
 		return http.StatusBadRequest, "intervalSeconds must be at least 60", errors.New("interval too short")
 	}
+	if msg, err := validateDeleteConditionDuration(payload.Conditions); err != nil {
+		return http.StatusBadRequest, msg, err
+	}
 
 	// Validate sorting config
 	if payload.SortingConfig != nil {
@@ -551,6 +554,17 @@ func deleteUsesKeepFilesWithFreeSpace(conditions *models.ActionConditions) bool 
 	// Check if mode is keep-files (or empty, which defaults to keep-files)
 	mode := conditions.Delete.Mode
 	return mode == "" || mode == models.DeleteModeKeepFiles
+}
+
+func validateDeleteConditionDuration(conditions *models.ActionConditions) (string, error) {
+	if conditions == nil || conditions.Delete == nil || !conditions.Delete.Enabled {
+		return "", nil
+	}
+	duration := conditions.Delete.ConditionMatchDurationSeconds
+	if duration == 0 || duration >= 60 {
+		return "", nil
+	}
+	return "Delete condition duration must be 0 (disabled) or at least 60 seconds", errors.New("invalid delete condition duration")
 }
 
 func deleteUsesGroupIDOutsideKeepFiles(conditions *models.ActionConditions) bool {
