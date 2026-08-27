@@ -244,6 +244,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},prefix=v
             type=ref,event=branch
             type=ref,event=pr
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
           flavor: |
             latest=auto
 
@@ -321,6 +322,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},prefix=v
             type=ref,event=branch
             type=ref,event=pr
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
           flavor: |
             latest=auto
 
