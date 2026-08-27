@@ -745,6 +745,17 @@
       "runDryRunNow": "立即模擬執行",
       "duplicate": "複製",
       "copyTo": "複製到...",
+      "bulkCopy": "批次複製",
+      "copyToMultiple": "複製到多個實例...",
+      "bulkCopyDialog": {
+        "title": "批次複製工作流程",
+        "description": "選擇要複製的工作流程和目標實例。",
+        "workflows": "工作流程",
+        "instances": "目標實例",
+        "disabledNotice": "為安全起見，複製後的工作流程會保持停用，請檢查路徑和條件後再啟用。",
+        "cancel": "取消",
+        "copy": "複製 {{rules}} 條 × {{instances}} 個實例"
+      },
       "exportJSON": "匯出 JSON",
       "dragToReorder": "拖拽以重新排序工作流",
       "actions": {
@@ -838,6 +849,9 @@
         "copyFailed": "複製到剪貼簿失敗",
         "createdWorkflow": "已建立\"{{name}}\"",
         "copiedWorkflow": "已將\"{{name}}\"複製到 {{instance}}",
+        "bulkCopied": "已完成 {{copied}} 次工作流程複製",
+        "bulkCopyPartial": "已複製到 {{copied}} 個實例，{{failed}} 個失敗",
+        "bulkCopyFailed": "批次複製工作流程失敗",
         "importedWorkflow": "已匯入\"{{name}}\"",
         "createFailed": "建立工作流失敗",
         "reorderFailed": "重新排序工作流失敗",

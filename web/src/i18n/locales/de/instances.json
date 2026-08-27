@@ -746,6 +746,17 @@
       "runDryRunNow": "Probelauf jetzt starten",
       "duplicate": "Duplizieren",
       "copyTo": "Kopieren nach...",
+      "bulkCopy": "Stapelkopie",
+      "copyToMultiple": "In mehrere Instanzen kopieren...",
+      "bulkCopyDialog": {
+        "title": "Workflows stapelweise kopieren",
+        "description": "Wähle die Workflows und Zielinstanzen aus.",
+        "workflows": "Workflows",
+        "instances": "Zielinstanzen",
+        "disabledNotice": "Aus Sicherheitsgründen bleiben kopierte Workflows deaktiviert. Prüfe Pfade und Bedingungen, bevor du sie aktivierst.",
+        "cancel": "Abbrechen",
+        "copy": "{{rules}} × {{instances}} kopieren"
+      },
       "exportJSON": "JSON exportieren",
       "dragToReorder": "Zum Umsortieren des Workflows ziehen",
       "actions": {
@@ -856,6 +867,9 @@
         "copyFailed": "Kopieren in Zwischenablage fehlgeschlagen",
         "createdWorkflow": "\"{{name}}\" erstellt",
         "copiedWorkflow": "\"{{name}}\" nach {{instance}} kopiert",
+        "bulkCopied": "{{copied}} Workflow-Kopien abgeschlossen",
+        "bulkCopyPartial": "In {{copied}} Instanzen kopiert, {{failed}} fehlgeschlagen",
+        "bulkCopyFailed": "Workflow konnte nicht mehrfach kopiert werden",
         "importedWorkflow": "\"{{name}}\" importiert",
         "createFailed": "Workflow konnte nicht erstellt werden",
         "reorderFailed": "Workflows konnten nicht umsortiert werden",

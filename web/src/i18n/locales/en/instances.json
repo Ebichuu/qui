@@ -746,6 +746,17 @@
       "runDryRunNow": "Run dry-run now",
       "duplicate": "Duplicate",
       "copyTo": "Copy to...",
+      "bulkCopy": "Batch copy",
+      "copyToMultiple": "Copy to multiple instances...",
+      "bulkCopyDialog": {
+        "title": "Batch copy workflows",
+        "description": "Select the workflows and target instances.",
+        "workflows": "Workflows",
+        "instances": "Target instances",
+        "disabledNotice": "Copied workflows stay disabled for safety. Review paths and conditions before enabling them.",
+        "cancel": "Cancel",
+        "copy": "Copy {{rules}} × {{instances}}"
+      },
       "exportJSON": "Export JSON",
       "dragToReorder": "Drag to reorder workflow",
       "actions": {
@@ -856,6 +867,9 @@
         "copyFailed": "Failed to copy to clipboard",
         "createdWorkflow": "Created \"{{name}}\"",
         "copiedWorkflow": "Copied \"{{name}}\" to {{instance}}",
+        "bulkCopied": "Completed {{copied}} workflow copies",
+        "bulkCopyPartial": "Copied to {{copied}} instances; {{failed}} failed",
+        "bulkCopyFailed": "Failed to copy workflow to multiple instances",
         "importedWorkflow": "Imported \"{{name}}\"",
         "createFailed": "Failed to create workflow",
         "reorderFailed": "Failed to reorder workflows",

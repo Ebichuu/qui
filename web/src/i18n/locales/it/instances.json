@@ -746,6 +746,17 @@
       "runDryRunNow": "Esegui un dry run ora",
       "duplicate": "Duplica",
       "copyTo": "Copia in...",
+      "bulkCopy": "Copia multipla",
+      "copyToMultiple": "Copia in più istanze...",
+      "bulkCopyDialog": {
+        "title": "Copia multipla dei workflow",
+        "description": "Seleziona i workflow e le istanze di destinazione.",
+        "workflows": "Workflow",
+        "instances": "Istanze di destinazione",
+        "disabledNotice": "Per sicurezza, i workflow copiati rimangono disabilitati. Verifica percorsi e condizioni prima di abilitarli.",
+        "cancel": "Annulla",
+        "copy": "Copia {{rules}} × {{instances}}"
+      },
       "exportJSON": "Esporta JSON",
       "dragToReorder": "Trascina per riordinare il workflow",
       "actions": {
@@ -856,6 +867,9 @@
         "copyFailed": "Copia negli appunti non riuscita",
         "createdWorkflow": "Creato \"{{name}}\"",
         "copiedWorkflow": "Copiato \"{{name}}\" su {{instance}}",
+        "bulkCopied": "Completate {{copied}} copie di workflow",
+        "bulkCopyPartial": "Copiato in {{copied}} istanze, {{failed}} non riuscite",
+        "bulkCopyFailed": "Copia multipla del workflow non riuscita",
         "importedWorkflow": "Importato \"{{name}}\"",
         "createFailed": "Creazione del workflow non riuscita",
         "reorderFailed": "Riordino dei workflow non riuscito",

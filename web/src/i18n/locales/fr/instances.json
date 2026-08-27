@@ -740,6 +740,17 @@
       "runDryRunNow": "Lancer une simulation maintenant",
       "duplicate": "Dupliquer",
       "copyTo": "Copier vers...",
+      "bulkCopy": "Copie groupée",
+      "copyToMultiple": "Copier vers plusieurs instances...",
+      "bulkCopyDialog": {
+        "title": "Copier des workflows en groupe",
+        "description": "Sélectionnez les workflows et les instances cibles.",
+        "workflows": "Workflows",
+        "instances": "Instances cibles",
+        "disabledNotice": "Par sécurité, les workflows copiés restent désactivés. Vérifiez les chemins et les conditions avant de les activer.",
+        "cancel": "Annuler",
+        "copy": "Copier {{rules}} × {{instances}}"
+      },
       "exportJSON": "Exporter JSON",
       "dragToReorder": "Faites glisser pour réorganiser le workflow",
       "actions": {
@@ -850,6 +861,9 @@
         "copyFailed": "Échec de la copie dans le presse-papiers",
         "createdWorkflow": "Créé \"{{name}}\"",
         "copiedWorkflow": "Copié \"{{name}}\" vers {{instance}}",
+        "bulkCopied": "{{copied}} copies de workflow terminées",
+        "bulkCopyPartial": "Copié vers {{copied}} instances, {{failed}} échecs",
+        "bulkCopyFailed": "Échec de la copie multiple du workflow",
         "importedWorkflow": "Importé \"{{name}}\"",
         "createFailed": "Échec de la création du workflow",
         "reorderFailed": "Échec de la réorganisation des workflows",

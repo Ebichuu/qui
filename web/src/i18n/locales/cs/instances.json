@@ -746,6 +746,17 @@
       "runDryRunNow": "Spustit zkušební běh nyní",
       "duplicate": "Duplikovat",
       "copyTo": "Kopírovat do...",
+      "bulkCopy": "Hromadně kopírovat",
+      "copyToMultiple": "Kopírovat do více instancí...",
+      "bulkCopyDialog": {
+        "title": "Hromadně kopírovat pracovní postupy",
+        "description": "Vyberte pracovní postupy a cílové instance.",
+        "workflows": "Pracovní postupy",
+        "instances": "Cílové instance",
+        "disabledNotice": "Z bezpečnostních důvodů zůstanou zkopírované pracovní postupy zakázané. Před jejich povolením zkontrolujte cesty a podmínky.",
+        "cancel": "Zrušit",
+        "copy": "Kopírovat {{rules}} × {{instances}}"
+      },
       "exportJSON": "Exportovat JSON",
       "dragToReorder": "Přetáhnout pro seřazení postupu automatizace",
       "actions": {
@@ -856,6 +867,9 @@
         "copyFailed": "Nepodařilo se zkopírovat do schránky",
         "createdWorkflow": "Vytvořen postup automatizace \"{{name}}\"",
         "copiedWorkflow": "Postup automatizace \"{{name}}\" zkopírována do {{instance}}",
+        "bulkCopied": "Dokončeno {{copied}} kopií pracovních postupů",
+        "bulkCopyPartial": "Zkopírováno do {{copied}} instancí, {{failed}} selhalo",
+        "bulkCopyFailed": "Hromadné kopírování pracovního postupu selhalo",
         "importedWorkflow": "Importován postup automatizace \"{{name}}\"",
         "createFailed": "Nepodařilo se vytvořit postup automatizace",
         "reorderFailed": "Nepodařilo se seřadit postupy automatizace",

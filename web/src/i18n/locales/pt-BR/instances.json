@@ -746,6 +746,17 @@
       "runDryRunNow": "Rodar simulação agora",
       "duplicate": "Duplicar",
       "copyTo": "Copiar para...",
+      "bulkCopy": "Cópia em lote",
+      "copyToMultiple": "Copiar para várias instâncias...",
+      "bulkCopyDialog": {
+        "title": "Copiar fluxos em lote",
+        "description": "Selecione os fluxos e as instâncias de destino.",
+        "workflows": "Fluxos",
+        "instances": "Instâncias de destino",
+        "disabledNotice": "Por segurança, os fluxos copiados permanecem desativados. Verifique caminhos e condições antes de ativá-los.",
+        "cancel": "Cancelar",
+        "copy": "Copiar {{rules}} × {{instances}}"
+      },
       "exportJSON": "Exportar JSON",
       "dragToReorder": "Arraste para reordenar",
       "actions": {
@@ -856,6 +867,9 @@
         "copyFailed": "Falha ao copiar",
         "createdWorkflow": "Criado \"{{name}}\"",
         "copiedWorkflow": "Copiado \"{{name}}\" para {{instance}}",
+        "bulkCopied": "Concluídas {{copied}} cópias de fluxo",
+        "bulkCopyPartial": "Copiado para {{copied}} instâncias, {{failed}} falharam",
+        "bulkCopyFailed": "Falha ao copiar o fluxo em lote",
         "importedWorkflow": "Importado \"{{name}}\"",
         "createFailed": "Falha ao criar",
         "reorderFailed": "Falha ao reordenar",

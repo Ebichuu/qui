@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -407,6 +408,9 @@ export function WorkflowsOverview({
   const [importInstanceId, setImportInstanceId] = useState<number | null>(null)
   const [importJSON, setImportJSON] = useState("")
   const [importError, setImportError] = useState<string | null>(null)
+  const [bulkCopySource, setBulkCopySource] = useState<{ sourceInstanceId: number; rules: Automation[] } | null>(null)
+  const [bulkCopyRuleIds, setBulkCopyRuleIds] = useState<number[]>([])
+  const [bulkCopyTargetIds, setBulkCopyTargetIds] = useState<number[]>([])
 
   // Activity-related state
   const { formatISOTimestamp } = useDateTimeFormatters()
@@ -560,6 +564,45 @@ export function WorkflowsOverview({
     const queryData = queryClient.getQueryData<Automation[]>(["automations", instanceId])
     return queryData?.map(r => r.name) ?? []
   }, [queryClient])
+
+  const bulkCopyWorkflow = useMutation({
+    mutationFn: async ({ rules, targetInstanceIds }: { rules: Automation[]; targetInstanceIds: number[] }) => {
+      const results = await Promise.all(targetInstanceIds.map(async (targetInstanceId) => {
+        const existingNames = [...getExistingNames(targetInstanceId)]
+        let copied = 0
+        let failed = 0
+        for (const rule of rules) {
+          const input = toDuplicateInput(rule, existingNames)
+          try {
+            await api.createAutomation(targetInstanceId, input)
+            existingNames.push(input.name)
+            copied++
+          } catch {
+            failed++
+          }
+        }
+        await queryClient.invalidateQueries({ queryKey: ["automations", targetInstanceId] })
+        return { copied, failed }
+      }))
+      return {
+        copied: results.reduce((sum, result) => sum + result.copied, 0),
+        failed: results.reduce((sum, result) => sum + result.failed, 0),
+      }
+    },
+    onSuccess: ({ copied, failed }) => {
+      if (failed > 0) {
+        toast.warning(t("preferences.workflowsOverview.toast.bulkCopyPartial", { copied, failed }))
+      } else {
+        toast.success(t("preferences.workflowsOverview.toast.bulkCopied", { copied }))
+      }
+      setBulkCopySource(null)
+      setBulkCopyRuleIds([])
+      setBulkCopyTargetIds([])
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : t("preferences.workflowsOverview.toast.bulkCopyFailed"))
+    },
+  })
 
   // Export workflow to clipboard
   const handleExport = useCallback(async (rule: Automation) => {
@@ -1012,6 +1055,11 @@ export function WorkflowsOverview({
                                     onRunDryRun={() => dryRunRule.mutate({ instanceId: instance.id, rule })}
                                     onDuplicate={() => handleDuplicate(instance.id, rule)}
                                     onCopyToInstance={(targetId) => handleCopyToInstance(rule, targetId)}
+                                    onCopyToMultiple={() => {
+                                      setBulkCopySource({ sourceInstanceId: instance.id, rules: sortedRules })
+                                      setBulkCopyRuleIds([rule.id])
+                                      setBulkCopyTargetIds([])
+                                    }}
                                     onExport={() => handleExport(rule)}
                                     disableDrag={sortedRules.length < 2 || reorderRules.isPending}
                                   />
@@ -1020,7 +1068,7 @@ export function WorkflowsOverview({
                             </div>
                           </SortableContext>
                         </DndContext>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -1038,6 +1086,20 @@ export function WorkflowsOverview({
                             <Upload className="h-4 w-4 mr-2" />
                             {t("preferences.workflowsOverview.import")}
                           </Button>
+                          {sortedRules.length > 0 && activeInstances.length > 1 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setBulkCopySource({ sourceInstanceId: instance.id, rules: sortedRules })
+                                setBulkCopyRuleIds(sortedRules.map(rule => rule.id))
+                                setBulkCopyTargetIds([])
+                              }}
+                            >
+                              <CopyPlus className="h-4 w-4 mr-2" />
+                              {t("preferences.workflowsOverview.bulkCopy")}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1672,6 +1734,110 @@ export function WorkflowsOverview({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={bulkCopySource !== null}
+        onOpenChange={(open) => {
+          if (!open && !bulkCopyWorkflow.isPending) {
+            setBulkCopySource(null)
+            setBulkCopyRuleIds([])
+            setBulkCopyTargetIds([])
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("preferences.workflowsOverview.bulkCopyDialog.title")}</DialogTitle>
+            <DialogDescription>
+              {t("preferences.workflowsOverview.bulkCopyDialog.description")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{t("preferences.workflowsOverview.bulkCopyDialog.workflows")}</p>
+            <div className="space-y-2 max-h-[24vh] overflow-y-auto py-1">
+              {bulkCopySource?.rules.map(rule => {
+                const checked = bulkCopyRuleIds.includes(rule.id)
+                return (
+                  <label
+                    key={rule.id}
+                    htmlFor={`bulk-copy-rule-${rule.id}`}
+                    className="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 hover:bg-muted/50"
+                  >
+                    <Checkbox
+                      id={`bulk-copy-rule-${rule.id}`}
+                      checked={checked}
+                      onCheckedChange={(nextChecked) => {
+                        setBulkCopyRuleIds(current => nextChecked
+                          ? [...current, rule.id]
+                          : current.filter(id => id !== rule.id))
+                      }}
+                    />
+                    <span className="min-w-0 truncate text-sm font-medium">{rule.name}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">{t("preferences.workflowsOverview.bulkCopyDialog.instances")}</p>
+            <div className="space-y-2 max-h-[24vh] overflow-y-auto py-1">
+              {activeInstances
+                .filter(instance => instance.id !== bulkCopySource?.sourceInstanceId)
+                .map(instance => {
+                  const checked = bulkCopyTargetIds.includes(instance.id)
+                  return (
+                    <label
+                      key={instance.id}
+                      htmlFor={`bulk-copy-instance-${instance.id}`}
+                      className="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        id={`bulk-copy-instance-${instance.id}`}
+                        checked={checked}
+                        onCheckedChange={(nextChecked) => {
+                          setBulkCopyTargetIds(current => nextChecked
+                            ? [...current, instance.id]
+                            : current.filter(id => id !== instance.id))
+                        }}
+                      />
+                      <span className="min-w-0 truncate text-sm font-medium">{instance.name}</span>
+                    </label>
+                  )
+                })}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("preferences.workflowsOverview.bulkCopyDialog.disabledNotice")}
+          </p>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={bulkCopyWorkflow.isPending}
+              onClick={() => {
+                setBulkCopySource(null)
+                setBulkCopyRuleIds([])
+                setBulkCopyTargetIds([])
+              }}
+            >
+              {t("preferences.workflowsOverview.bulkCopyDialog.cancel")}
+            </Button>
+            <Button
+              disabled={!bulkCopySource || bulkCopyRuleIds.length === 0 || bulkCopyTargetIds.length === 0 || bulkCopyWorkflow.isPending}
+              onClick={() => {
+                if (!bulkCopySource) return
+                const selectedRules = bulkCopySource.rules.filter(rule => bulkCopyRuleIds.includes(rule.id))
+                bulkCopyWorkflow.mutate({ rules: selectedRules, targetInstanceIds: bulkCopyTargetIds })
+              }}
+            >
+              {bulkCopyWorkflow.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t("preferences.workflowsOverview.bulkCopyDialog.copy", {
+                rules: bulkCopyRuleIds.length,
+                instances: bulkCopyTargetIds.length,
+              })}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
@@ -1687,6 +1853,7 @@ interface RulePreviewProps {
   onRunDryRun: () => void
   onDuplicate: () => void
   onCopyToInstance: (targetInstanceId: number) => void
+  onCopyToMultiple: () => void
   onExport: () => void
 }
 
@@ -1704,6 +1871,7 @@ function SortableRulePreview({
   onRunDryRun,
   onDuplicate,
   onCopyToInstance,
+  onCopyToMultiple,
   onExport,
   disableDrag,
 }: SortableRulePreviewProps) {
@@ -1738,6 +1906,7 @@ function SortableRulePreview({
         onRunDryRun={onRunDryRun}
         onDuplicate={onDuplicate}
         onCopyToInstance={onCopyToInstance}
+        onCopyToMultiple={onCopyToMultiple}
         onExport={onExport}
         dragHandle={(
           <Button
@@ -1773,6 +1942,7 @@ function RulePreview({
   onRunDryRun,
   onDuplicate,
   onCopyToInstance,
+  onCopyToMultiple,
   onExport,
 }: RulePreviewProps) {
   const { t } = useTranslation("instances")
@@ -1944,6 +2114,10 @@ function RulePreview({
                   {t("preferences.workflowsOverview.copyTo")}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={onCopyToMultiple}>
+                    {t("preferences.workflowsOverview.copyToMultiple")}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   {otherInstances.map(inst => (
                     <DropdownMenuItem key={inst.id} onClick={() => onCopyToInstance(inst.id)}>
                       {inst.name}
