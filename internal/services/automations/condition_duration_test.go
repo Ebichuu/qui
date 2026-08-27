@@ -94,6 +94,35 @@ func TestPruneDeleteConditionMatchesResetsUnobservedAndOldVersions(t *testing.T)
 	}
 }
 
+func TestCleanupStaleEntriesPreservesLongDurationTimers(t *testing.T) {
+	now := time.Now()
+	longDurationKey := deleteConditionMatchKey{instanceID: 1, ruleID: 2, hash: "long"}
+	shortDurationKey := deleteConditionMatchKey{instanceID: 1, ruleID: 3, hash: "short"}
+	service := &Service{
+		deleteConditionMatches: map[deleteConditionMatchKey]deleteConditionMatchState{
+			longDurationKey: {
+				matchedSince: now.Add(-25 * time.Hour),
+				lastSeen:     now.Add(-25 * time.Hour),
+				duration:     48 * time.Hour,
+			},
+			shortDurationKey: {
+				matchedSince: now.Add(-25 * time.Hour),
+				lastSeen:     now.Add(-25 * time.Hour),
+				duration:     time.Minute,
+			},
+		},
+	}
+
+	service.cleanupStaleEntries()
+
+	if _, ok := service.deleteConditionMatches[longDurationKey]; !ok {
+		t.Fatal("cleanup should preserve a timer whose configured duration is still active")
+	}
+	if _, ok := service.deleteConditionMatches[shortDurationKey]; ok {
+		t.Fatal("cleanup should remove a stale short-duration timer")
+	}
+}
+
 func TestProcessTorrentsDefersDeleteUntilDurationGateIsReady(t *testing.T) {
 	rule := durationTestRule(60, time.Now())
 	rule.TrackerPattern = "*"
