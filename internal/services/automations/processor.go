@@ -1209,6 +1209,12 @@ func getNumericFieldValue(t qbt.Torrent, field models.ConditionField, evalCtx *E
 		return float64(t.DlSpeed)
 	case models.FieldUpSpeed:
 		return float64(t.UpSpeed)
+	case models.FieldUpSpeedAvg:
+		average, ok := averageUploadSpeed(t)
+		if !ok {
+			return 0
+		}
+		return float64(average)
 	case models.FieldNumSeeds:
 		return float64(t.NumSeeds)
 	case models.FieldNumLeechs:

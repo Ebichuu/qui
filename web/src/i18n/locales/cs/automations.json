@@ -184,6 +184,7 @@
       "POPULARITY": "Popularita",
       "DL_SPEED": "Rychlost stahování",
       "UP_SPEED": "Rychlost odesílání",
+      "UP_SPEED_AVG": "Průměrná rychlost odesílání",
       "DL_LIMIT": "Limit stahování",
       "UP_LIMIT": "Limit odesílání",
       "NUM_SEEDS": "Aktivních sdílečů",

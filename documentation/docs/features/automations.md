@@ -109,8 +109,11 @@ These fields use qui's current system time when the rule is evaluated. They are 
 | -------------- | ------------------------------ |
 | Download Speed | Current download speed         |
 | Upload Speed   | Current upload speed           |
+| Average Upload Speed | Total uploaded bytes divided by total active time |
 | Download Limit | Configured download speed limit |
 | Upload Limit   | Configured upload speed limit  |
+
+**Average Upload Speed** is calculated from the torrent-list counters (`Uploaded / Time Active`). A torrent with no active-time value does not match this condition. This avoids a separate qBittorrent properties request for every torrent during each automation scan.
 
 #### Peer/Queue Fields
 

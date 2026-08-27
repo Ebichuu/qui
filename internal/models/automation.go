@@ -726,10 +726,11 @@ const (
 	FieldPopularity       ConditionField = "POPULARITY"
 
 	// Numeric fields (speeds)
-	FieldDlSpeed ConditionField = "DL_SPEED"
-	FieldUpSpeed ConditionField = "UP_SPEED"
-	FieldDlLimit ConditionField = "DL_LIMIT"
-	FieldUpLimit ConditionField = "UP_LIMIT"
+	FieldDlSpeed    ConditionField = "DL_SPEED"
+	FieldUpSpeed    ConditionField = "UP_SPEED"
+	FieldUpSpeedAvg ConditionField = "UP_SPEED_AVG"
+	FieldDlLimit    ConditionField = "DL_LIMIT"
+	FieldUpLimit    ConditionField = "UP_LIMIT"
 
 	// Numeric fields (counts/misc)
 	FieldNumSeeds      ConditionField = "NUM_SEEDS"
@@ -776,7 +777,7 @@ func (f ConditionField) IsNumeric() bool {
 		FieldAddedOn, FieldCompletionOn, FieldLastActivity, FieldSeedingTime, FieldTimeActive,
 		FieldAddedOnAge, FieldCompletionOnAge, FieldLastActivityAge,
 		FieldRatio, FieldProgress, FieldAvailability,
-		FieldDlSpeed, FieldUpSpeed,
+		FieldDlSpeed, FieldUpSpeed, FieldUpSpeedAvg,
 		FieldNumSeeds, FieldNumLeechs, FieldNumComplete, FieldNumIncomplete, FieldTrackersCount,
 		FieldSystemHour, FieldSystemMinute, FieldSystemDayOfWeek, FieldSystemDay, FieldSystemMonth, FieldSystemYear:
 		return true

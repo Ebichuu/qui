@@ -188,6 +188,7 @@
       "POPULARITY": "인기도",
       "DL_SPEED": "다운로드 속도",
       "UP_SPEED": "업로드 속도",
+      "UP_SPEED_AVG": "평균 업로드 속도",
       "DL_LIMIT": "다운로드 제한",
       "UP_LIMIT": "업로드 제한",
       "NUM_SEEDS": "활성 시더",

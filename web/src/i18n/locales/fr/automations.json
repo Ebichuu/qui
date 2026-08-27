@@ -188,6 +188,7 @@
       "POPULARITY": "Popularité",
       "DL_SPEED": "Vitesse de téléchargement",
       "UP_SPEED": "Vitesse d'envoi",
+      "UP_SPEED_AVG": "Vitesse moyenne d'envoi",
       "DL_LIMIT": "Limite de téléchargement",
       "UP_LIMIT": "Limite d'envoi",
       "NUM_SEEDS": "Sources Actives",

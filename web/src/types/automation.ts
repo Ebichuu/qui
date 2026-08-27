@@ -78,6 +78,7 @@ export type ConditionField =
   // Numeric fields (speeds)
   | "DL_SPEED"
   | "UP_SPEED"
+  | "UP_SPEED_AVG"
   | "DL_LIMIT"
   | "UP_LIMIT"
   // Numeric fields (counts/misc)

@@ -86,6 +86,7 @@ export const CONDITION_FIELDS = {
   // Speed fields (bytes/s)
   DL_SPEED: { label: "Download Speed", type: "speed" as const, description: "Current download speed" },
   UP_SPEED: { label: "Upload Speed", type: "speed" as const, description: "Current upload speed" },
+  UP_SPEED_AVG: { label: "Average Upload Speed", type: "speed" as const, description: "Total uploaded divided by total active time" },
   DL_LIMIT: { label: "Download Limit", type: "speed" as const, description: "Configured download speed limit" },
   UP_LIMIT: { label: "Upload Limit", type: "speed" as const, description: "Configured upload speed limit" },
 
@@ -280,7 +281,7 @@ export const FIELD_GROUPS = [
   },
   {
     label: "Speed",
-    fields: ["DL_SPEED", "UP_SPEED", "DL_LIMIT", "UP_LIMIT"],
+    fields: ["DL_SPEED", "UP_SPEED", "UP_SPEED_AVG", "DL_LIMIT", "UP_LIMIT"],
   },
   {
     label: "Peers",

@@ -509,6 +509,12 @@ func evaluateLeaf(cond *RuleCondition, torrent qbt.Torrent, ctx *EvalContext) bo
 		return compareInt64(torrent.DlSpeed, cond)
 	case FieldUpSpeed:
 		return compareInt64(torrent.UpSpeed, cond)
+	case FieldUpSpeedAvg:
+		average, ok := averageUploadSpeed(torrent)
+		if !ok {
+			return false
+		}
+		return compareInt64(average, cond)
 	case FieldDlLimit:
 		return compareInt64(torrent.DlLimit, cond)
 	case FieldUpLimit:
@@ -667,6 +673,16 @@ func evaluateLeaf(cond *RuleCondition, torrent qbt.Torrent, ctx *EvalContext) bo
 	default:
 		return false
 	}
+}
+
+// averageUploadSpeed returns the torrent's lifetime upload average in bytes/s.
+// The torrent list does not expose qBittorrent's detail-only up_speed_avg field,
+// so use the list's cumulative upload and active-time counters instead.
+func averageUploadSpeed(torrent qbt.Torrent) (int64, bool) {
+	if torrent.TimeActive <= 0 {
+		return 0, false
+	}
+	return torrent.Uploaded / torrent.TimeActive, true
 }
 
 func compareState(torrent qbt.Torrent, cond *RuleCondition, ctx *EvalContext) bool {
