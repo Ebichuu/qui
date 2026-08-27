@@ -1523,6 +1523,7 @@
     "peers": "Pairs",
     "downSpeed": "Vit. Réc.",
     "upSpeed": "Vit. Émis.",
+    "averageUpSpeed": "Vitesse moyenne d'envoi",
     "eta": "ETA",
     "ratio": "Ratio",
     "popularity": "Popularité",

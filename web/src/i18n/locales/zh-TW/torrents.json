@@ -1455,6 +1455,7 @@
     "peers": "節點",
     "downSpeed": "下載速度",
     "upSpeed": "上傳速度",
+    "averageUpSpeed": "平均上傳速度",
     "eta": "預計剩餘時間",
     "ratio": "分享率",
     "popularity": "熱度",

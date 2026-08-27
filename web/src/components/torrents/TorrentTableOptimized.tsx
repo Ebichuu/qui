@@ -128,6 +128,7 @@ const DEFAULT_COLUMN_VISIBILITY = {
   num_leechs: true,
   dlspeed: true,
   upspeed: true,
+  up_speed_avg: false,
   eta: true,
   ratio: true,
   popularity: true,

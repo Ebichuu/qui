@@ -1665,6 +1665,10 @@ func (sm *SyncManager) GetTorrentsWithFilters(ctx context.Context, instanceID in
 		sm.sortTorrentsByTimestamp(filteredTorrents, order == "desc", func(t qbt.Torrent) int64 { return NormalizeCompletionTimestamp(t.SeenComplete) })
 	}
 
+	if sort == "up_speed_avg" {
+		sm.sortTorrentsByAverageUploadSpeed(filteredTorrents, order == "desc")
+	}
+
 	// Calculate stats from filtered torrents
 	stats := sm.calculateStats(filteredTorrents)
 
@@ -5880,6 +5884,10 @@ func (sm *SyncManager) sortCrossInstanceTorrents(torrents []CrossInstanceTorrent
 			if result := cmp.Compare(a.UpSpeed, b.UpSpeed); result != 0 {
 				return applyDirection(result)
 			}
+		case "up_speed_avg":
+			if result := compareAverageUploadSpeed(a.Uploaded, a.TimeActive, b.Uploaded, b.TimeActive, desc); result != 0 {
+				return result
+			}
 		case "ratio":
 			if result := cmp.Compare(a.Ratio, b.Ratio); result != 0 {
 				return applyDirection(result)
@@ -6120,6 +6128,44 @@ func (sm *SyncManager) sortTorrentsByETA(torrents []qbt.Torrent, desc bool) {
 	})
 }
 
+// sortTorrentsByAverageUploadSpeed orders torrents by their lifetime upload
+// average (uploaded bytes divided by active seconds). Torrents without an
+// active-time value stay at the end in both directions.
+func (sm *SyncManager) sortTorrentsByAverageUploadSpeed(torrents []qbt.Torrent, desc bool) {
+	if len(torrents) <= 1 {
+		return
+	}
+
+	sortByIndex(torrents, func(aIdx, bIdx int) int {
+		a := &torrents[aIdx]
+		b := &torrents[bIdx]
+		if result := compareAverageUploadSpeed(a.Uploaded, a.TimeActive, b.Uploaded, b.TimeActive, desc); result != 0 {
+			return result
+		}
+		return compareHashThenIndex(torrents, aIdx, bIdx)
+	})
+}
+
+func compareAverageUploadSpeed(uploadedA, timeActiveA, uploadedB, timeActiveB int64, desc bool) int {
+	validA := timeActiveA > 0
+	validB := timeActiveB > 0
+	if validA != validB {
+		if validA {
+			return -1
+		}
+		return 1
+	}
+	if !validA {
+		return 0
+	}
+
+	result := cmp.Compare(uploadedA/timeActiveA, uploadedB/timeActiveB)
+	if desc {
+		return -result
+	}
+	return result
+}
+
 // sortTorrentsByTimestamp sorts torrents by a timestamp field with fallback to state, name, and hash.
 // The getTimestamp function extracts the timestamp value from a torrent.
 // Special values (0 or -1 meaning "never") are treated as infinitely old and sort naturally.
@@ -6177,7 +6223,7 @@ func compareHashThenIndex(torrents []qbt.Torrent, aIdx, bIdx int) int {
 func setLibrarySort(options *qbt.TorrentFilterOptions, sort, order string) {
 	switch sort {
 	case "name", "tracker", "added_on", "last_activity", "completion_on", "seen_complete",
-		"eta", "priority", "state":
+		"eta", "priority", "state", "up_speed_avg":
 		return
 	}
 

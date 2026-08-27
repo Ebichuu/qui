@@ -17,6 +17,7 @@ export const TORRENT_SORT_OPTIONS = [
   { value: "num_leechs", label: "Leechers" },
   { value: "dlspeed", label: "Download Speed" },
   { value: "upspeed", label: "Upload Speed" },
+  { value: "up_speed_avg", label: "Average Upload Speed" },
   { value: "eta", label: "ETA" },
   { value: "ratio", label: "Ratio" },
   { value: "popularity", label: "Popularity" },

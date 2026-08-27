@@ -1885,6 +1885,8 @@ func TestSortCrossInstanceTorrents_CommonFields(t *testing.T) {
 						State:       qbt.TorrentStatePausedUp,
 						AddedOn:     100,
 						DlSpeed:     50,
+						Uploaded:    1000,
+						TimeActive:  10,
 						NumComplete: 10,
 						Priority:    1,
 						ETA:         60,
@@ -1902,6 +1904,8 @@ func TestSortCrossInstanceTorrents_CommonFields(t *testing.T) {
 						State:       qbt.TorrentStateDownloading,
 						AddedOn:     200,
 						DlSpeed:     10,
+						Uploaded:    100,
+						TimeActive:  10,
 						NumComplete: 5,
 						Priority:    0,
 						ETA:         8640000, // infinity ETA
@@ -1941,6 +1945,7 @@ func TestSortCrossInstanceTorrents_CommonFields(t *testing.T) {
 		{name: "state asc", sort: "state", desc: false, firstHash: "hash-beta", lastHash: "hash-alpha"},
 		{name: "added_on desc", sort: "added_on", desc: true, firstHash: "hash-beta", lastHash: "hash-alpha"},
 		{name: "dlspeed desc", sort: "dlspeed", desc: true, firstHash: "hash-gamma", lastHash: "hash-beta"},
+		{name: "average upload speed desc keeps missing last", sort: "up_speed_avg", desc: true, firstHash: "hash-alpha", lastHash: "hash-gamma"},
 		{name: "num_complete asc", sort: "num_complete", desc: false, firstHash: "hash-beta", lastHash: "hash-gamma"},
 		{name: "priority asc keeps zero last", sort: "priority", desc: false, firstHash: "hash-gamma", lastHash: "hash-beta"},
 		{name: "eta asc keeps infinity last", sort: "eta", desc: false, firstHash: "hash-alpha", lastHash: "hash-beta"},
@@ -1956,6 +1961,27 @@ func TestSortCrossInstanceTorrents_CommonFields(t *testing.T) {
 			require.Equal(t, tc.lastHash, torrents[len(torrents)-1].Hash)
 		})
 	}
+}
+
+func TestSortTorrentsByAverageUploadSpeed(t *testing.T) {
+	t.Parallel()
+
+	sm := NewSyncManager(nil, nil)
+	build := func() []qbt.Torrent {
+		return []qbt.Torrent{
+			{Hash: "missing", Uploaded: 5000, TimeActive: 0},
+			{Hash: "fast", Uploaded: 3000, TimeActive: 10},
+			{Hash: "slow", Uploaded: 1000, TimeActive: 10},
+		}
+	}
+
+	ascending := build()
+	sm.sortTorrentsByAverageUploadSpeed(ascending, false)
+	require.Equal(t, []string{"slow", "fast", "missing"}, []string{ascending[0].Hash, ascending[1].Hash, ascending[2].Hash})
+
+	descending := build()
+	sm.sortTorrentsByAverageUploadSpeed(descending, true)
+	require.Equal(t, []string{"fast", "slow", "missing"}, []string{descending[0].Hash, descending[1].Hash, descending[2].Hash})
 }
 
 func TestSortCrossInstanceTorrentsStateUsesTrackerHealthPriority(t *testing.T) {
@@ -2971,7 +2997,7 @@ func TestRequestCoversWholeLibrary(t *testing.T) {
 func TestSetLibrarySortSkipsFieldsQuiResortsItself(t *testing.T) {
 	t.Parallel()
 
-	for _, field := range []string{"name", "tracker", "added_on", "last_activity", "completion_on", "seen_complete", "eta", "priority", "state"} {
+	for _, field := range []string{"name", "tracker", "added_on", "last_activity", "completion_on", "seen_complete", "eta", "priority", "state", "up_speed_avg"} {
 		options := qbt.TorrentFilterOptions{}
 		setLibrarySort(&options, field, "desc")
 		require.Empty(t, options.Sort, field)

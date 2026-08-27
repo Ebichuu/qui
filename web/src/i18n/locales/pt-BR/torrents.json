@@ -1523,6 +1523,7 @@
     "peers": "Peers",
     "downSpeed": "Veloc. DL",
     "upSpeed": "Veloc. UP",
+    "averageUpSpeed": "Velocidade média de upload",
     "eta": "ETA",
     "ratio": "Ratio",
     "popularity": "Popularidade",

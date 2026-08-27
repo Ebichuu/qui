@@ -1460,6 +1460,7 @@
     "peers": "피어",
     "downSpeed": "다운로드 속도",
     "upSpeed": "업로드 속도",
+    "averageUpSpeed": "평균 업로드 속도",
     "eta": "ETA",
     "ratio": "비율",
     "popularity": "인기도",

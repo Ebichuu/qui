@@ -768,6 +768,19 @@ export const createColumns = (
       size: calculateMinWidth("Up Speed"),
     },
     {
+      id: "up_speed_avg",
+      accessorFn: torrent => torrent.time_active > 0 ? Math.floor(torrent.uploaded / torrent.time_active) : undefined,
+      header: t?.("tableColumns.averageUpSpeed") ?? "Average Up Speed",
+      cell: ({ row }) => {
+        const average = row.original.time_active > 0
+          ? Math.floor(row.original.uploaded / row.original.time_active)
+          : undefined
+        return <span className="text-sm overflow-hidden whitespace-nowrap">{!average ? "-" : formatSpeedWithUnit(average, speedUnit)}</span>
+      },
+      enableColumnFilter: false,
+      size: calculateMinWidth("Average Up Speed"),
+    },
+    {
       accessorKey: "eta",
       header: t?.("tableColumns.eta") ?? "ETA",
       cell: ({ row }) => <span className="text-sm overflow-hidden whitespace-nowrap">{formatEta(row.original.eta)}</span>,

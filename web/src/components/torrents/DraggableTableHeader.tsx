@@ -148,7 +148,7 @@ export function DraggableTableHeader({ header, columnFilters = [], viewMode = "n
             )}
           </span>
           {/* Column filter button - only show for filterable columns */}
-          {!isSelectHeader && !isPriorityHeader && !isTrackerIconHeader && !isStatusIconHeader && onFilterChange && (
+          {!isSelectHeader && !isPriorityHeader && !isTrackerIconHeader && !isStatusIconHeader && column.getCanFilter() && onFilterChange && (
             <span className={columnFilterIconVisibilityClassName}>
               <ColumnFilterPopover
                 columnId={column.id}
