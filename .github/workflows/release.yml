@@ -27,7 +27,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
+  # Container registry repository names must be lowercase.
+  REGISTRY_IMAGE: ghcr.io/ebichuu/qui
   NODE_VERSION: "24.15.0"
   POLAR_ORG_ID: ${{ secrets.POLAR_ORG_ID }}
 
