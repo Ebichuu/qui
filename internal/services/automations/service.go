@@ -1973,6 +1973,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 	lastFSDelete := s.lastFreeSpaceDeleteAt[instanceID]
 	s.mu.RUnlock()
 	inFreeSpaceCooldown := !lastFSDelete.IsZero() && now.Sub(lastFSDelete) < freeSpaceDeleteCooldown
+	suppressedDeleteRuleIDs := make(map[int]struct{})
 
 	// If in cooldown, filter out delete rules that use FREE_SPACE
 	if inFreeSpaceCooldown {
@@ -1981,6 +1982,17 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 			// Skip delete rules that use FREE_SPACE condition
 			if rule.Conditions != nil && rule.Conditions.Delete != nil && rule.Conditions.Delete.Enabled {
 				if ConditionUsesField(rule.Conditions.Delete.Condition, FieldFreeSpace) {
+					if deleteConditionDuration(rule) > 0 {
+						filtered = append(filtered, deleteConditionMonitoringRule(rule))
+						suppressedDeleteRuleIDs[rule.ID] = struct{}{}
+						log.Debug().
+							Int("instanceID", instanceID).
+							Int("ruleID", rule.ID).
+							Str("ruleName", rule.Name).
+							Dur("cooldownRemaining", freeSpaceDeleteCooldown-now.Sub(lastFSDelete)).
+							Msg("automations: monitoring sustained FREE_SPACE delete condition during cooldown")
+						continue
+					}
 					s.pruneDeleteConditionMatches(instanceID, []*models.Automation{rule}, dryRun, nil)
 					log.Debug().
 						Int("instanceID", instanceID).
@@ -2189,13 +2201,16 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 
 	deleteDurationSeen := make(map[deleteConditionMatchKey]struct{})
 	evalCtx.DeleteConditionGate = func(rule *models.Automation, torrent qbt.Torrent, matched bool) bool {
-		duration := deleteConditionDuration(rule)
-		if duration <= 0 {
-			return matched
-		}
-		key := newDeleteConditionMatchKey(instanceID, rule, torrent, dryRun)
-		deleteDurationSeen[key] = struct{}{}
-		return s.deleteConditionReady(now, key, duration, matched)
+		return s.deleteConditionReadyForRule(
+			now,
+			instanceID,
+			rule,
+			torrent,
+			dryRun,
+			matched,
+			suppressedDeleteRuleIDs,
+			deleteDurationSeen,
+		)
 	}
 
 	// Compute which rules actually have matching torrents that won't be skipped.

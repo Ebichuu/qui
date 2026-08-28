@@ -8,6 +8,7 @@ import (
 	"time"
 
 	qbt "github.com/autobrr/go-qbittorrent"
+	"github.com/stretchr/testify/require"
 
 	"github.com/autobrr/qui/internal/models"
 )
@@ -59,6 +60,62 @@ func TestDeleteConditionReadyWithoutDurationUsesCurrentMatch(t *testing.T) {
 	}
 	if service.deleteConditionReady(now, key, 0, false) {
 		t.Fatal("unmatched condition should not apply")
+	}
+}
+
+func TestDeleteConditionMonitoringRuleOnlyKeepsDeleteAction(t *testing.T) {
+	rule := durationTestRule(60, time.Now())
+	rule.Conditions.Grouping = &models.GroupingConfig{DefaultGroupID: "content"}
+	rule.Conditions.Pause = &models.PauseAction{Enabled: true}
+
+	monitoringRule := deleteConditionMonitoringRule(rule)
+	require.NotNil(t, monitoringRule)
+	require.NotSame(t, rule, monitoringRule)
+	require.NotSame(t, rule.Conditions, monitoringRule.Conditions)
+	require.Same(t, rule.Conditions.Delete, monitoringRule.Conditions.Delete)
+	require.Same(t, rule.Conditions.Grouping, monitoringRule.Conditions.Grouping)
+	require.Nil(t, monitoringRule.Conditions.Pause)
+	require.Equal(t, rule.ID, monitoringRule.ID)
+	require.Equal(t, rule.UpdatedAt, monitoringRule.UpdatedAt)
+}
+
+func TestDeleteConditionReadyForRuleTracksWhileSuppressed(t *testing.T) {
+	service := &Service{}
+	start := time.Date(2026, time.August, 29, 12, 0, 0, 0, time.UTC)
+	rule := durationTestRule(60, start)
+	torrent := qbt.Torrent{Hash: "abc"}
+	suppressed := map[int]struct{}{rule.ID: {}}
+
+	firstSeen := make(map[deleteConditionMatchKey]struct{})
+	if service.deleteConditionReadyForRule(start, 3, rule, torrent, false, true, suppressed, firstSeen) {
+		t.Fatal("the first match should only start the timer")
+	}
+	require.Len(t, firstSeen, 1)
+
+	secondSeen := make(map[deleteConditionMatchKey]struct{})
+	if service.deleteConditionReadyForRule(start.Add(time.Minute), 3, rule, torrent, false, true, suppressed, secondSeen) {
+		t.Fatal("cooldown should suppress deletion after the duration elapses")
+	}
+	require.Len(t, secondSeen, 1)
+
+	thirdSeen := make(map[deleteConditionMatchKey]struct{})
+	if !service.deleteConditionReadyForRule(start.Add(2*time.Minute), 3, rule, torrent, false, true, nil, thirdSeen) {
+		t.Fatal("the retained timer should allow deletion after cooldown ends")
+	}
+}
+
+func TestDeleteConditionReadyForRuleResetsWhileSuppressed(t *testing.T) {
+	service := &Service{}
+	start := time.Date(2026, time.August, 29, 12, 0, 0, 0, time.UTC)
+	rule := durationTestRule(60, start)
+	torrent := qbt.Torrent{Hash: "abc"}
+	suppressed := map[int]struct{}{rule.ID: {}}
+
+	service.deleteConditionReadyForRule(start, 3, rule, torrent, false, true, suppressed, make(map[deleteConditionMatchKey]struct{}))
+	service.deleteConditionReadyForRule(start.Add(time.Minute), 3, rule, torrent, false, false, suppressed, make(map[deleteConditionMatchKey]struct{}))
+
+	if service.deleteConditionReadyForRule(start.Add(2*time.Minute), 3, rule, torrent, false, true, nil, make(map[deleteConditionMatchKey]struct{})) {
+		t.Fatal("a non-match during cooldown should reset the timer")
 	}
 }
 

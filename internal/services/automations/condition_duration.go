@@ -46,6 +46,44 @@ func newDeleteConditionMatchKey(instanceID int, rule *models.Automation, torrent
 	}
 }
 
+func deleteConditionMonitoringRule(rule *models.Automation) *models.Automation {
+	if rule == nil || rule.Conditions == nil || rule.Conditions.Delete == nil {
+		return nil
+	}
+
+	monitoringRule := *rule
+	monitoringRule.Conditions = &models.ActionConditions{
+		SchemaVersion: rule.Conditions.SchemaVersion,
+		Grouping:      rule.Conditions.Grouping,
+		Delete:        rule.Conditions.Delete,
+	}
+	return &monitoringRule
+}
+
+func (s *Service) deleteConditionReadyForRule(
+	now time.Time,
+	instanceID int,
+	rule *models.Automation,
+	torrent qbt.Torrent,
+	dryRun bool,
+	matched bool,
+	suppressedRuleIDs map[int]struct{},
+	seen map[deleteConditionMatchKey]struct{},
+) bool {
+	duration := deleteConditionDuration(rule)
+	if duration <= 0 {
+		return matched
+	}
+
+	key := newDeleteConditionMatchKey(instanceID, rule, torrent, dryRun)
+	seen[key] = struct{}{}
+	ready := s.deleteConditionReady(now, key, duration, matched)
+	if _, suppressed := suppressedRuleIDs[rule.ID]; suppressed {
+		return false
+	}
+	return ready
+}
+
 func (s *Service) deleteConditionReady(now time.Time, key deleteConditionMatchKey, duration time.Duration, matched bool) bool {
 	if duration <= 0 {
 		return matched
