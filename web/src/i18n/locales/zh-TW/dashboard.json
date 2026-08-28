@@ -107,6 +107,22 @@
     "peers": "節點：",
     "todayDownloaded": "今日下載",
     "todayUploaded": "今日上傳",
+    "sort": {
+      "label": "排序",
+      "ascending": "升序排列",
+      "descending": "降序排列",
+      "columns": {
+        "instance": "實例順序",
+        "downloaded": "累計下載",
+        "downloadedToday": "今日下載",
+        "downloadedSession": "本次下載",
+        "uploaded": "累計上傳",
+        "uploadedToday": "今日上傳",
+        "uploadedSession": "本次上傳",
+        "ratio": "分享率",
+        "peers": "節點"
+      }
+    },
     "tableHeaders": {
       "instance": "實例",
       "downloaded": "已下載",

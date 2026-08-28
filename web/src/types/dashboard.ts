@@ -24,6 +24,8 @@ export interface DashboardSettings {
   sectionVisibility: Record<string, boolean>
   sectionOrder: string[]
   sectionCollapsed: Record<string, boolean>
+  serverStatsSortColumn: string
+  serverStatsSortDirection: string
   trackerBreakdownSortColumn: string
   trackerBreakdownSortDirection: string
   trackerBreakdownItemsPerPage: number
@@ -35,6 +37,8 @@ export interface DashboardSettingsInput {
   sectionVisibility?: Record<string, boolean>
   sectionOrder?: string[]
   sectionCollapsed?: Record<string, boolean>
+  serverStatsSortColumn?: string
+  serverStatsSortDirection?: string
   trackerBreakdownSortColumn?: string
   trackerBreakdownSortDirection?: string
   trackerBreakdownItemsPerPage?: number

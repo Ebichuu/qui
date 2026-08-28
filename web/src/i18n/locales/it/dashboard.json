@@ -107,6 +107,22 @@
     "peers": "Peer:",
     "todayDownloaded": "Scaricato oggi",
     "todayUploaded": "Caricato oggi",
+    "sort": {
+      "label": "Ordina",
+      "ascending": "Ordine crescente",
+      "descending": "Ordine decrescente",
+      "columns": {
+        "instance": "Ordine istanze",
+        "downloaded": "Scaricato",
+        "downloadedToday": "Scaricato oggi",
+        "downloadedSession": "Scaricato (sessione)",
+        "uploaded": "Caricato",
+        "uploadedToday": "Caricato oggi",
+        "uploadedSession": "Caricato (sessione)",
+        "ratio": "Rapporto",
+        "peers": "Peer"
+      }
+    },
     "tableHeaders": {
       "instance": "Istanza",
       "downloaded": "Scaricato",

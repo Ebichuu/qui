@@ -42,6 +42,7 @@
     "title": "实例",
     "description": "管理您的 qBittorrent 连接设置",
     "addButton": "添加实例",
+    "dragToReorder": "拖动以重新排序实例",
     "loading": "正在加载实例...",
     "empty": "尚未配置任何实例",
     "addFirst": "添加您的第一个实例",

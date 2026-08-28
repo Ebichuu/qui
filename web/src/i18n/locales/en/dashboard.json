@@ -107,6 +107,22 @@
     "peers": "Peers:",
     "todayDownloaded": "Downloaded today",
     "todayUploaded": "Uploaded today",
+    "sort": {
+      "label": "Sort",
+      "ascending": "Sort ascending",
+      "descending": "Sort descending",
+      "columns": {
+        "instance": "Instance order",
+        "downloaded": "Downloaded",
+        "downloadedToday": "Downloaded today",
+        "downloadedSession": "Downloaded (Session)",
+        "uploaded": "Uploaded",
+        "uploadedToday": "Uploaded today",
+        "uploadedSession": "Uploaded (Session)",
+        "ratio": "Ratio",
+        "peers": "Peers"
+      }
+    },
     "tableHeaders": {
       "instance": "Instance",
       "downloaded": "Downloaded",

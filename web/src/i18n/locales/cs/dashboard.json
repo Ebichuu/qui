@@ -107,6 +107,22 @@
     "peers": "Peer připojení:",
     "todayDownloaded": "Dnes staženo",
     "todayUploaded": "Dnes nahráno",
+    "sort": {
+      "label": "Řazení",
+      "ascending": "Řadit vzestupně",
+      "descending": "Řadit sestupně",
+      "columns": {
+        "instance": "Pořadí instancí",
+        "downloaded": "Staženo",
+        "downloadedToday": "Dnes staženo",
+        "downloadedSession": "Staženo (relace)",
+        "uploaded": "Nahráno",
+        "uploadedToday": "Dnes nahráno",
+        "uploadedSession": "Nahráno (relace)",
+        "ratio": "Poměr",
+        "peers": "Protějšky"
+      }
+    },
     "tableHeaders": {
       "instance": "Instance",
       "downloaded": "Stáhnuto",

@@ -42,6 +42,7 @@
     "title": "Istanze",
     "description": "Gestisci le impostazioni di connessione a qBittorrent",
     "addButton": "Aggiungi istanza",
+    "dragToReorder": "Trascina per riordinare l'istanza",
     "loading": "Caricamento istanze...",
     "empty": "Nessuna istanza ancora configurata",
     "addFirst": "Aggiungi la tua prima istanza",

@@ -107,6 +107,22 @@
     "peers": "피어:",
     "todayDownloaded": "오늘 다운로드",
     "todayUploaded": "오늘 업로드",
+    "sort": {
+      "label": "정렬",
+      "ascending": "오름차순 정렬",
+      "descending": "내림차순 정렬",
+      "columns": {
+        "instance": "인스턴스 순서",
+        "downloaded": "다운로드",
+        "downloadedToday": "오늘 다운로드",
+        "downloadedSession": "다운로드 (세션)",
+        "uploaded": "업로드",
+        "uploadedToday": "오늘 업로드",
+        "uploadedSession": "업로드 (세션)",
+        "ratio": "비율",
+        "peers": "피어"
+      }
+    },
     "tableHeaders": {
       "instance": "인스턴스",
       "downloaded": "다운로드됨",

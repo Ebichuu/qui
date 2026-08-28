@@ -107,6 +107,22 @@
     "peers": "Pairs :",
     "todayDownloaded": "Téléchargé aujourd’hui",
     "todayUploaded": "Envoyé aujourd’hui",
+    "sort": {
+      "label": "Trier",
+      "ascending": "Tri croissant",
+      "descending": "Tri décroissant",
+      "columns": {
+        "instance": "Ordre des instances",
+        "downloaded": "Téléchargé",
+        "downloadedToday": "Téléchargé aujourd’hui",
+        "downloadedSession": "Téléchargé (session)",
+        "uploaded": "Envoyé",
+        "uploadedToday": "Envoyé aujourd’hui",
+        "uploadedSession": "Envoyé (session)",
+        "ratio": "Ratio",
+        "peers": "Pairs"
+      }
+    },
     "tableHeaders": {
       "instance": "Instance",
       "downloaded": "Téléchargé",

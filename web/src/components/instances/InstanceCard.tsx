@@ -47,7 +47,7 @@ import {
   Trash2,
   XCircle
 } from "lucide-react"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
@@ -58,6 +58,7 @@ interface InstanceCardProps {
   onMoveDown?: () => void
   disableMoveUp?: boolean
   disableMoveDown?: boolean
+  dragHandle?: ReactNode
 }
 
 export function InstanceCard({
@@ -67,6 +68,7 @@ export function InstanceCard({
   onMoveDown,
   disableMoveUp = false,
   disableMoveDown = false,
+  dragHandle,
 }: InstanceCardProps) {
   const { t } = useTranslation("instances")
   const {
@@ -162,6 +164,7 @@ export function InstanceCard({
             </CardTitle>
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            {dragHandle}
             <Badge variant={statusBadge.variant}>
               {statusBadge.label}
             </Badge>

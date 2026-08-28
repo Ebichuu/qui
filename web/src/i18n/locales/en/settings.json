@@ -42,6 +42,7 @@
     "title": "Instances",
     "description": "Manage your qBittorrent connection settings",
     "addButton": "Add Instance",
+    "dragToReorder": "Drag to reorder instance",
     "loading": "Loading instances...",
     "empty": "No instances configured yet",
     "addFirst": "Add Your First Instance",

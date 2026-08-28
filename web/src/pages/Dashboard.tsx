@@ -1320,9 +1320,25 @@ function GlobalStatsCards({ globalStats }: { globalStats: GlobalStats }) {
 interface GlobalAllTimeStatsProps {
   statsData: DashboardInstanceStats[]
   dailyTransferByInstance: Map<number, DailyTransferStats>
+  settings: DashboardSettings
+  onSettingsChange: (input: { serverStatsSortColumn?: string; serverStatsSortDirection?: string }) => void
   isCollapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
 }
+
+type SortDirection = "asc" | "desc"
+const SERVER_STATS_SORT_COLUMNS = [
+  "instance",
+  "downloadedToday",
+  "uploadedToday",
+  "downloaded",
+  "uploaded",
+  "downloadedSession",
+  "uploadedSession",
+  "ratio",
+  "peers",
+] as const
+type ServerStatsSortColumn = typeof SERVER_STATS_SORT_COLUMNS[number]
 
 type DrawerMetric = { label: string; value: string; color?: string }
 
@@ -1343,13 +1359,16 @@ function MetricGrid({ metrics, className }: { metrics: DrawerMetric[]; className
 const alltimeRatio = (serverState: ServerState | null) =>
   serverState?.alltime_dl ? (serverState.alltime_ul || 0) / serverState.alltime_dl : 0
 
-function GlobalAllTimeStats({ statsData, dailyTransferByInstance, isCollapsed, onCollapsedChange }: GlobalAllTimeStatsProps) {
+function GlobalAllTimeStats({ statsData, dailyTransferByInstance, settings, onSettingsChange, isCollapsed, onCollapsedChange }: GlobalAllTimeStatsProps) {
   const { t } = useTranslation("dashboard")
   // Accordion value is "server-stats" when expanded, "" when collapsed
   const accordionValue = isCollapsed ? "" : "server-stats"
   const setAccordionValue = (value: string) => onCollapsedChange(value === "")
   // mobile detail drawer, keyed by id so the numbers stay live while it is open
   const [detailsInstanceId, setDetailsInstanceId] = useState<number | null>(null)
+  const requestedSortColumn = settings.serverStatsSortColumn as ServerStatsSortColumn
+  const sortColumn = SERVER_STATS_SORT_COLUMNS.includes(requestedSortColumn) ? requestedSortColumn : "instance"
+  const sortDirection: SortDirection = settings.serverStatsSortDirection === "desc" ? "desc" : "asc"
 
   const globalStats = useMemo(() => {
     // Calculate server stats
@@ -1383,11 +1402,66 @@ function GlobalAllTimeStats({ statsData, dailyTransferByInstance, isCollapsed, o
   // Apply color grading to ratio
   const ratioColor = getRatioColor(globalStats.globalRatio)
 
-  const reportingInstances = statsData.filter(({ instance, serverState }) => {
-    const daily = dailyTransferByInstance.get(instance.id)
-    return serverState?.alltime_dl || serverState?.alltime_ul || daily?.downloaded || daily?.uploaded
-  })
+  const reportingInstances = useMemo(() => {
+    const filtered = statsData.filter(({ instance, serverState }) => {
+      const daily = dailyTransferByInstance.get(instance.id)
+      return serverState?.alltime_dl || serverState?.alltime_ul || daily?.downloaded || daily?.uploaded
+    })
+
+    if (sortColumn === "instance") return filtered
+
+    const valueFor = ({ instance, serverState }: DashboardInstanceStats) => {
+      const daily = dailyTransferByInstance.get(instance.id)
+      switch (sortColumn) {
+        case "downloaded": return serverState?.alltime_dl || 0
+        case "downloadedToday": return daily?.downloaded || 0
+        case "downloadedSession": return serverState?.dl_info_data || 0
+        case "uploaded": return serverState?.alltime_ul || 0
+        case "uploadedToday": return daily?.uploaded || 0
+        case "uploadedSession": return serverState?.up_info_data || 0
+        case "ratio": return alltimeRatio(serverState)
+        case "peers": return serverState?.total_peer_connections || 0
+        default: return 0
+      }
+    }
+
+    return filtered
+      .map((entry, index) => ({ entry, index }))
+      .sort((a, b) => {
+        const difference = valueFor(a.entry) - valueFor(b.entry)
+        if (difference === 0) return a.index - b.index
+        return sortDirection === "asc" ? difference : -difference
+      })
+      .map(({ entry }) => entry)
+  }, [dailyTransferByInstance, sortColumn, sortDirection, statsData])
+
+  const handleSort = (column: ServerStatsSortColumn) => {
+    if (column === "instance") {
+      onSettingsChange({ serverStatsSortColumn: "instance", serverStatsSortDirection: "asc" })
+      return
+    }
+
+    if (sortColumn === column) {
+      onSettingsChange({ serverStatsSortDirection: sortDirection === "asc" ? "desc" : "asc" })
+    } else {
+      onSettingsChange({ serverStatsSortColumn: column, serverStatsSortDirection: "desc" })
+    }
+  }
+
+  const sortLabel = t(`serverStats.sort.columns.${sortColumn}`)
   const detailsInstance = reportingInstances.find(({ instance }) => instance.id === detailsInstanceId)
+  const sortableHeader = (column: ServerStatsSortColumn, label: string) => (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-8 gap-1 px-2 font-medium"
+      onClick={() => handleSort(column)}
+    >
+      <span>{label}</span>
+      <SortIcon column={column} sortColumn={sortColumn} sortDirection={sortDirection} />
+    </Button>
+  )
 
   // Don't show if no data
   if (globalStats.alltimeDl === 0 && globalStats.alltimeUl === 0 && globalStats.todayDl === 0 && globalStats.todayUl === 0) {
@@ -1485,6 +1559,40 @@ function GlobalAllTimeStats({ statsData, dailyTransferByInstance, isCollapsed, o
           </div>
         </AccordionTrigger>
         <AccordionContent className="px-0 pb-0">
+          <div className="flex items-center justify-end gap-2 border-b px-4 py-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-2">
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                  {t("serverStats.sort.label")}: {sortLabel}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {SERVER_STATS_SORT_COLUMNS.map(column => (
+                  <DropdownMenuItem key={column} onClick={() => handleSort(column)}>
+                    <span className="flex-1">{t(`serverStats.sort.columns.${column}`)}</span>
+                    {sortColumn === column && (
+                      column === "instance" || sortDirection === "asc"
+                        ? <ArrowUp className="ml-3 h-3.5 w-3.5" />
+                        : <ArrowDown className="ml-3 h-3.5 w-3.5" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {sortColumn !== "instance" && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                aria-label={sortDirection === "asc" ? t("serverStats.sort.descending") : t("serverStats.sort.ascending")}
+                onClick={() => onSettingsChange({ serverStatsSortDirection: sortDirection === "asc" ? "desc" : "asc" })}
+              >
+                {sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+              </Button>
+            )}
+          </div>
           {/* Mobile row list: the desktop table is six columns wide and only two of them
               fit on a phone, so it scrolls sideways with nothing to say that it does */}
           <div className="sm:hidden divide-y">
@@ -1526,39 +1634,45 @@ function GlobalAllTimeStats({ statsData, dailyTransferByInstance, isCollapsed, o
           <Table className="hidden sm:table">
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="text-center">{t("serverStats.tableHeaders.instance")}</TableHead>
+                <TableHead className="text-center">
+                  {sortableHeader("instance", t("serverStats.tableHeaders.instance"))}
+                </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span>{t("serverStats.tableHeaders.downloaded")}</span>
+                    {sortableHeader("downloaded", t("serverStats.tableHeaders.downloaded"))}
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span>{t("serverStats.tableHeaders.downloadedToday")}</span>
+                    {sortableHeader("downloadedToday", t("serverStats.tableHeaders.downloadedToday"))}
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span>{t("serverStats.tableHeaders.downloadedSession")}</span>
+                    {sortableHeader("downloadedSession", t("serverStats.tableHeaders.downloadedSession"))}
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span>{t("serverStats.tableHeaders.uploaded")}</span>
+                    {sortableHeader("uploaded", t("serverStats.tableHeaders.uploaded"))}
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span>{t("serverStats.tableHeaders.uploadedToday")}</span>
+                    {sortableHeader("uploadedToday", t("serverStats.tableHeaders.uploadedToday"))}
                   </div>
                 </TableHead>
                 <TableHead className="text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span>{t("serverStats.tableHeaders.uploadedSession")}</span>
+                    {sortableHeader("uploadedSession", t("serverStats.tableHeaders.uploadedSession"))}
                   </div>
                 </TableHead>
-                <TableHead className="text-center">{t("serverStats.tableHeaders.ratio")}</TableHead>
-                <TableHead className="text-center">{t("serverStats.tableHeaders.peers")}</TableHead>
+                <TableHead className="text-center">
+                  {sortableHeader("ratio", t("serverStats.tableHeaders.ratio"))}
+                </TableHead>
+                <TableHead className="text-center">
+                  {sortableHeader("peers", t("serverStats.tableHeaders.peers"))}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1638,7 +1752,6 @@ function GlobalAllTimeStats({ statsData, dailyTransferByInstance, isCollapsed, o
 
 
 type TrackerSortColumn = "tracker" | "uploaded" | "downloaded" | "uploadedSession" | "downloadedSession" | "ratio" | "buffer" | "count" | "size" | "performance"
-type SortDirection = "asc" | "desc"
 
 // Helper to compute ratio display values for tracker stats
 function getTrackerRatioDisplay(uploaded: number, downloaded: number): { isInfinite: boolean; ratio: number; color: string } {
@@ -1648,7 +1761,7 @@ function getTrackerRatioDisplay(uploaded: number, downloaded: number): { isInfin
   return { isInfinite, ratio, color }
 }
 
-function SortIcon({ column, sortColumn, sortDirection }: { column: TrackerSortColumn; sortColumn: TrackerSortColumn; sortDirection: SortDirection }) {
+function SortIcon<T extends string>({ column, sortColumn, sortDirection }: { column: T; sortColumn: T; sortDirection: SortDirection }) {
   if (sortColumn !== column) {
     return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />
   }
@@ -3220,6 +3333,10 @@ export function Dashboard() {
     updateSettings.mutate(input)
   }
 
+  const handleServerStatsSettingsChange = (input: { serverStatsSortColumn?: string; serverStatsSortDirection?: string }) => {
+    updateSettings.mutate(input)
+  }
+
   // Handler for section collapsed state changes
   const handleSectionCollapsedChange = (sectionId: string, collapsed: boolean) => {
     updateSettings.mutate({
@@ -3309,6 +3426,8 @@ export function Dashboard() {
                         key={sectionId}
                         statsData={statsData}
                         dailyTransferByInstance={dailyTransferByInstance}
+                        settings={settings}
+                        onSettingsChange={handleServerStatsSettingsChange}
                         isCollapsed={settings.sectionCollapsed["server-stats"] ?? false}
                         onCollapsedChange={(collapsed) => handleSectionCollapsedChange("server-stats", collapsed)}
                       />

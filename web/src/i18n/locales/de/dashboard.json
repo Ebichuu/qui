@@ -107,6 +107,22 @@
     "peers": "Peers:",
     "todayDownloaded": "Heute heruntergeladen",
     "todayUploaded": "Heute hochgeladen",
+    "sort": {
+      "label": "Sortieren",
+      "ascending": "Aufsteigend sortieren",
+      "descending": "Absteigend sortieren",
+      "columns": {
+        "instance": "Instanzreihenfolge",
+        "downloaded": "Heruntergeladen",
+        "downloadedToday": "Heute heruntergeladen",
+        "downloadedSession": "Heruntergeladen (Sitzung)",
+        "uploaded": "Hochgeladen",
+        "uploadedToday": "Heute hochgeladen",
+        "uploadedSession": "Hochgeladen (Sitzung)",
+        "ratio": "Verhältnis",
+        "peers": "Peers"
+      }
+    },
     "tableHeaders": {
       "instance": "Instanz",
       "downloaded": "Heruntergeladen",

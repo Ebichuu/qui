@@ -42,6 +42,7 @@
     "title": "Instanzen",
     "description": "Verwalte deine qBittorrent-Verbindungseinstellungen",
     "addButton": "Instanz hinzufügen",
+    "dragToReorder": "Zum Sortieren der Instanz ziehen",
     "loading": "Instanzen werden geladen...",
     "empty": "Noch keine Instanzen konfiguriert",
     "addFirst": "Erste Instanz hinzufügen",

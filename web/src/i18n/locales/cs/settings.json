@@ -42,6 +42,7 @@
     "title": "Instance",
     "description": "Spravujte nastavení vašeho qBittorrent připojení",
     "addButton": "Přidat instanci",
+    "dragToReorder": "Přetažením změnit pořadí instance",
     "loading": "Načítám instance...",
     "empty": "Žádné instance nakonfigurovány",
     "addFirst": "Přidat svou první instanci",

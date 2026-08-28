@@ -42,6 +42,7 @@
     "title": "인스턴스",
     "description": "qBittorrent 연결 설정을 관리합니다",
     "addButton": "인스턴스 추가",
+    "dragToReorder": "드래그하여 인스턴스 순서 변경",
     "loading": "인스턴스 불러오는 중...",
     "empty": "아직 구성된 인스턴스가 없습니다",
     "addFirst": "첫 번째 인스턴스 추가",

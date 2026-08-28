@@ -58,11 +58,28 @@ import { withBasePath } from "@/lib/base-url"
 import { canRegisterProtocolHandler, getMagnetHandlerRegistrationGuidance, registerMagnetHandler } from "@/lib/protocol-handler"
 import { copyTextToClipboard, formatBytes, formatDuration } from "@/lib/utils"
 import type { SettingsSearch } from "@/routes/_authenticated/settings"
-import type { ApplicationInfo, Instance, TorznabSearchCacheStats, User } from "@/types"
+import type { ApplicationInfo, Instance, InstanceResponse, TorznabSearchCacheStats, User } from "@/types"
+import type { DragEndEvent } from "@dnd-kit/core"
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { useForm } from "@tanstack/react-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Bell, Globe, Copy, Database, ExternalLink, FileText, Info, Key, Layers, Link2, Loader2, Palette, Plus, RefreshCw, Server, Share2, Shield, Terminal, Trash2 } from "lucide-react"
-import type { FormEvent, ReactNode } from "react"
+import { Bell, Globe, Copy, Database, ExternalLink, FileText, GripVertical, Info, Key, Layers, Link2, Loader2, Palette, Plus, RefreshCw, Server, Share2, Shield, Terminal, Trash2 } from "lucide-react"
+import type { CSSProperties, FormEvent, ReactNode } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -515,6 +532,70 @@ interface InstancesManagerProps {
 
 const INSTANCE_FORM_ID = "instance-form"
 
+interface SortableInstanceCardProps {
+  instance: InstanceResponse
+  onEdit: () => void
+  onMoveUp?: () => void
+  onMoveDown?: () => void
+  disabled: boolean
+}
+
+function SortableInstanceCard({
+  instance,
+  onEdit,
+  onMoveUp,
+  onMoveDown,
+  disabled,
+}: SortableInstanceCardProps) {
+  const { t } = useTranslation("settings")
+  const {
+    attributes,
+    listeners,
+    setActivatorNodeRef,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: instance.id, disabled })
+
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={isDragging ? "relative z-10 opacity-70" : undefined}
+    >
+      <InstanceCard
+        instance={instance}
+        onEdit={onEdit}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        disableMoveUp={disabled}
+        disableMoveDown={disabled}
+        dragHandle={(
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            ref={setActivatorNodeRef}
+            disabled={disabled}
+            className="h-8 w-8 cursor-grab p-0 text-muted-foreground active:cursor-grabbing"
+            aria-label={t("instances.dragToReorder")}
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </Button>
+        )}
+      />
+    </div>
+  )
+}
+
 function InstancesManager({ search, onSearchChange }: InstancesManagerProps) {
   const { t } = useTranslation("settings")
   const { instances, isLoading, reorderInstances, isReordering, isCreating } = useInstances()
@@ -522,6 +603,10 @@ function InstancesManager({ search, onSearchChange }: InstancesManagerProps) {
   const isDialogOpen = search.tab === "instances" && search.modal === "add-instance"
   const [editingInstanceId, setEditingInstanceId] = useState<number | null>(null)
   const editingInstance = instances?.find(instance => instance.id === editingInstanceId)
+  const reorderSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   // Close edit dialog if instance was deleted
   useEffect(() => {
@@ -564,6 +649,23 @@ function InstancesManager({ search, onSearchChange }: InstancesManagerProps) {
     })
   }
 
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!instances || !over || active.id === over.id || isReordering) return
+
+    const currentIndex = instances.findIndex(instance => instance.id === active.id)
+    const targetIndex = instances.findIndex(instance => instance.id === over.id)
+    if (currentIndex === -1 || targetIndex === -1) return
+
+    const orderedIds = arrayMove(instances.map(instance => instance.id), currentIndex, targetIndex)
+    reorderInstances(orderedIds, {
+      onError: (error) => {
+        toast.error(t("instances.toasts.reorderFailed"), {
+          description: error instanceof Error ? error.message : undefined,
+        })
+      },
+    })
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end">
@@ -583,19 +685,26 @@ function InstancesManager({ search, onSearchChange }: InstancesManagerProps) {
         ) : (
           <>
             {instances && instances.length > 0 ? (
-              <div className="grid gap-4 lg:grid-cols-2">
-                {instances.map((instance, index) => (
-                  <InstanceCard
-                    key={instance.id}
-                    instance={instance}
-                    onEdit={() => handleEditInstance(instance)}
-                    onMoveUp={index > 0 ? () => handleReorder(instance.id, -1) : undefined}
-                    onMoveDown={index < instances.length - 1 ? () => handleReorder(instance.id, 1) : undefined}
-                    disableMoveUp={isReordering}
-                    disableMoveDown={isReordering}
-                  />
-                ))}
-              </div>
+              <DndContext
+                sensors={reorderSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={instances.map(instance => instance.id)} strategy={rectSortingStrategy}>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {instances.map((instance, index) => (
+                      <SortableInstanceCard
+                        key={instance.id}
+                        instance={instance}
+                        onEdit={() => handleEditInstance(instance)}
+                        onMoveUp={index > 0 ? () => handleReorder(instance.id, -1) : undefined}
+                        onMoveDown={index < instances.length - 1 ? () => handleReorder(instance.id, 1) : undefined}
+                        disabled={isReordering || instances.length < 2}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             ) : (
               <div className="rounded-lg border border-dashed p-12 text-center">
                 <p className="text-muted-foreground">{t("instances.empty")}</p>
