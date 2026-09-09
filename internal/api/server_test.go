@@ -68,8 +68,6 @@ var undocumentedRoutes = map[routeKey]struct{}{
 	{Method: http.MethodGet, Path: "/api/instances/{instanceId}/backups/runs/{runId}/manifest"}:     {},
 	{Method: http.MethodGet, Path: "/api/instances/{instanceId}/backups/settings"}:                  {},
 	{Method: http.MethodPut, Path: "/api/instances/{instanceId}/backups/settings"}:                  {},
-	{Method: http.MethodGet, Path: "/api/instances/{instanceId}/automations"}:                       {},
-	{Method: http.MethodPost, Path: "/api/instances/{instanceId}/automations"}:                      {},
 	{Method: http.MethodPost, Path: "/api/instances/{instanceId}/automations/apply"}:                {},
 	{Method: http.MethodPost, Path: "/api/instances/{instanceId}/automations/dry-run"}:              {},
 	{Method: http.MethodPost, Path: "/api/instances/{instanceId}/automations/preview"}:              {},
@@ -78,15 +76,11 @@ var undocumentedRoutes = map[routeKey]struct{}{
 	{Method: http.MethodGet, Path: "/api/instances/{instanceId}/automations/activity"}:              {},
 	{Method: http.MethodGet, Path: "/api/instances/{instanceId}/automations/activity/{activityId}"}: {},
 	{Method: http.MethodDelete, Path: "/api/instances/{instanceId}/automations/activity"}:           {},
-	{Method: http.MethodDelete, Path: "/api/instances/{instanceId}/automations/{ruleID}"}:           {},
-	{Method: http.MethodPut, Path: "/api/instances/{instanceId}/automations/{ruleID}"}:              {},
 	{Method: http.MethodGet, Path: "/api/application/info"}:                                         {},
 	{Method: http.MethodGet, Path: "/api/tracker-customizations"}:                                   {},
 	{Method: http.MethodPost, Path: "/api/tracker-customizations"}:                                  {},
 	{Method: http.MethodPut, Path: "/api/tracker-customizations/{id}"}:                              {},
 	{Method: http.MethodDelete, Path: "/api/tracker-customizations/{id}"}:                           {},
-	{Method: http.MethodGet, Path: "/api/dashboard-settings"}:                                       {},
-	{Method: http.MethodPut, Path: "/api/dashboard-settings"}:                                       {},
 }
 
 func TestNewServerRegistersStreamManagerAsSyncSink(t *testing.T) {
