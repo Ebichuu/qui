@@ -500,26 +500,24 @@ const (
 	connectionSetupTimeout   = 5 * time.Second
 )
 
-var driverInit sync.Once
-
 type pragmaExecFn func(ctx context.Context, stmt string) error
 
-func registerConnectionHook() {
-	driverInit.Do(func() {
-		sqlite.RegisterConnectionHook(func(conn sqlite.ExecQuerierContext, dsn string) error {
-			ctx, cancel := context.WithTimeout(context.Background(), connectionSetupTimeout)
-			defer cancel()
+// Register before any caller can open a SQLite connection. The driver does not
+// synchronize hook registration with connections opened outside database.New.
+func init() {
+	sqlite.RegisterConnectionHook(func(conn sqlite.ExecQuerierContext, dsn string) error {
+		ctx, cancel := context.WithTimeout(context.Background(), connectionSetupTimeout)
+		defer cancel()
 
-			readOnly := isReadOnlyDSN(dsn)
+		readOnly := isReadOnlyDSN(dsn)
 
-			return applyConnectionPragmas(ctx, func(ctx context.Context, stmt string) error {
-				_, err := conn.ExecContext(ctx, stmt, nil)
-				if err != nil {
-					return fmt.Errorf("connection hook exec %q: %w", stmt, err)
-				}
-				return nil
-			}, readOnly)
-		})
+		return applyConnectionPragmas(ctx, func(ctx context.Context, stmt string) error {
+			_, err := conn.ExecContext(ctx, stmt, nil)
+			if err != nil {
+				return fmt.Errorf("connection hook exec %q: %w", stmt, err)
+			}
+			return nil
+		}, readOnly)
 	})
 }
 
@@ -603,8 +601,6 @@ func New(databasePath string) (*DB, error) {
 	if err := secureDatabaseFiles(databasePath); err != nil {
 		return nil, err
 	}
-
-	registerConnectionHook()
 
 	// Open writer connection (single connection for all writes)
 	writerConn, err := sql.Open("sqlite", databasePath)
