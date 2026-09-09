@@ -89,7 +89,7 @@ func legacyDashboardFixture(t *testing.T, dialect Dialect, variant string) (*DB,
 	for _, statement := range []string{
 		`INSERT INTO string_pool (id, value) VALUES (10001, 'c01-instance'), (10002, 'http://127.0.0.1:1'), (10003, 'c01-user')`,
 		`INSERT INTO instances (id, name_id, host_id, username_id, password_encrypted, is_active) VALUES (10001, 10001, 10002, 10003, 'synthetic', 0)`,
-		`INSERT INTO automations (instance_id, name, tracker_pattern, conditions, enabled, sort_order, dry_run) VALUES (10001, 'c01-rule', '*', '{"delete":{"enabled":true,"conditionDurationSeconds":7200}}', 0, 7, 1)`,
+		`INSERT INTO automations (instance_id, name, tracker_pattern, conditions, enabled, sort_order, dry_run) VALUES (10001, 'c01-rule', '*', '{"delete":{"enabled":true,"conditionMatchDurationSeconds":7200}}', 0, 7, 1)`,
 		`INSERT INTO automation_activity (instance_id, hash, action, outcome, details) VALUES (10001, '0123456789012345678901234567890123456789', 'delete', 'skipped', '{"reason":"synthetic-history"}')`,
 		`INSERT INTO dashboard_settings (user_id, section_order) VALUES (1, '["instances","server-stats"]')`,
 	} {
