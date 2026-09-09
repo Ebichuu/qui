@@ -1344,6 +1344,10 @@ func (db *DB) migrate() error {
 		return fmt.Errorf("failed to create migrations table: %w", err)
 	}
 
+	if err := db.validateLegacyDashboard(ctx, db.writerConn); err != nil {
+		return err
+	}
+
 	// Handle historical migration file renames.
 	// If we ever rename an embedded migration file, we must update the filename
 	// stored in the migrations table so existing databases don't re-run it.
