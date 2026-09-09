@@ -1,0 +1,47 @@
+{
+  "recorded_on": "2026-09-10",
+  "phase": "C00",
+  "upstream": {
+    "repository": "https://github.com/autobrr/qui.git",
+    "release": "v1.28.0",
+    "tag_object": "49848456523754226a8d3c02d85559bbcce0d3cb",
+    "commit": "26c648cbf334f6a0393b3f34a7d904ba9fad4458",
+    "release_published_at": "2026-09-01T17:10:45Z",
+    "source_worktree_clean": true
+  },
+  "custom_qui": {
+    "repository": "https://github.com/Ebichuu/qui.git",
+    "branch": "develop",
+    "commit": "bfe94b5e4d63f213af747fab39719d47aae99d22",
+    "source_worktree_clean": true,
+    "migration_status": "pending_C01_C02",
+    "commits_oldest_first": [
+      "ebe081ae9e36a53f5eb9a796a3ef077368709f8d",
+      "1744b7e46c0948b8909db200df4eccf1573832bc",
+      "a8df92231f0f2cbfae0d5d91fbe0f5a6052e049d",
+      "3670be678897e86c6670df25cd63f24193c5a409",
+      "8abbc00423bc9b86b2c3009e051fe76c2e3bc79a",
+      "709778c48c6d3124bf6e29c455c13a7834998636",
+      "dcc46ee1c497981d2ceace431ef50115ee2f1247",
+      "ab6c6288adadc1f080c9f737b0625a4391e5a1bc",
+      "5b7a64c6b809d034a092c7467fe04b21121a591e",
+      "bfbaa373e1c019e3aa0f00af3e68606a8b4ad52c",
+      "37e82536f449b277033c7daffbf30ef45022bf05",
+      "bfe94b5e4d63f213af747fab39719d47aae99d22"
+    ]
+  },
+  "vertex_reference": {
+    "commit": "d45ee759981c0951fe7f39ede2009f68e8ca6872",
+    "tracked_changes": false,
+    "untracked_files_present": true,
+    "imported": false
+  },
+  "toolchain": {
+    "go": "1.27.0",
+    "node": "24.15.0",
+    "pnpm": "11.1.2",
+    "golangci_lint": "2.13.0"
+  },
+  "image_builds": "github_actions_only",
+  "production_connections": false
+}

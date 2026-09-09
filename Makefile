@@ -109,7 +109,11 @@ clean: themes-clean
 # Run tests
 test:
 	@echo "Running tests..."
-	go test -race -v ./...
+	go test -race -count=1 -v ./...
+
+.PHONY: smoke-baseline
+smoke-baseline:
+	python3 scripts/smoke-baseline.py
 
 # Run frontend tests (vitest)
 test-frontend:
@@ -119,7 +123,7 @@ test-frontend:
 # Validate OpenAPI specification
 test-openapi:
 	@echo "Validating OpenAPI specification..."
-	go test -v ./internal/web/swagger
+	go test -race -count=1 -v ./internal/web/swagger
 
 # Format changed code only (fast, for iteration)
 fmt:

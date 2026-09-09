@@ -1,124 +1,33 @@
-# qui
+# 竞速扩展计划（项目正式名称待定）
 
-A fast, modern web interface for qBittorrent. Supports managing multiple qBittorrent instances from a single, lightweight application.
+基于 [qui](https://github.com/autobrr/qui) 的竞速扩展，在 [Ebichuu/qui](https://github.com/Ebichuu/qui/tree/racing/develop) 的 `racing/develop` 分支开发。项目正式名称待定。
 
-<div align="center">
-  <img src=".github/assets/qui.png" alt="qui" width="100%" />
-</div>
+更新日期：2026-09-10。已开始 C00，导入 qui v1.28.0 开发底座并完成本地构建、空库启动、登录及重启验证。定制功能迁移和竞速功能尚未完成，当前版本不用于替换现有部署。
 
-## Documentation
+## 开发入口
 
-Full documentation available at **[getqui.com](https://getqui.com)**
+- [启动批次记录](development-c00.md)：基线、验证结果、迁移冲突和下一步。
+- [基线锁定记录](development-baseline.json)：上游正式版、定制提交及工具版本。
+- [上游 README](README.upstream.md)：保留原项目介绍；许可证和 Go 模块名不变。
 
-## Quick Start
+开发环境需要 Go 1.27.0、Node.js 24 或更新版本、pnpm 11.1.2，以及 golangci-lint 2.13.0。安装对应工具并加入 PATH 后运行：
 
-### Linux x86_64
-
-```bash
-# Download and extract the latest release
-wget $(curl -s https://api.github.com/repos/autobrr/qui/releases/latest | grep browser_download_url | grep linux_x86_64 | cut -d\" -f4)
-sudo tar -C /usr/local/bin -xzf qui*.tar.gz qui
-
-# Run
-qui serve
+```sh
+make build
+make smoke-baseline
+make precommit
 ```
 
-The web interface will be available at http://localhost:7476
+`smoke-baseline` 使用 Python 3 标准库，自动建立临时空数据库和随机测试账号，只监听本机回环地址，验证后停止并清理。不会使用已有 qui 配置，也不会连接现有 qB。
 
-### Docker
+## 开发计划
 
-```bash
-docker run -d \
-  -p 7476:7476 \
-  -v $(pwd)/config:/config \
-  ghcr.io/autobrr/qui:latest
-```
+[公开开发计划](DEVELOPMENT.md) 列出 C00—C14 的顺序、交付范围和执行边界；当前已启动 C00。
 
-## Features
+主方案承接最新确认：以 qui 为底座保留定制；RSS 与网页互补，谁先发现且必要信息齐备就先推进；慢来源、整批元数据和通知不得拖住接种；官种优先，合格低效种可用于腾空间；前端简洁，过程查日志。所有镜像只通过 GitHub Actions 构建发布。
 
-- **Single Binary**: No dependencies, just download and run
-- **Multi-Instance Support**: Manage all your qBittorrent instances from one place
-- **Fast & Responsive**: Optimized for performance with large torrent collections
-- **Cross-Seed**: Automatically find and add matching torrents across trackers
-- **Automations**: Rule-based torrent management with conditions and actions
-- **Backups & Restore**: Scheduled snapshots with multiple restore modes
-- **Reverse Proxy**: Transparent qBittorrent proxy for external apps
-- **Multi-Language**: Available in English, German, French, Italian, Czech, Ukrainian, Korean, Brazilian Portuguese, Simplified Chinese, and Traditional Chinese, with automatic browser-language detection
+## 分支与验证
 
-## Community
+`develop` 保留现有定制版本。`racing/develop` 使用新上游底座推进迁移，GitHub Actions 执行构建、Go/前端测试和启动验证；此分支当前不发布镜像。
 
-Join our community on [Discord](https://discord.autobrr.com/qui)!
-
-## Support
-
-- [GitHub Discussions](https://github.com/autobrr/qui/discussions/new/choose) - Feature requests and bug reports
-- [GitHub Issues](https://github.com/autobrr/qui/issues) - Work in progress
-
-## Support Development
-
-qui is developed and maintained by volunteers. Your support helps us continue improving the project.
-
-### Premium Themes
-
-Purchase premium themes from **Settings → Premium Themes** in your qui instance. The checkout page shows your license key.
-If you donate with crypto, verify your transaction at [crypto.getqui.com](https://crypto.getqui.com/) to receive a 100% discount code for premium themes.
-A license also unlocks custom themes, which you can write yourself or take from [qui-community-themes](https://github.com/autobrr/qui-community-themes).
-
-### Donations
-
-If you'd like to support development beyond theme purchases, donations are always appreciated.
-
-- **soup**
-  - [Patreon](https://www.patreon.com/c/s0up4200)
-  - [GitHub Sponsors](https://github.com/sponsors/s0up4200)
-  - [Buy Me a Coffee](https://buymeacoffee.com/s0up4200)
-  - [Ko-fi](https://ko-fi.com/s0up4200)
-- **zze0s**
-  - [GitHub Sponsors](https://github.com/sponsors/zze0s)
-  - [Buy Me a Coffee](https://buymeacoffee.com/ze0s)
-
-#### Cryptocurrency
-
-Verify your crypto donation at [crypto.getqui.com](https://crypto.getqui.com/) to receive a 100% discount code for premium themes.
-
-#### Bitcoin (BTC)
-- soup: `bc1qfe093kmhvsa436v4ksz0udfcggg3vtnm2tjgem`
-- zze0s: `bc1q2nvdd83hrzelqn4vyjm8tvjwmsuuxsdlg4ws7x`
-
-#### Ethereum (ETH)
-- soup: `0xD8f517c395a68FEa8d19832398d4dA7b45cbc38F`
-- zze0s: `0xBF7d749574aabF17fC35b27232892d3F0ff4D423`
-
-#### Litecoin (LTC)
-- soup: `ltc1q86nx64mu2j22psj378amm58ghvy4c9dw80z88h`
-- zze0s: `ltc1qza9ffjr5y43uk8nj9ndjx9hkj0ph3rhur6wudn`
-
-#### Monero (XMR)
-- XMR discount codes are handled manually. Reach out on [Discord](https://discord.autobrr.com/qui) or email `s0up4200@pm.me`.
-- soup: `8AMPTPgjmLG9armLBvRA8NMZqPWuNT4US3kQoZrxDDVSU21kpYpFr1UCWmmtcBKGsvDCFA3KTphGXExWb3aHEu67JkcjAvC`
-- zze0s: `44AvbWXzFN3bnv2oj92AmEaR26PQf5Ys4W155zw3frvEJf2s4g325bk4tRBgH7umSVMhk88vkU3gw9cDvuCSHgpRPsuWVJp`
-
----
-
-For other currencies or donation methods, [reach out on Discord](https://discord.autobrr.com/qui).
-
-## Contributing
-
-Contributions are welcome.
-
-See [`CONTRIBUTING.md`](.github/CONTRIBUTING.md) for the development and test workflow.
-
-## Alternatives
-
-If qui does not fit your setup, these projects offer different approaches:
-
-- [VueTorrent](https://github.com/VueTorrent/VueTorrent) is a modern, responsive alternative WebUI.
-- [iQbit](https://github.com/ntoporcov/iQbit) is a mobile-focused WebUI and PWA.
-- [Flood](https://github.com/jesec/flood) supports qBittorrent and other torrent clients.
-- [qBitController](https://github.com/Bartuzen/qBitController) is a native app for Android, iOS, Linux, macOS, and Windows.
-
-The qBittorrent wiki includes a longer [list of community WebUIs](https://github.com/qbittorrent/qBittorrent/wiki/List-of-known-alternate-WebUIs).
-
-## License
-
-GPL-2.0-or-later
+原始需求、现场检查与历史运维资料保留在本地，不纳入公开源码。当前没有接入现有下载器，也没有交接自动添加、删除或汇报权限。

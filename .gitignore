@@ -94,3 +94,11 @@ polar-scripts/
 
 # Local-only planning notes
 plans/
+
+# Local project planning and operational history; public roadmap is DEVELOPMENT.md.
+/code-implementation-plan-v1.md
+/qui-racing-extension-plan-v1.md
+/vertex-racing-baseline.md
+/vertex-replacement-acceptance.md
+/vertex-official-reclaim-policy-v1.md
+/references/
