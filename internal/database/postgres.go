@@ -175,8 +175,14 @@ func (db *DB) migratePostgres() error {
 		if err != nil {
 			return fmt.Errorf("read migration %s: %w", filename, err)
 		}
-		if _, err := tx.ExecContext(ctx, string(content)); err != nil {
-			return fmt.Errorf("execute migration %s: %w", filename, err)
+		skip, err := db.skipRestoredDashboard(ctx, tx, filename)
+		if err != nil {
+			return fmt.Errorf("inspect custom dashboard migration: %w", err)
+		}
+		if !skip {
+			if _, err := tx.ExecContext(ctx, string(content)); err != nil {
+				return fmt.Errorf("execute migration %s: %w", filename, err)
+			}
 		}
 		if _, err := tx.ExecContext(ctx, "INSERT INTO migrations (filename) VALUES ($1)", filename); err != nil {
 			return fmt.Errorf("record migration %s: %w", filename, err)

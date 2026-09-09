@@ -5,13 +5,15 @@ description: 竞速开发分支的旧定制日统计与排序数据库升级边�
 
 # 定制数据库升级
 
-本说明适用于 `Ebichuu/qui` 的 `racing/develop` 开发分支，将基于旧定制 `bfe94b5e` 的数据库升级到 qui v1.28.0 底座。C01 只保护已有数据并验证升级；日统计、排序及其他定制功能的运行入口仍需 C02 恢复，当前不作为生产替代版本。
+本说明适用于 `Ebichuu/qui` 的 `racing/develop` 开发分支，将基于旧定制 `bfe94b5e` 的数据库升级到 qui v1.28.0 底座。C01 保护已有数据并验证升级；C02 已恢复日统计、排序及其他定制功能。竞速能力仍在开发，当前不作为生产替代版本。
 
 ## 识别与处理
 
 旧定制 SQLite 的 `091_add_daily_transfer_stats.sql`、`092_add_server_stats_sort.sql`，以及 PostgreSQL 的 `093_add_daily_transfer_stats.sql`、`094_add_server_stats_sort.sql`，与上游迁移编号相同但文件名不同。
 
 程序按完整文件名识别迁移。升级保留旧文件名及应用时间，上游 partial pools 等不同文件名的迁移继续正常执行，不需要手工修改迁移记录。升级前核验定制表、字段顺序/类型/默认值/非空约束、主键、外键和日期索引；同时支持只完成日统计迁移的历史中间版本。
+
+C02 新增 SQLite `094_restore_custom_dashboard.sql` 和 PostgreSQL `095_restore_custom_dashboard.sql`。完整旧定制库直接接管已验证结构，在事务内补记新迁移；日统计中间版本补齐排序字段；空库和上游库创建完整结构。旧统计、排序值和旧迁移记录均保留，重启不会重复添加字段。
 
 出现 `legacy dashboard schema does not match migration history` 时，程序停止升级。不要删除迁移记录、伪造文件名或让程序重建统计表。保留失败副本，核对是否拿错数据库、记录缺失或结构曾被修改，再恢复已验证的备份。
 

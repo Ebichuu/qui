@@ -53,7 +53,7 @@ func legacyDashboardFixture(t *testing.T, dialect Dialect, variant string) (*DB,
 	}
 	var common []string
 	for _, file := range files {
-		if variant == "upstream" || file[:3] < cutoff {
+		if (variant == "upstream" && file < db.customDashboardMigration()) || file[:3] < cutoff {
 			common = append(common, file)
 		}
 	}
@@ -168,6 +168,13 @@ func TestLegacyDashboardUpgrade(t *testing.T) {
 							var timestamp string
 							require.NoError(t, upgraded.QueryRowContext(t.Context(), `SELECT CAST(applied_at AS TEXT) FROM migrations WHERE filename = ?`, row[0]).Scan(&timestamp))
 							require.Equal(t, row[1], timestamp)
+						}
+						var restored int
+						require.NoError(t, upgraded.QueryRowContext(t.Context(), `SELECT count(*) FROM migrations WHERE filename = ?`, upgraded.customDashboardMigration()).Scan(&restored))
+						require.Equal(t, 1, restored)
+						require.NoError(t, upgraded.validateLegacyDashboard(t.Context(), upgraded.Conn()))
+						if variant == "upstream" || variant == "daily_only" {
+							require.Equal(t, [][]string{{"instance", "asc"}}, legacySnapshot(t, upgraded.Conn(), `SELECT server_stats_sort_column, server_stats_sort_direction FROM dashboard_settings`))
 						}
 						// The colliding upstream migration is required, not skipped.
 						var pools int

@@ -556,6 +556,32 @@ func TestEvaluateCondition_NumericFields(t *testing.T) {
 			expected: true,
 		},
 		{
+			name: "average upload speed below 100 MiB per second",
+			cond: &RuleCondition{
+				Field:    FieldUpSpeedAvg,
+				Operator: OperatorLessThan,
+				Value:    "104857600",
+			},
+			torrent: qbt.Torrent{
+				Uploaded:   150 * 1024 * 1024,
+				TimeActive: 3,
+			},
+			expected: true,
+		},
+		{
+			name: "average upload speed does not match without active time",
+			cond: &RuleCondition{
+				Field:    FieldUpSpeedAvg,
+				Operator: OperatorLessThan,
+				Value:    "104857600",
+			},
+			torrent: qbt.Torrent{
+				Uploaded:   0,
+				TimeActive: 0,
+			},
+			expected: false,
+		},
+		{
 			name: "free space greater than 1GB",
 			cond: &RuleCondition{
 				Field:    FieldFreeSpace,

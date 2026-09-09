@@ -1524,6 +1524,7 @@
     "peers": "Peers",
     "downSpeed": "Down Speed",
     "upSpeed": "Up Speed",
+    "averageUpSpeed": "Average Upload Speed",
     "eta": "ETA",
     "ratio": "Ratio",
     "popularity": "Popularity",

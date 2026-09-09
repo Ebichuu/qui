@@ -78,6 +78,7 @@ export type ConditionField =
   // Numeric fields (speeds)
   | "DL_SPEED"
   | "UP_SPEED"
+  | "UP_SPEED_AVG"
   | "DL_LIMIT"
   | "UP_LIMIT"
   // Numeric fields (counts/misc)
@@ -201,6 +202,7 @@ export interface DeleteAction {
   includeHardlinks?: boolean // Only valid when mode is "deleteWithFilesIncludeCrossSeeds"
   groupId?: string
   atomic?: "all"
+  conditionMatchDurationSeconds?: number
   condition?: RuleCondition
 }
 

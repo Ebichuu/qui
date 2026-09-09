@@ -105,12 +105,32 @@
     "title": "Estatísticas do Servidor",
     "ratio": "Ratio:",
     "peers": "Peers:",
+    "todayDownloaded": "Baixado hoje",
+    "todayUploaded": "Enviado hoje",
+    "sort": {
+      "label": "Ordenar",
+      "ascending": "Ordem crescente",
+      "descending": "Ordem decrescente",
+      "columns": {
+        "instance": "Ordem das instâncias",
+        "downloaded": "Baixado",
+        "downloadedToday": "Baixado hoje",
+        "downloadedSession": "Baixado (sessão)",
+        "uploaded": "Enviado",
+        "uploadedToday": "Enviado hoje",
+        "uploadedSession": "Enviado (sessão)",
+        "ratio": "Proporção",
+        "peers": "Peers"
+      }
+    },
     "tableHeaders": {
       "instance": "Instância",
       "downloaded": "Baixado",
+      "downloadedToday": "Baixado hoje",
       "downloadedSession": "Baixado (Sessão)",
       "uploadedSession": "Enviado (Sessão)",
       "uploaded": "Enviado",
+      "uploadedToday": "Enviado hoje",
       "ratio": "Ratio",
       "peers": "Peers"
     }

@@ -728,8 +728,10 @@ const (
 	// Numeric fields (speeds)
 	FieldDlSpeed ConditionField = "DL_SPEED"
 	FieldUpSpeed ConditionField = "UP_SPEED"
-	FieldDlLimit ConditionField = "DL_LIMIT"
-	FieldUpLimit ConditionField = "UP_LIMIT"
+	// FieldUpSpeedAvg is the lifetime average: uploaded bytes divided by active seconds.
+	FieldUpSpeedAvg ConditionField = "UP_SPEED_AVG"
+	FieldDlLimit    ConditionField = "DL_LIMIT"
+	FieldUpLimit    ConditionField = "UP_LIMIT"
 
 	// Numeric fields (counts/misc)
 	FieldNumSeeds      ConditionField = "NUM_SEEDS"
@@ -776,7 +778,7 @@ func (f ConditionField) IsNumeric() bool {
 		FieldAddedOn, FieldCompletionOn, FieldLastActivity, FieldSeedingTime, FieldTimeActive,
 		FieldAddedOnAge, FieldCompletionOnAge, FieldLastActivityAge,
 		FieldRatio, FieldProgress, FieldAvailability,
-		FieldDlSpeed, FieldUpSpeed,
+		FieldDlSpeed, FieldUpSpeed, FieldUpSpeedAvg,
 		FieldNumSeeds, FieldNumLeechs, FieldNumComplete, FieldNumIncomplete, FieldTrackersCount,
 		FieldSystemHour, FieldSystemMinute, FieldSystemDayOfWeek, FieldSystemDay, FieldSystemMonth, FieldSystemYear:
 		return true
@@ -938,12 +940,13 @@ type AutoManagementAction struct {
 
 // DeleteAction configures deletion with mode and conditions.
 type DeleteAction struct {
-	Enabled          bool           `json:"enabled"`
-	Mode             string         `json:"mode"`                       // "delete", "deleteWithFiles", "deleteWithFilesPreserveCrossSeeds", "deleteWithFilesIncludeCrossSeeds"
-	IncludeHardlinks bool           `json:"includeHardlinks,omitempty"` // Only valid when mode is "deleteWithFilesIncludeCrossSeeds" and instance has local filesystem access
-	GroupID          string         `json:"groupId,omitempty"`          // Optional grouping ID for expanding/atomically applying deletes
-	Atomic           string         `json:"atomic,omitempty"`           // Optional atomic policy: "all" (apply only if all group members match)
-	Condition        *RuleCondition `json:"condition,omitempty"`
+	Enabled                       bool           `json:"enabled"`
+	Mode                          string         `json:"mode"`                                    // "delete", "deleteWithFiles", "deleteWithFilesPreserveCrossSeeds", "deleteWithFilesIncludeCrossSeeds"
+	IncludeHardlinks              bool           `json:"includeHardlinks,omitempty"`              // Only valid when mode is "deleteWithFilesIncludeCrossSeeds" and instance has local filesystem access
+	GroupID                       string         `json:"groupId,omitempty"`                       // Optional grouping ID for expanding/atomically applying deletes
+	Atomic                        string         `json:"atomic,omitempty"`                        // Optional atomic policy: "all" (apply only if all group members match)
+	ConditionMatchDurationSeconds int            `json:"conditionMatchDurationSeconds,omitempty"` // Require the condition to remain matched across rule runs before deleting
+	Condition                     *RuleCondition `json:"condition,omitempty"`
 }
 
 // TagAction configures tagging with smart add/remove logic.

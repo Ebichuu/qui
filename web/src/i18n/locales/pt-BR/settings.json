@@ -42,6 +42,7 @@
     "title": "Instâncias",
     "description": "Gerencie suas configurações de conexão do qBittorrent",
     "addButton": "Adicionar Instância",
+    "dragToReorder": "Arraste para reordenar a instância",
     "loading": "Carregando instâncias...",
     "empty": "Nenhuma instância configurada ainda",
     "addFirst": "Adicione Sua Primeira Instância",

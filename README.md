@@ -2,12 +2,13 @@
 
 基于 [qui](https://github.com/autobrr/qui) 的竞速扩展，在 [Ebichuu/qui](https://github.com/Ebichuu/qui/tree/racing/develop) 的 `racing/develop` 分支开发。项目正式名称待定。
 
-更新日期：2026-09-10。C00 底座验证和 C01 数据库升级衔接已实现，通过 SQLite/PostgreSQL 合成库与真实程序验证。定制功能迁移和竞速功能尚未完成，当前版本不用于替换现有部署。
+更新日期：2026-09-10。C00—C02 底座升级、数据库衔接和既有定制恢复已实现，通过 SQLite/PostgreSQL 升级与隔离页面验证。竞速功能尚未完成，当前版本不用于替换现有部署。
 
 ## 开发入口
 
 - [启动批次记录](development-c00.md)：基线、验证结果、迁移冲突和下一步。
 - [数据库升级衔接](development-c01.md)：旧定制结构核验、数据保留和恢复验证。
+- [定制恢复记录](development-c02.md)：均速、持续条件、批量复制、日统计及页面验证。
 - [基线锁定记录](development-baseline.json)：上游正式版、定制提交及工具版本。
 - [上游 README](README.upstream.md)：保留原项目介绍；许可证和 Go 模块名不变。
 
@@ -23,7 +24,7 @@ make precommit
 
 ## 开发计划
 
-[公开开发计划](DEVELOPMENT.md) 列出 C00—C14 的顺序、交付范围和执行边界；下一批为 C02 定制功能迁移。
+[公开开发计划](DEVELOPMENT.md) 列出 C00—C14 的顺序、交付范围和执行边界；正在推进 C03 站点、来源、规则和群组基础模型。
 
 主方案承接最新确认：以 qui 为底座保留定制；RSS 与网页互补，谁先发现且必要信息齐备就先推进；慢来源、整批元数据和通知不得拖住接种；官种优先，合格低效种可用于腾空间；前端简洁，过程查日志。所有镜像只通过 GitHub Actions 构建发布。
 

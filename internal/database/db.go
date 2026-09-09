@@ -1558,9 +1558,14 @@ func (db *DB) applyAllMigrations(ctx context.Context, migrations []string) error
 				return fmt.Errorf("failed to read migration file %s: %w", filename, err)
 			}
 
-			// Execute migration
-			if _, err := tx.ExecContext(ctx, string(content)); err != nil {
-				return fmt.Errorf("failed to execute migration %s: %w", filename, err)
+			skip, err := db.skipRestoredDashboard(ctx, tx, filename)
+			if err != nil {
+				return fmt.Errorf("inspect custom dashboard migration: %w", err)
+			}
+			if !skip {
+				if _, err := tx.ExecContext(ctx, string(content)); err != nil {
+					return fmt.Errorf("failed to execute migration %s: %w", filename, err)
+				}
 			}
 
 			// Record migration

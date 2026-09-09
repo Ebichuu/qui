@@ -44,9 +44,10 @@ export const SIZE_COLUMNS = [
 export const SPEED_COLUMNS = [
   "dlspeed",
   "upspeed",
+  "up_speed_avg",
   "dl_limit",
   "up_limit",
-] as const satisfies readonly (keyof Torrent)[]
+] as const satisfies readonly (keyof Torrent | "up_speed_avg")[]
 
 export const DURATION_COLUMNS = [
   "eta",

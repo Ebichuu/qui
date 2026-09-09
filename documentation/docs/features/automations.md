@@ -107,6 +107,7 @@ When qui evaluates a rule, these fields use qui's current system time. Use them 
 | Field | Description |
 | --- | --- |
 | Download Speed | Current download speed |
+| Average Upload Speed | Total uploaded bytes divided by total active time |
 | Upload Speed | Current upload speed |
 | Download Limit | Configured download speed limit |
 | Upload Limit | Configured upload speed limit |
@@ -193,6 +194,8 @@ Older rules can use a second field named **Trackers (All)**. It now behaves the 
 | Hardlink Scope | `none`, `torrents_only`, `inside_qbittorrent`, or `outside_qbittorrent` (requires local filesystem access, see [Hardlink detection](#hardlink-detection)) |
 | Hardlink Scope (Cross-Instance) | `none`, `torrents_only`, `inside_qbittorrent`, or `outside_qbittorrent` across all instances (requires local filesystem access) |
 | Has Missing Files | Boolean: a completed torrent has files missing on disk (requires local filesystem access) |
+
+**Average Upload Speed** uses the torrent-list counters (`Uploaded / Time Active`). A torrent with no active-time value does not match this condition. No separate properties request is needed.
 
 ### State values
 
@@ -529,6 +532,8 @@ Remove torrents from qBittorrent. **Delete must be standalone.** You cannot comb
 | `deleteWithFiles` | Remove with files |
 | `deleteWithFilesPreserveCrossSeeds` | Remove files, but keep them if qui detects cross-seeds |
 | `deleteWithFilesIncludeCrossSeeds` | Remove files and also delete all cross-seeded torrents sharing the same files |
+
+**Optional condition match duration:** Set `conditionMatchDurationSeconds` to require the delete condition to remain matched across consecutive workflow runs before deletion. The minimum non-zero value is 60 seconds; omit it or use `0` for immediate deletion. Non-matches, failed observations, stale sync data, counter resets, task re-additions, rule changes and long gaps between observations reset the timer. Cooldown suppresses deletion while observation continues. Choose a workflow interval no longer than the duration so qui can observe the condition, and note that restarting qui resets active timers.
 
 **Optional grouping (advanced):**
 

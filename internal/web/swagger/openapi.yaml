@@ -18,6 +18,116 @@ security:
   - SessionAuth: []
 
 paths:
+  /api/dashboard-settings:
+    get:
+      tags: [Settings]
+      summary: Get dashboard layout and sorting preferences
+      responses:
+        '200':
+          description: Dashboard settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSettings'
+    put:
+      tags: [Settings]
+      summary: Update dashboard layout and sorting preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardSettingsInput'
+      responses:
+        '200':
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSettings'
+        '400':
+          description: Invalid settings
+
+  /api/instances/{instanceID}/automations:
+    parameters:
+      - name: instanceID
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Automations]
+      summary: List automation rules
+      responses:
+        '200':
+          description: Rules in configured order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Automation'
+    post:
+      tags: [Automations]
+      summary: Create an automation rule
+      description: Bulk copy creates a separate rule on each selected active instance using this endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationInput'
+      responses:
+        '201':
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Automation'
+        '400':
+          description: Invalid rule or duration
+
+  /api/instances/{instanceID}/automations/{ruleID}:
+    parameters:
+      - name: instanceID
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: ruleID
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [Automations]
+      summary: Update an automation rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AutomationInput'
+      responses:
+        '200':
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Automation'
+        '400':
+          description: Invalid rule or duration
+        '404':
+          description: Rule not found
+    delete:
+      tags: [Automations]
+      summary: Delete an automation rule
+      responses:
+        '204':
+          description: Rule deleted
+        '404':
+          description: Rule not found
+
   /api/auth/setup:
     post:
       tags:
@@ -1226,6 +1336,29 @@ paths:
         '503':
           description: Instance unavailable
 
+  /api/instances/{instanceID}/daily-transfer:
+    get:
+      tags:
+        - Instances
+      summary: Get today's transfer totals
+      description: >-
+        Retrieve qui's persisted upload and download totals for the current
+        local calendar day. Totals begin with the first sample after the
+        feature is enabled and are updated from qBittorrent's all-time counters.
+      parameters:
+        - $ref: '#/components/parameters/instanceID'
+      responses:
+        '200':
+          description: Today's transfer totals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyTransferStats'
+        '400':
+          description: Invalid instance ID
+        '503':
+          description: Daily transfer statistics unavailable
+
   /api/instances/{instanceID}/getDirectoryContent:
     get:
       tags:
@@ -1439,7 +1572,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [name, size, progress, priority, added_on]
+            enum: [name, size, progress, priority, added_on, up_speed_avg]
         - name: order
           in: query
           schema:
@@ -3304,7 +3437,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [name, size, progress, priority, added_on, instance]
+            enum: [name, size, progress, priority, added_on, up_speed_avg, instance]
         - name: order
           in: query
           schema:
@@ -6584,6 +6717,173 @@ components:
         alltime_ul:
           type: integer
           description: All-time uploaded bytes. Absent until the instance completes its first sync.
+
+    DashboardSettingsInput:
+      type: object
+      properties:
+        sectionVisibility:
+          type: object
+          additionalProperties:
+            type: boolean
+        sectionOrder:
+          type: array
+          items:
+            type: string
+        sectionCollapsed:
+          type: object
+          additionalProperties:
+            type: boolean
+        serverStatsSortColumn:
+          type: string
+          enum: [instance, downloaded, downloadedToday, downloadedSession, uploaded, uploadedToday, uploadedSession, ratio, peers]
+          default: instance
+        serverStatsSortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        trackerBreakdownSortColumn:
+          type: string
+        trackerBreakdownSortDirection:
+          type: string
+          enum: [asc, desc]
+        trackerBreakdownItemsPerPage:
+          type: integer
+    DashboardSettings:
+      allOf:
+        - $ref: '#/components/schemas/DashboardSettingsInput'
+        - type: object
+          properties:
+            id:
+              type: integer
+            userId:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    AutomationInput:
+      type: object
+      properties:
+        name:
+          type: string
+        trackerPattern:
+          type: string
+        trackerDomains:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+        dryRun:
+          type: boolean
+        notify:
+          type: boolean
+        sortOrder:
+          type: integer
+        intervalSeconds:
+          type: integer
+        freeSpaceSource:
+          type: object
+        sortingConfig:
+          type: object
+        conditions:
+          type: object
+          description: Per-action conditions; other supported actions may be supplied alongside delete.
+          properties:
+            delete:
+              $ref: '#/components/schemas/AutomationDeleteAction'
+    Automation:
+      allOf:
+        - $ref: '#/components/schemas/AutomationInput'
+        - type: object
+          properties:
+            id:
+              type: integer
+            instanceId:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    AutomationDeleteAction:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        mode:
+          type: string
+        includeHardlinks:
+          type: boolean
+        groupId:
+          type: string
+        atomic:
+          type: string
+        conditionMatchDurationSeconds:
+          type: integer
+          format: int64
+          default: 0
+          description: Zero disables sustained matching. Otherwise, 60 to 9223372036 seconds across observed rule runs. Cooldown suppresses deletion but continues observation. Missing observations, stale cache, counter resets, rule changes and task generations reset qualification.
+          oneOf:
+            - enum: [0]
+            - minimum: 60
+              maximum: 9223372036
+        condition:
+          $ref: '#/components/schemas/AutomationRuleCondition'
+    AutomationRuleCondition:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Condition field. UP_SPEED_AVG is uploaded bytes divided by active seconds from the torrent list; no active time means unknown and does not match.
+          examples: [UP_SPEED_AVG, UP_SPEED, FREE_SPACE]
+        operator:
+          type: string
+        value:
+          type: string
+        minValue:
+          type: number
+        maxValue:
+          type: number
+        groupId:
+          type: string
+        regex:
+          type: boolean
+        negate:
+          type: boolean
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutomationRuleCondition'
+
+    DailyTransferStats:
+      type: object
+      required:
+        - instanceId
+        - date
+        - downloaded
+        - uploaded
+        - updatedAt
+      properties:
+        instanceId:
+          type: integer
+        date:
+          type: string
+          format: date
+        downloaded:
+          type: integer
+          format: int64
+          description: Downloaded bytes recorded for the current local calendar day.
+        uploaded:
+          type: integer
+          format: int64
+          description: Uploaded bytes recorded for the current local calendar day.
+        updatedAt:
+          type: string
+          format: date-time
 
 
     Torrent:

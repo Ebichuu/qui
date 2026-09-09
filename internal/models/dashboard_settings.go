@@ -32,6 +32,8 @@ type DashboardSettings struct {
 	SectionVisibility            map[string]bool `json:"sectionVisibility"`
 	SectionOrder                 []string        `json:"sectionOrder"`
 	SectionCollapsed             map[string]bool `json:"sectionCollapsed"`
+	ServerStatsSortColumn        string          `json:"serverStatsSortColumn"`
+	ServerStatsSortDir           string          `json:"serverStatsSortDirection"`
 	TrackerBreakdownSortColumn   string          `json:"trackerBreakdownSortColumn"`
 	TrackerBreakdownSortDir      string          `json:"trackerBreakdownSortDirection"`
 	TrackerBreakdownItemsPerPage int             `json:"trackerBreakdownItemsPerPage"`
@@ -43,6 +45,8 @@ type DashboardSettingsInput struct {
 	SectionVisibility            map[string]bool `json:"sectionVisibility,omitempty"`
 	SectionOrder                 []string        `json:"sectionOrder,omitempty"`
 	SectionCollapsed             map[string]bool `json:"sectionCollapsed,omitempty"`
+	ServerStatsSortColumn        string          `json:"serverStatsSortColumn,omitempty"`
+	ServerStatsSortDir           string          `json:"serverStatsSortDirection,omitempty"`
 	TrackerBreakdownSortColumn   string          `json:"trackerBreakdownSortColumn,omitempty"`
 	TrackerBreakdownSortDir      string          `json:"trackerBreakdownSortDirection,omitempty"`
 	TrackerBreakdownItemsPerPage int             `json:"trackerBreakdownItemsPerPage,omitempty"`
@@ -60,6 +64,7 @@ func NewDashboardSettingsStore(db dbinterface.Querier) *DashboardSettingsStore {
 func (s *DashboardSettingsStore) GetByUserID(ctx context.Context, userID int) (*DashboardSettings, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, user_id, section_visibility, section_order, section_collapsed,
+		       server_stats_sort_column, server_stats_sort_direction,
 		       tracker_breakdown_sort_column, tracker_breakdown_sort_direction,
 		       tracker_breakdown_items_per_page, created_at, updated_at
 		FROM dashboard_settings
@@ -71,6 +76,7 @@ func (s *DashboardSettingsStore) GetByUserID(ctx context.Context, userID int) (*
 
 	err := row.Scan(
 		&ds.ID, &ds.UserID, &visibilityJSON, &orderJSON, &collapsedJSON,
+		&ds.ServerStatsSortColumn, &ds.ServerStatsSortDir,
 		&ds.TrackerBreakdownSortColumn, &ds.TrackerBreakdownSortDir,
 		&ds.TrackerBreakdownItemsPerPage, &ds.CreatedAt, &ds.UpdatedAt,
 	)
@@ -133,6 +139,12 @@ func (s *DashboardSettingsStore) Update(ctx context.Context, userID int, input *
 	if input.SectionCollapsed != nil {
 		existing.SectionCollapsed = input.SectionCollapsed
 	}
+	if input.ServerStatsSortColumn != "" {
+		existing.ServerStatsSortColumn = input.ServerStatsSortColumn
+	}
+	if input.ServerStatsSortDir != "" {
+		existing.ServerStatsSortDir = input.ServerStatsSortDir
+	}
 	if input.TrackerBreakdownSortColumn != "" {
 		existing.TrackerBreakdownSortColumn = input.TrackerBreakdownSortColumn
 	}
@@ -163,6 +175,8 @@ func (s *DashboardSettingsStore) Update(ctx context.Context, userID int, input *
 		SET section_visibility = ?,
 		    section_order = ?,
 		    section_collapsed = ?,
+		    server_stats_sort_column = ?,
+		    server_stats_sort_direction = ?,
 		    tracker_breakdown_sort_column = ?,
 		    tracker_breakdown_sort_direction = ?,
 		    tracker_breakdown_items_per_page = ?
@@ -171,6 +185,8 @@ func (s *DashboardSettingsStore) Update(ctx context.Context, userID int, input *
 		string(visibilityJSON),
 		string(orderJSON),
 		string(collapsedJSON),
+		existing.ServerStatsSortColumn,
+		existing.ServerStatsSortDir,
 		existing.TrackerBreakdownSortColumn,
 		existing.TrackerBreakdownSortDir,
 		existing.TrackerBreakdownItemsPerPage,
@@ -197,9 +213,10 @@ func (s *DashboardSettingsStore) createDefault(ctx context.Context, userID int) 
 	var id int
 	err = s.db.QueryRowContext(ctx, `
 		INSERT INTO dashboard_settings (user_id, section_visibility, section_order, section_collapsed,
+		                                server_stats_sort_column, server_stats_sort_direction,
 		                                tracker_breakdown_sort_column, tracker_breakdown_sort_direction,
 		                                tracker_breakdown_items_per_page)
-		VALUES (?, ?, ?, '{}', 'uploaded', 'desc', 15)
+		VALUES (?, ?, ?, '{}', 'instance', 'asc', 'uploaded', 'desc', 15)
 		RETURNING id
 	`, userID, string(visibilityJSON), string(orderJSON)).Scan(&id)
 	if err != nil {
@@ -212,6 +229,8 @@ func (s *DashboardSettingsStore) createDefault(ctx context.Context, userID int) 
 		SectionVisibility:            copyVisibilityMap(DefaultSectionVisibility),
 		SectionOrder:                 copyStringSlice(DefaultSectionOrder),
 		SectionCollapsed:             make(map[string]bool),
+		ServerStatsSortColumn:        "instance",
+		ServerStatsSortDir:           "asc",
 		TrackerBreakdownSortColumn:   "uploaded",
 		TrackerBreakdownSortDir:      "desc",
 		TrackerBreakdownItemsPerPage: 15,

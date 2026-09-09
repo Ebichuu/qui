@@ -105,12 +105,32 @@
     "title": "Статистика сервера",
     "ratio": "Співвідношення:",
     "peers": "Піри:",
+    "todayDownloaded": "Завантажено сьогодні",
+    "todayUploaded": "Вивантажено сьогодні",
+    "sort": {
+      "label": "Сортування",
+      "ascending": "Сортувати за зростанням",
+      "descending": "Сортувати за спаданням",
+      "columns": {
+        "instance": "Порядок екземплярів",
+        "downloaded": "Завантажено",
+        "downloadedToday": "Завантажено сьогодні",
+        "downloadedSession": "Завантажено (сеанс)",
+        "uploaded": "Вивантажено",
+        "uploadedToday": "Вивантажено сьогодні",
+        "uploadedSession": "Вивантажено (сеанс)",
+        "ratio": "Рейтинг",
+        "peers": "Піри"
+      }
+    },
     "tableHeaders": {
       "instance": "Екземпляр",
       "downloaded": "Завантажено",
+      "downloadedToday": "Завантажено сьогодні",
       "downloadedSession": "Завантажено (сесія)",
       "uploadedSession": "Вивантажено (сесія)",
       "uploaded": "Вивантажено",
+      "uploadedToday": "Вивантажено сьогодні",
       "ratio": "Співвідношення",
       "peers": "Піри"
     }

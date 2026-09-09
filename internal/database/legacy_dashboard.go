@@ -34,13 +34,16 @@ func (db *DB) validateLegacyDashboard(ctx context.Context, q legacySchemaQuerier
 		integerType = "bigint"
 	}
 
-	var dailyRecorded, sortRecorded bool
+	var dailyRecorded, sortRecorded, restored bool
 	if err := q.QueryRowContext(ctx, db.bindQuery(`SELECT
 		EXISTS(SELECT 1 FROM migrations WHERE filename = ?),
-		EXISTS(SELECT 1 FROM migrations WHERE filename = ?)`), dailyFile, sortFile).
-		Scan(&dailyRecorded, &sortRecorded); err != nil {
+		EXISTS(SELECT 1 FROM migrations WHERE filename = ?),
+		EXISTS(SELECT 1 FROM migrations WHERE filename = ?)`), dailyFile, sortFile, db.customDashboardMigration()).
+		Scan(&dailyRecorded, &sortRecorded, &restored); err != nil {
 		return fmt.Errorf("inspect legacy dashboard migration history: %w", err)
 	}
+	dailyRecorded = dailyRecorded || restored
+	sortRecorded = sortRecorded || restored
 	daily, err := db.legacyTableColumns(ctx, q, "instance_daily_transfer_stats")
 	if err != nil {
 		return err
@@ -170,4 +173,26 @@ func (db *DB) legacyDailyConstraints(ctx context.Context, q legacySchemaQuerier)
 		return false, fmt.Errorf("inspect legacy daily transfer constraints: %w", err)
 	}
 	return primary && foreign && index, nil
+}
+
+func (db *DB) customDashboardMigration() string {
+	if db.dialect == DialectPostgres {
+		return "095_restore_custom_dashboard.sql"
+	}
+	return "094_restore_custom_dashboard.sql"
+}
+
+// A validated legacy installation already has both objects. Adopt them by
+// recording the new migration in the same transaction, preserving old history.
+func (db *DB) skipRestoredDashboard(ctx context.Context, q legacySchemaQuerier, filename string) (bool, error) {
+	if filename != db.customDashboardMigration() {
+		return false, nil
+	}
+	oldSort := "092_add_server_stats_sort.sql"
+	if db.dialect == DialectPostgres {
+		oldSort = "094_add_server_stats_sort.sql"
+	}
+	var exists bool
+	err := q.QueryRowContext(ctx, db.bindQuery("SELECT EXISTS(SELECT 1 FROM migrations WHERE filename = ?)"), oldSort).Scan(&exists)
+	return exists, err
 }

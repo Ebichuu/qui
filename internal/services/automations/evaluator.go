@@ -51,6 +51,10 @@ type FreeSpaceSourceState struct {
 
 // EvalContext provides additional context for condition evaluation.
 type EvalContext struct {
+	// DeleteConditionGate can defer a matched delete condition until a service-level
+	// requirement, such as continuous match duration, has been satisfied.
+	DeleteConditionGate func(rule *models.Automation, torrent qbt.Torrent, matched bool) bool
+
 	// UnregisteredSet contains hashes of unregistered torrents (from SyncManager health counts)
 	UnregisteredSet map[string]struct{}
 	// TrackerDownSet contains hashes of torrents whose trackers are down (from SyncManager health counts)
@@ -506,6 +510,12 @@ func evaluateLeaf(cond *RuleCondition, torrent qbt.Torrent, ctx *EvalContext) bo
 		return compareInt64(torrent.DlSpeed, cond)
 	case FieldUpSpeed:
 		return compareInt64(torrent.UpSpeed, cond)
+	case FieldUpSpeedAvg:
+		average, ok := averageUploadSpeed(torrent)
+		if !ok {
+			return false
+		}
+		return compareInt64(average, cond)
 	case FieldDlLimit:
 		return compareInt64(torrent.DlLimit, cond)
 	case FieldUpLimit:
@@ -664,6 +674,16 @@ func evaluateLeaf(cond *RuleCondition, torrent qbt.Torrent, ctx *EvalContext) bo
 	default:
 		return false
 	}
+}
+
+// averageUploadSpeed returns the torrent's lifetime upload average in bytes/s.
+// The torrent list does not expose qBittorrent's detail-only up_speed_avg field,
+// so use the list's cumulative upload and active-time counters instead.
+func averageUploadSpeed(torrent qbt.Torrent) (int64, bool) {
+	if torrent.TimeActive <= 0 {
+		return 0, false
+	}
+	return torrent.Uploaded / torrent.TimeActive, true
 }
 
 func compareState(torrent qbt.Torrent, cond *RuleCondition, ctx *EvalContext) bool {

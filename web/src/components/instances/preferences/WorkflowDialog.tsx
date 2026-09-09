@@ -482,6 +482,7 @@ type FormState = {
   exprIncludeHardlinks: boolean // Only for deleteWithFilesIncludeCrossSeeds mode
   exprDeleteGroupId: string
   exprDeleteAtomic: "all" | ""
+  exprDeleteConditionDurationMinutes: number
   // Free space source settings (for FREE_SPACE conditions)
   exprFreeSpaceSourceType: "qbittorrent" | "path"
   exprFreeSpaceSourcePath: string
@@ -554,6 +555,7 @@ const emptyFormState: FormState = {
   exprIncludeHardlinks: false,
   exprDeleteGroupId: "",
   exprDeleteAtomic: "",
+  exprDeleteConditionDurationMinutes: 0,
   exprFreeSpaceSourceType: "qbittorrent",
   exprFreeSpaceSourcePath: "",
   exprTagActions: [createDefaultTagAction()],
@@ -1015,6 +1017,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
         let exprGrouping: GroupingConfig | undefined
         let exprDeleteGroupId = ""
         let exprDeleteAtomic: FormState["exprDeleteAtomic"] = ""
+        let exprDeleteConditionDurationMinutes = 0
         let exprCategoryGroupId = ""
         let exprMoveGroupId = ""
         let exprMoveAtomic: FormState["exprMoveAtomic"] = ""
@@ -1122,6 +1125,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
             exprIncludeHardlinks = conditions.delete.includeHardlinks ?? false
             exprDeleteGroupId = conditions.delete.groupId ?? ""
             exprDeleteAtomic = conditions.delete.atomic ?? ""
+            exprDeleteConditionDurationMinutes = (conditions.delete.conditionMatchDurationSeconds ?? 0) / 60
           }
           const resolvedTagActions = (conditions.tags && conditions.tags.length > 0? conditions.tags: conditions.tag ? [conditions.tag] : [])
             .filter((action) => action && action.enabled)
@@ -1206,6 +1210,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
           exprIncludeHardlinks,
           exprDeleteGroupId,
           exprDeleteAtomic,
+          exprDeleteConditionDurationMinutes,
           exprFreeSpaceSourceType,
           exprFreeSpaceSourcePath,
           exprTagActions,
@@ -1287,18 +1292,19 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
     }
   }, [formState.actionCondition, formState.deleteEnabled, formState.exprDeleteMode, t])
 
-  // Auto-switch interval from 1 minute when FREE_SPACE delete condition is added
-  // The backend has a ~5 minute cooldown, so 1 minute intervals would be ineffective
+  // Auto-switch interval from 1 minute when FREE_SPACE delete condition is added.
+  // Sustained conditions still need 1 minute observations, while the backend
+  // independently enforces its post-delete free-space cooldown.
   // Only switch on user edits, not during initial hydration (respect saved config)
   useEffect(() => {
     if (isHydrating.current) return
-    if (formState.deleteEnabled && formState.intervalSeconds === 60) {
+    if (formState.deleteEnabled && formState.intervalSeconds === 60 && formState.exprDeleteConditionDurationMinutes <= 0) {
       if (conditionUsesField(formState.actionCondition, "FREE_SPACE")) {
         setFormState(prev => ({ ...prev, intervalSeconds: 300 })) // Switch to 5 minutes
         toast.info(t("preferences.workflowDialog.toast.switchedIntervalForFreeSpace"))
       }
     }
-  }, [formState.actionCondition, formState.deleteEnabled, formState.intervalSeconds, t])
+  }, [formState.actionCondition, formState.deleteEnabled, formState.exprDeleteConditionDurationMinutes, formState.intervalSeconds, t])
 
   // Auto-switch free space source from "path" to "qbittorrent" on Windows (not supported)
   // This must run during hydration to handle legacy workflows opened on Windows.
@@ -1460,6 +1466,9 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
         includeHardlinks: input.exprDeleteMode === "deleteWithFilesIncludeCrossSeeds" ? input.exprIncludeHardlinks : undefined,
         groupId: input.exprDeleteGroupId || undefined,
         atomic: input.exprDeleteAtomic || undefined,
+        conditionMatchDurationSeconds: input.exprDeleteConditionDurationMinutes > 0
+          ? Math.round(input.exprDeleteConditionDurationMinutes * 60)
+          : undefined,
         condition: input.actionCondition ?? undefined,
       }
     }
@@ -1623,7 +1632,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
   const deleteUsesFreeSpace = formState.deleteEnabled && conditionUsesFreeSpace
   const intervalOptions = useMemo(() => ([
     { value: "default", label: t("preferences.workflowDialog.interval.default") },
-    { value: "60", label: t("preferences.workflowDialog.interval.oneMinute"), disabled: deleteUsesFreeSpace },
+    { value: "60", label: t("preferences.workflowDialog.interval.oneMinute"), disabled: deleteUsesFreeSpace && formState.exprDeleteConditionDurationMinutes <= 0 },
     { value: "300", label: t("preferences.workflowDialog.interval.fiveMinutes") },
     { value: "900", label: t("preferences.workflowDialog.interval.fifteenMinutes") },
     { value: "1800", label: t("preferences.workflowDialog.interval.thirtyMinutes") },
@@ -1633,7 +1642,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
     { value: "21600", label: t("preferences.workflowDialog.interval.sixHours") },
     { value: "43200", label: t("preferences.workflowDialog.interval.twelveHours") },
     { value: "86400", label: t("preferences.workflowDialog.interval.twentyFourHours") },
-  ]), [deleteUsesFreeSpace, t])
+  ]), [deleteUsesFreeSpace, formState.exprDeleteConditionDurationMinutes, t])
 
   // Count enabled actions
   const enabledActionsCount = [
@@ -2146,6 +2155,14 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
     }
     if (submitState.deleteEnabled && !submitState.actionCondition) {
       toast.error(t("preferences.workflowDialog.toast.deleteRequiresCondition"))
+      return
+    }
+    if (submitState.deleteEnabled && (
+      !Number.isFinite(submitState.exprDeleteConditionDurationMinutes) ||
+      submitState.exprDeleteConditionDurationMinutes < 0 ||
+      (submitState.exprDeleteConditionDurationMinutes > 0 && submitState.exprDeleteConditionDurationMinutes < 1)
+    )) {
+      toast.error(t("preferences.workflowDialog.toast.deleteConditionDurationInvalid"))
       return
     }
     const trimmedSubmitMovePath = submitState.exprMovePath?.trim()
@@ -3746,6 +3763,34 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
                             )
                           })()}
                         </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <Label htmlFor="delete-condition-duration" className="text-xs">
+                              {t("preferences.workflowDialog.delete.conditionDuration")}
+                            </Label>
+                            <FieldHelp>{t("preferences.workflowDialog.delete.conditionDurationHelp")}</FieldHelp>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id="delete-condition-duration"
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={formState.exprDeleteConditionDurationMinutes}
+                              onChange={(event) => {
+                                const value = Number(event.target.value)
+                                setFormState(prev => ({
+                                  ...prev,
+                                  exprDeleteConditionDurationMinutes: Number.isFinite(value) ? value : 0,
+                                }))
+                              }}
+                              className="w-28"
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              {t("preferences.workflowDialog.delete.minutes")}
+                            </span>
+                          </div>
+                        </div>
                         {/* Include Hardlinks checkbox - only for deleteWithFilesIncludeCrossSeeds mode */}
                         {formState.exprDeleteMode === "deleteWithFilesIncludeCrossSeeds" && (
                           <div className="flex items-center gap-2">
@@ -4134,7 +4179,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
                       </Tooltip>
                     </TooltipProvider>
                   )}
-                  {deleteUsesFreeSpace && formState.intervalSeconds === 60 && (
+                  {deleteUsesFreeSpace && formState.intervalSeconds === 60 && formState.exprDeleteConditionDurationMinutes <= 0 && (
                     <span className="text-xs text-yellow-500">{t("preferences.workflowDialog.interval.cooldownWarning")}</span>
                   )}
                 </div>

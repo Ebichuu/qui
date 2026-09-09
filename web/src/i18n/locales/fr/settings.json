@@ -42,6 +42,7 @@
     "title": "Gérer les instances",
     "description": "Gérer vos connexions qBittorrent et l'authentification.",
     "addButton": "Ajouter une instance",
+    "dragToReorder": "Faire glisser pour réorganiser l'instance",
     "loading": "Chargement des instances...",
     "empty": "Aucune instance configurée pour le moment",
     "addFirst": "Ajoutez votre première instance",
