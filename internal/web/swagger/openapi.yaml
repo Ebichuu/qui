@@ -18,6 +18,309 @@ security:
   - SessionAuth: []
 
 paths:
+  /api/racing/configuration:
+    get:
+      tags:
+      - Racing
+      summary: Read redacted racing configuration
+      description: Q1 configuration is independent of qB RSS rules. Reading or enabling
+        it does not add, delete or reannounce torrents.
+      responses:
+        '200':
+          description: Current persisted configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingConfiguration'
+        '503':
+          description: Configuration unavailable
+  /api/racing/status:
+    get:
+      tags:
+      - Racing
+      summary: Read application-owned racing service status
+      responses:
+        '200':
+          description: Observer status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingStatus'
+        '503':
+          description: Service unavailable
+  /api/racing/sites:
+    post:
+      tags:
+      - Racing
+      summary: Create racing sites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingSiteInput'
+      responses:
+        '201':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+  /api/racing/sites/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags:
+      - Racing
+      summary: Replace racing sites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingSiteInput'
+      responses:
+        '200':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+    delete:
+      tags:
+      - Racing
+      summary: Delete racing sites
+      description: Referenced objects must be detached first. Group membership never
+        grants operation ownership.
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Object not found
+        '409':
+          description: Object still referenced
+  /api/racing/sources:
+    post:
+      tags:
+      - Racing
+      summary: Create racing sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingSourceInput'
+      responses:
+        '201':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+  /api/racing/sources/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags:
+      - Racing
+      summary: Replace racing sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingSourceInput'
+      responses:
+        '200':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+    delete:
+      tags:
+      - Racing
+      summary: Delete racing sources
+      description: Referenced objects must be detached first. Group membership never
+        grants operation ownership.
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Object not found
+        '409':
+          description: Object still referenced
+  /api/racing/groups:
+    post:
+      tags:
+      - Racing
+      summary: Create racing groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingGroupInput'
+      responses:
+        '201':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+  /api/racing/groups/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags:
+      - Racing
+      summary: Replace racing groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingGroupInput'
+      responses:
+        '200':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+    delete:
+      tags:
+      - Racing
+      summary: Delete racing groups
+      description: Referenced objects must be detached first. Group membership never
+        grants operation ownership.
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Object not found
+        '409':
+          description: Object still referenced
+  /api/racing/rules:
+    post:
+      tags:
+      - Racing
+      summary: Create racing rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingRuleInput'
+      responses:
+        '201':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+  /api/racing/rules/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags:
+      - Racing
+      summary: Replace racing rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingRuleInput'
+      responses:
+        '200':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+    delete:
+      tags:
+      - Racing
+      summary: Delete racing rules
+      description: Referenced objects must be detached first. Group membership never
+        grants operation ownership.
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Object not found
+        '409':
+          description: Object still referenced
+
   /api/dashboard-settings:
     get:
       tags: [Settings]
@@ -6717,6 +7020,355 @@ components:
         alltime_ul:
           type: integer
           description: All-time uploaded bytes. Absent until the instance completes its first sync.
+
+    RacingSiteInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        baseUrl:
+          type: string
+          format: uri
+          description: HTTP(S) scheme and host only; no credentials, path or query.
+        enabled:
+          type: boolean
+        trackerHosts:
+          type: array
+          items:
+            type: string
+        requestIntervalSeconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        credential:
+          type: string
+          writeOnly: true
+          description: Server-only opaque credential. Omit to preserve; empty string clears
+            it.
+      required:
+      - name
+      - baseUrl
+      - requestIntervalSeconds
+    RacingSite:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        baseUrl:
+          type: string
+          format: uri
+          description: HTTP(S) scheme and host only; no credentials, path or query.
+        enabled:
+          type: boolean
+        trackerHosts:
+          type: array
+          items:
+            type: string
+        requestIntervalSeconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        id:
+          type: integer
+        hasCredential:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+    RacingSourceInput:
+      type: object
+      properties:
+        siteId:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        kind:
+          type: string
+          enum:
+          - rss
+          - web
+          - revival
+        enabled:
+          type: boolean
+        intervalSeconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        url:
+          type: string
+          format: uri
+          writeOnly: true
+          description: Required on creation. Omit on update to retain the encrypted endpoint.
+      required:
+      - name
+      - siteId
+      - kind
+      - intervalSeconds
+    RacingSource:
+      type: object
+      properties:
+        siteId:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        kind:
+          type: string
+          enum:
+          - rss
+          - web
+          - revival
+        enabled:
+          type: boolean
+        intervalSeconds:
+          type: integer
+          minimum: 1
+          maximum: 86400
+        id:
+          type: integer
+        urlOrigin:
+          type: string
+          description: Scheme and host only; endpoint path, query and user info are never
+            returned.
+        updatedAt:
+          type: string
+          format: date-time
+    RacingGroupInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        enabled:
+          type: boolean
+        instanceIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+      required:
+      - name
+    RacingGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        enabled:
+          type: boolean
+        instanceIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        id:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+    RacingRuleFilters:
+      type: object
+      properties:
+        minSizeBytes:
+          type: integer
+          format: int64
+          minimum: 0
+        maxSizeBytes:
+          type: integer
+          format: int64
+          minimum: 0
+        includeKeywords:
+          type: array
+          items:
+            type: string
+        excludeKeywords:
+          type: array
+          items:
+            type: string
+    RacingRuleInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        enabled:
+          type: boolean
+        sortOrder:
+          type: integer
+        sourceIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+        acceptKinds:
+          type: array
+          items:
+            type: string
+            enum:
+            - official
+            - free
+            - revival
+          minItems: 1
+          description: OR between selected kinds; all other configured filters apply with
+            AND.
+        filters:
+          $ref: '#/components/schemas/RacingRuleFilters'
+        receiveWindowSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9223372036
+          description: Explicit per-rule receive window; no global default.
+        targetGroupId:
+          type: integer
+          minimum: 1
+        targetInstanceId:
+          type: integer
+          minimum: 1
+        allowOfficialReclaim:
+          type: boolean
+          description: Stored configuration only. Does not grant execution or deletion
+            ownership; Q1 never reclaims.
+      required:
+      - name
+      - sourceIds
+      - acceptKinds
+      - receiveWindowSeconds
+      oneOf:
+      - required:
+        - targetGroupId
+        not:
+          required:
+          - targetInstanceId
+      - required:
+        - targetInstanceId
+        not:
+          required:
+          - targetGroupId
+    RacingRule:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        enabled:
+          type: boolean
+        sortOrder:
+          type: integer
+        sourceIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+        acceptKinds:
+          type: array
+          items:
+            type: string
+            enum:
+            - official
+            - free
+            - revival
+          minItems: 1
+          description: OR between selected kinds; all other configured filters apply with
+            AND.
+        filters:
+          $ref: '#/components/schemas/RacingRuleFilters'
+        receiveWindowSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9223372036
+          description: Explicit per-rule receive window; no global default.
+        targetGroupId:
+          type: integer
+          minimum: 1
+        targetInstanceId:
+          type: integer
+          minimum: 1
+        allowOfficialReclaim:
+          type: boolean
+          description: Stored configuration only. Does not grant execution or deletion
+            ownership; Q1 never reclaims.
+        id:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+      oneOf:
+      - required:
+        - targetGroupId
+        not:
+          required:
+          - targetInstanceId
+      - required:
+        - targetInstanceId
+        not:
+          required:
+          - targetGroupId
+    RacingConfiguration:
+      type: object
+      properties:
+        sites:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingSite'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingSource'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingGroup'
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingRule'
+    RacingStatus:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+          - observe_only
+        running:
+          type: boolean
+        configurationReady:
+          type: boolean
+        loadedAt:
+          type: string
+          format: date-time
+        sites:
+          type: integer
+        sources:
+          type: integer
+        groups:
+          type: integer
+        rules:
+          type: integer
+    RacingSavedID:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 1
+      required:
+      - id
 
     DashboardSettingsInput:
       type: object

@@ -40,6 +40,7 @@ import (
 	"github.com/autobrr/qui/internal/services/license"
 	"github.com/autobrr/qui/internal/services/notifications"
 	"github.com/autobrr/qui/internal/services/orphanscan"
+	"github.com/autobrr/qui/internal/services/racing"
 	"github.com/autobrr/qui/internal/services/reannounce"
 	"github.com/autobrr/qui/internal/services/trackericons"
 	"github.com/autobrr/qui/internal/update"
@@ -91,6 +92,8 @@ type Server struct {
 	orphanScanStore                  *models.OrphanScanStore
 	orphanScanService                *orphanscan.Service
 	dirScanService                   *dirscan.Service
+	racingStore                      *models.RacingStore
+	racingService                    *racing.Service
 	dailyTransferService             *dailytransfer.Service
 	arrInstanceStore                 *models.ArrInstanceStore
 	arrService                       *arr.Service
@@ -136,6 +139,8 @@ type Dependencies struct {
 	OrphanScanStore                  *models.OrphanScanStore
 	OrphanScanService                *orphanscan.Service
 	DirScanService                   *dirscan.Service
+	RacingStore                      *models.RacingStore
+	RacingService                    *racing.Service
 	DailyTransferService             *dailytransfer.Service
 	ArrInstanceStore                 *models.ArrInstanceStore
 	ArrService                       *arr.Service
@@ -204,6 +209,8 @@ func NewServer(deps *Dependencies) *Server {
 		orphanScanStore:                  deps.OrphanScanStore,
 		orphanScanService:                deps.OrphanScanService,
 		dirScanService:                   deps.DirScanService,
+		racingStore:                      deps.RacingStore,
+		racingService:                    deps.RacingService,
 		dailyTransferService:             deps.DailyTransferService,
 		arrInstanceStore:                 deps.ArrInstanceStore,
 		arrService:                       deps.ArrService,
@@ -522,6 +529,9 @@ func (s *Server) Handler() (*chi.Mux, error) {
 				r.Put("/{id}", trackerCustomizationHandler.Update)
 				r.Delete("/{id}", trackerCustomizationHandler.Delete)
 			})
+
+			// Independent qui source configuration (Q1 observe-only).
+			r.Route("/racing", handlers.NewRacingHandler(s.racingStore, s.racingService).Register)
 
 			// Dashboard settings (per-user layout preferences)
 			r.Get("/dashboard-settings", dashboardSettingsHandler.Get)

@@ -49,6 +49,7 @@ import (
 	"github.com/autobrr/qui/internal/services/license"
 	"github.com/autobrr/qui/internal/services/notifications"
 	"github.com/autobrr/qui/internal/services/orphanscan"
+	"github.com/autobrr/qui/internal/services/racing"
 	"github.com/autobrr/qui/internal/services/reannounce"
 	"github.com/autobrr/qui/internal/services/trackericons"
 	"github.com/autobrr/qui/internal/update"
@@ -735,6 +736,20 @@ func (app *Application) runServer() {
 
 	automationService := automations.NewService(automations.DefaultConfig(), instanceStore, automationStore, automationActivityStore, trackerCustomizationStore, syncManager, notificationService, externalProgramService, crossSeedService, backendPool)
 	automationService.SetActivityPublisher(activityHub)
+	racingStore, err := models.NewRacingStore(db, cfg.GetEncryptionKey())
+	if err != nil {
+		//nolint:gocritic // exitAfterDefer: startup failure; the OS closes database handles
+		log.Fatal().Err(err).Msg("Failed to initialize racing configuration")
+	}
+	racingService := racing.NewService(racingStore)
+	racingCtx, racingCancel := context.WithCancel(context.Background())
+	defer racingCancel()
+	if err := racingService.Start(racingCtx); err != nil {
+		//nolint:gocritic // exitAfterDefer: startup failure; no racing work has started
+		log.Fatal().Err(err).Msg("Failed to start racing service")
+	}
+	defer racingService.Stop()
+
 	dailyTransferStore := models.NewDailyTransferStatsStore(db)
 	dailyTransferService := dailytransfer.NewService(instanceStore, clientPool, dailyTransferStore, time.Local)
 	dailyTransferCtx, dailyTransferCancel := context.WithCancel(context.Background())
@@ -882,6 +897,8 @@ func (app *Application) runServer() {
 		OrphanScanStore:                  orphanScanStore,
 		OrphanScanService:                orphanScanService,
 		DirScanService:                   dirScanService,
+		RacingStore:                      racingStore,
+		RacingService:                    racingService,
 		DailyTransferService:             dailyTransferService,
 		ArrInstanceStore:                 arrInstanceStore,
 		ArrService:                       arrService,
