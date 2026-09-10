@@ -34,6 +34,7 @@ func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/observations", h.observations)
 	r.Get("/discoveries", h.discoveries)
 	r.Get("/candidates", h.candidates)
+	r.Put("/rules/order", h.reorderRules)
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		r.Route("/"+resource, func(r chi.Router) {
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) { h.save(w, r, resource, false) })
@@ -222,4 +223,30 @@ func (h *RacingHandler) candidates(w http.ResponseWriter, r *http.Request) {
 		Items      []models.RacingCandidateRecord `json:"items"`
 		NextCursor string                         `json:"nextCursor,omitempty"`
 	}{items, next})
+}
+
+func (h *RacingHandler) reorderRules(w http.ResponseWriter, r *http.Request) {
+	if h.store == nil {
+		RespondError(w, http.StatusServiceUnavailable, "Racing configuration is unavailable")
+		return
+	}
+	var input struct {
+		IDs []int `json:"ids"`
+	}
+	if err := decodeRacing(w, r, &input); err != nil {
+		racingError(w, err)
+		return
+	}
+	if input.IDs == nil {
+		RespondError(w, http.StatusBadRequest, "Rule IDs are required")
+		return
+	}
+	if err := h.store.ReorderRules(r.Context(), input.IDs); err != nil {
+		racingError(w, err)
+		return
+	}
+	if h.service != nil {
+		h.service.ConfigurationChanged()
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

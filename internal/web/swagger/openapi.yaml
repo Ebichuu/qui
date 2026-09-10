@@ -463,6 +463,33 @@ paths:
           description: Object not found
         '500':
           description: Configuration write failed
+  /api/racing/rules/order:
+    put:
+      tags:
+      - Racing
+      summary: Atomically reorder all racing rules
+      description: Only changes ordering. All current IDs must occur exactly once; other rule fields are preserved.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids]
+              properties:
+                ids:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: integer
+                    minimum: 1
+      responses:
+        '204':
+          description: Complete rule order saved
+        '400':
+          description: Invalid IDs or changed rule list
+        '500':
+          description: Configuration write failed
   /api/racing/rules/{id}:
     parameters:
     - name: id

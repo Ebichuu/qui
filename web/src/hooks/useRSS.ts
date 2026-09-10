@@ -276,3 +276,16 @@ export function useReprocessRSSRules(instanceId: number) {
     },
   })
 }
+
+// Central sources are owned by qui and do not require a selected downloader.
+export function useCentralRSS() {
+  return useQuery({ queryKey: ["racing-configuration"], queryFn: () => api.getRacingConfiguration() })
+}
+
+export function useRSSDiscoveryStatus() {
+  return useQuery({ queryKey: ["racing-discoveries"], queryFn: () => api.getRacingDiscoveries(), refetchInterval: 5000 })
+}
+
+export function useRSSCandidates(after: string) {
+  return useQuery({ queryKey: ["racing-candidates", after], queryFn: () => api.getRacingCandidates(after), refetchInterval: 5000 })
+}

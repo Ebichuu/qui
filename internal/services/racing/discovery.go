@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/autobrr/qui/internal/models"
 	"github.com/autobrr/qui/internal/services/racing/sources"
 )
@@ -173,13 +175,21 @@ func (d *discoveryRunner) observe(ctx context.Context, input models.RacingRuntim
 		if err != nil {
 			failures = min(failures+1, 6)
 			delay = max(delay, time.Duration(1<<failures)*time.Second)
-			status.LastError = sourceErrorCode(err)
+			code := sourceErrorCode(err)
+			if status.LastError != code {
+				log.Warn().Str("component", "racing").Int("source_id", input.ID).Str("reason", code).Dur("retry_after", delay).Msg("Source observation failed")
+			}
+			status.LastError = code
 		} else {
 			failures = 0
+			if status.LastError != "" {
+				log.Info().Str("component", "racing").Int("source_id", input.ID).Msg("Source observation recovered")
+			}
 			status.LastError = ""
 			at := time.Now().UTC()
 			status.LastSuccessAt = &at
 		}
+		log.Debug().Str("component", "racing").Int("source_id", input.ID).Int("items", status.LastItemCount).Dur("elapsed", time.Since(now)).Msg("Source observation completed")
 		next := time.Now().UTC().Add(delay)
 		status.NextAttemptAt = &next
 		d.update(ctx, status)

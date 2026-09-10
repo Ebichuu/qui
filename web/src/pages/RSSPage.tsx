@@ -110,9 +110,11 @@ import { isRSSFeed } from "@/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { useVirtualizer } from "@tanstack/react-virtual"
 
+import { CentralRSS } from "@/components/rss/CentralRSS"
+
 import { AddTorrentDialog, type AddTorrentDropPayload } from "@/components/torrents/AddTorrentDialog"
 
-interface RSSPageProps {
+export interface RSSPageProps {
   activeTab: "feeds" | "rules"
   selectedFeedPath?: string
   selectedRuleName?: string
@@ -121,7 +123,22 @@ interface RSSPageProps {
   onRuleSelect: (ruleName: string | undefined) => void
 }
 
-export function RSSPage({
+export function RSSPage(props: RSSPageProps) {
+  const { t } = useTranslation("rss")
+  const [scope, setScope] = useState<"central" | "instance">(() => props.selectedFeedPath || props.selectedRuleName ? "instance" : "central")
+  return <div className="flex min-h-0 flex-1 flex-col">
+    <div className="px-6 pt-4 flex items-center gap-3">
+      <Label htmlFor="rss-scope">{t("central.scope")}</Label>
+      <select id="rss-scope" className="rounded-md border bg-background px-3 py-2 text-sm" value={scope} onChange={event => setScope(event.target.value as "central" | "instance")}>
+        <option value="central">{t("central.centralScope")}</option>
+        <option value="instance">{t("central.instanceScope")}</option>
+      </select>
+    </div>
+    {scope === "central" ? <CentralRSS activeTab={props.activeTab} onTabChange={props.onTabChange} /> : <InstanceRSSPage {...props} />}
+  </div>
+}
+
+function InstanceRSSPage({
   activeTab,
   selectedFeedPath,
   selectedRuleName,

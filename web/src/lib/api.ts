@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-import type { RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
+import type { RacingCandidates, RacingDiscoveries, RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
 
 import type {
   AddRSSFeedRequest,
@@ -477,6 +477,9 @@ function mapRawCrossSeedInstanceResult(instance: RawCrossSeedInstanceResult): Cr
 }
 
 class ApiClient {
+  reorderRacingRules(ids: number[]) { return this.request<void>("/racing/rules/order", { method: "PUT", body: JSON.stringify({ ids }) }) }
+  getRacingDiscoveries() { return this.request<RacingDiscoveries>("/racing/discoveries") }
+  getRacingCandidates(after = "") { return this.request<RacingCandidates>(`/racing/candidates?after=${encodeURIComponent(after)}`) }
   getRacingConfiguration() { return this.request<RacingConfiguration>("/racing/configuration") }
   getRacingObservations() { return this.request<RacingObservations>("/racing/observations") }
   saveRacingResource(resource: RacingResource, id: number | null, input: RacingResourceInput) {

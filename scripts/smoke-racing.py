@@ -300,6 +300,13 @@ def main():
                     acceptKinds=["free"], receiveWindowSeconds=1800, sortOrder=0,
                     targetGroupId=group, allowOfficialReclaim=True)
                 free_rule_id = request("/api/racing/rules", free_rule, expected=201)["id"]
+                order = [free_rule_id, official_rule_id, rule]
+                request("/api/racing/rules/order", dict(ids=order), method="PUT", expected=204)
+                reordered = request("/api/racing/configuration")["rules"]
+                assert [item["id"] for item in reordered] == order
+                assert not reordered[1]["allowOfficialReclaim"] and reordered[0]["allowOfficialReclaim"]
+                request("/api/racing/rules/order", dict(ids=[free_rule_id]), method="PUT", expected=400)
+                assert [item["id"] for item in request("/api/racing/configuration")["rules"]] == order
                 deadline = time.monotonic() + 8
                 while True:
                     found = request("/api/racing/discoveries")

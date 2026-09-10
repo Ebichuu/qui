@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/autobrr/qui/internal/models"
 	"github.com/autobrr/qui/internal/services/racing/sources"
 )
@@ -171,6 +173,7 @@ func (e *candidateEvaluator) evaluate(ctx context.Context, siteID int, event str
 	if err := e.store.SaveCandidate(ctx, models.RacingCandidateRecord{Key: key, SiteID: siteID, EventKey: event, SourceScope: scope, FirstSeenAt: candidate.FirstSeenAt.Format(time.RFC3339Nano), Candidate: public, Selection: decision, State: selection.State, NextEvaluationAt: next}, rows); err != nil {
 		return err
 	}
+	log.Debug().Str("component", "racing").Str("candidate_key", key).Str("state", selection.State).Str("reason", selection.Reason).Strs("missing", selection.MissingFields).Msg("Candidate rules evaluated")
 	if needsMetainfo(selection, candidate) && e.service.metadata != nil {
 		e.service.metadata.enqueue(metadataJob{key: key, siteID: siteID, event: event, scope: scope, rows: rows})
 	}

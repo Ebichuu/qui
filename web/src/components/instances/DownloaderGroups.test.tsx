@@ -12,7 +12,7 @@ import type { InstanceResponse } from "@/types"
 vi.mock("@/lib/api", () => ({ api: { getRacingConfiguration: vi.fn(), getRacingObservations: vi.fn(), saveRacingResource: vi.fn(), deleteRacingResource: vi.fn() } }))
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
 const instances = [{ id: 7, name: "Member A", isActive: true }, { id: 9, name: "Member B", isActive: false }] as InstanceResponse[]
-const config = { groups: [{ id: 2, name: "Group A", enabled: true, instanceIds: [7], updatedAt: "" }], storagePools: [], pathMappings: [] }
+const config = { sites: [], sources: [], rules: [], groups: [{ id: 2, name: "Group A", enabled: true, instanceIds: [7], updatedAt: "" }], storagePools: [], pathMappings: [] }
 beforeEach(() => {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} })
   vi.mocked(api.getRacingConfiguration).mockResolvedValue(config)

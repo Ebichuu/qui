@@ -16,7 +16,7 @@ import type { InstanceResponse } from "@/types"
 import type { RacingConfiguration, RacingResource, RacingResourceInput } from "@/types/racing"
 import { formatBytes } from "@/lib/utils"
 
-type Selection = { resource: RacingResource; id: number | null }
+type Selection = { resource: Extract<RacingResource, "groups" | "storage-pools" | "path-mappings">; id: number | null }
 const titles = { groups: "groups", "storage-pools": "pools", "path-mappings": "mappings" } as const
 const addLabels = { groups: "addGroup", "storage-pools": "addPool", "path-mappings": "addMapping" } as const
 
