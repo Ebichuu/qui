@@ -31,6 +31,7 @@ type Status struct {
 }
 
 type Service struct {
+	discovery           *discoveryRunner
 	configuration       *models.RacingConfiguration
 	observations        ObservationReader
 	observationRevision atomic.Uint64
@@ -43,7 +44,11 @@ type Service struct {
 }
 
 func NewService(store ConfigurationStore) *Service {
-	return &Service{store: store, changed: make(chan struct{}, 1), status: Status{Mode: "observe_only"}}
+	s := &Service{store: store, changed: make(chan struct{}, 1), status: Status{Mode: "observe_only"}}
+	if discovery, ok := store.(DiscoveryStore); ok {
+		s.discovery = newDiscoveryRunner(discovery)
+	}
+	return s
 }
 
 // Start loads persisted configuration before reporting ready. The lifecycle is
@@ -82,13 +87,25 @@ func (s *Service) setConfiguration(config *models.RacingConfiguration) {
 }
 
 func (s *Service) run(ctx context.Context) {
-	defer func() { s.mu.Lock(); s.status.Running = false; s.mu.Unlock(); close(s.done) }()
+	s.ConfigurationChanged()
+	defer func() {
+		if s.discovery != nil {
+			s.discovery.stop()
+		}
+		s.mu.Lock()
+		s.status.Running = false
+		s.mu.Unlock()
+		close(s.done)
+	}()
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-s.changed:
 			config, err := s.store.Configuration(ctx)
+			if err == nil && s.discovery != nil {
+				err = s.discovery.reconcile(ctx)
+			}
 			s.mu.Lock()
 			if err != nil {
 				s.status.ConfigurationReady = false

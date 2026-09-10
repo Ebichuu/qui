@@ -40,13 +40,13 @@ func (s *RacingStore) Configuration(ctx context.Context) (*RacingConfiguration, 
 		return nil, err
 	}
 	rows.Close()
-	rows, err = tx.QueryContext(ctx, `SELECT id,site_id,name,kind,enabled,interval_seconds,url_origin,updated_at FROM racing_sources ORDER BY id`)
+	rows, err = tx.QueryContext(ctx, `SELECT id,site_id,name,kind,enabled,interval_seconds,url_origin,updated_at,adapter,page_count,initial_lookback_seconds FROM racing_sources ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
 		var source RacingSource
-		if err := rows.Scan(&source.ID, &source.SiteID, &source.Name, &source.Kind, &source.Enabled, &source.IntervalSeconds, &source.URLOrigin, &source.UpdatedAt); err != nil {
+		if err := rows.Scan(&source.ID, &source.SiteID, &source.Name, &source.Kind, &source.Enabled, &source.IntervalSeconds, &source.URLOrigin, &source.UpdatedAt, &source.Adapter, &source.PageCount, &source.InitialLookbackSeconds); err != nil {
 			rows.Close()
 			return nil, err
 		}

@@ -220,6 +220,18 @@ func (s *RacingStore) SaveSource(ctx context.Context, id int, input RacingSource
 	if !slices.Contains([]string{"rss", "web", "revival"}, input.Kind) {
 		return 0, racingInvalid("source kind")
 	}
+	if input.Adapter == "" && input.Kind == "rss" {
+		input.Adapter = "generic-rss"
+	}
+	if input.Adapter != "" && input.Adapter != "chd" && (input.Kind != "rss" || !slices.Contains([]string{"generic-rss", "mteam"}, input.Adapter)) {
+		return 0, racingInvalid("adapter does not support source kind")
+	}
+	if input.PageCount == 0 {
+		input.PageCount = 1
+	}
+	if input.PageCount < 1 || input.PageCount > 5 || input.InitialLookbackSeconds < 0 || input.InitialLookbackSeconds > 604800 {
+		return 0, racingInvalid("page count or initial lookback")
+	}
 	var endpoint, origin string
 	if input.URL != nil {
 		endpoint, origin, err = racingURL(*input.URL, false)
@@ -253,10 +265,10 @@ func (s *RacingStore) SaveSource(ctx context.Context, id int, input RacingSource
 		}
 		now := time.Now().UTC().Format(time.RFC3339Nano)
 		if id == 0 {
-			err := tx.QueryRowContext(ctx, `INSERT INTO racing_sources(site_id,name,kind,enabled,interval_seconds,endpoint_id,url_origin,updated_at) VALUES (?,?,?,?,?,?,?,?) RETURNING id`, input.SiteID, name, input.Kind, boolToInt(input.Enabled), input.IntervalSeconds, secretID, origin, now).Scan(&id)
+			err := tx.QueryRowContext(ctx, `INSERT INTO racing_sources(site_id,name,kind,enabled,interval_seconds,endpoint_id,url_origin,updated_at,adapter,page_count,initial_lookback_seconds) VALUES (?,?,?,?,?,?,?,?,?,?,?) RETURNING id`, input.SiteID, name, input.Kind, boolToInt(input.Enabled), input.IntervalSeconds, secretID, origin, now, input.Adapter, input.PageCount, input.InitialLookbackSeconds).Scan(&id)
 			return id, err
 		}
-		return id, racingUpdated(ctx, tx, `UPDATE racing_sources SET site_id=?,name=?,kind=?,enabled=?,interval_seconds=?,endpoint_id=?,url_origin=?,updated_at=? WHERE id=?`, input.SiteID, name, input.Kind, boolToInt(input.Enabled), input.IntervalSeconds, secretID, origin, now, id)
+		return id, racingUpdated(ctx, tx, `UPDATE racing_sources SET site_id=?,name=?,kind=?,enabled=?,interval_seconds=?,endpoint_id=?,url_origin=?,updated_at=?,adapter=?,page_count=?,initial_lookback_seconds=? WHERE id=?`, input.SiteID, name, input.Kind, boolToInt(input.Enabled), input.IntervalSeconds, secretID, origin, now, input.Adapter, input.PageCount, input.InitialLookbackSeconds, id)
 	})
 }
 

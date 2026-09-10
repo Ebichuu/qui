@@ -26,3 +26,7 @@ Internal reference for agents and maintainers. Read this before changing cross-m
 ## Frontend Live State Note
 
 `web/src/components/torrents/TorrentDetailsPanel.tsx` live row state such as speed, progress, ratio, and state is stream-backed via `useSyncStream`. Polling only runs as a fallback while the stream is unavailable. Content/files and Peers tabs still poll on an interval, but polling is tab-scoped and visibility-gated, so streaming them is optional future work rather than a pending migration.
+
+## Racing Source Observation
+
+Racing owns an application-scoped worker per enabled source. RSS emits complete items and web adapters emit a page before fetching the next. Site request budgets serialize starts without waiting for prior responses. Each observation is committed separately with a configuration revision fence; encrypted transport data is separate from the API projection. Persistent source baselines survive restarts, while unknown event times remain ineligible. This layer has no downloader mutation capability. Identity correlation and rule selection consume these records in the next development stage.

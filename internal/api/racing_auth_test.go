@@ -16,9 +16,9 @@ func TestRacingRoutesRequireAuthentication(t *testing.T) {
 	server := NewServer(newTestDependencies(t))
 	router, err := server.Handler()
 	require.NoError(t, err)
-	routes := make([]struct{ method, path string }, 0, 21)
+	routes := make([]struct{ method, path string }, 0, 22)
 	routes = append(routes, struct{ method, path string }{http.MethodGet, "/api/racing/configuration"}, struct{ method, path string }{http.MethodGet, "/api/racing/status"})
-	routes = append(routes, struct{ method, path string }{http.MethodGet, "/api/racing/observations"})
+	routes = append(routes, struct{ method, path string }{http.MethodGet, "/api/racing/observations"}, struct{ method, path string }{http.MethodGet, "/api/racing/discoveries"})
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		routes = append(routes, struct{ method, path string }{http.MethodPost, "/api/racing/" + resource}, struct{ method, path string }{http.MethodPut, "/api/racing/" + resource + "/1"}, struct{ method, path string }{http.MethodDelete, "/api/racing/" + resource + "/1"})
 	}

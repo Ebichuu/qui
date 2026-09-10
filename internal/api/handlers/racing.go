@@ -15,6 +15,7 @@ import (
 
 	"github.com/autobrr/qui/internal/models"
 	"github.com/autobrr/qui/internal/services/racing"
+	"github.com/autobrr/qui/internal/services/racing/sources"
 )
 
 type RacingHandler struct {
@@ -31,6 +32,7 @@ func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/configuration", h.configuration)
 	r.Get("/status", h.status)
 	r.Get("/observations", h.observations)
+	r.Get("/discoveries", h.discoveries)
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		r.Route("/"+resource, func(r chi.Router) {
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) { h.save(w, r, resource, false) })
@@ -182,4 +184,21 @@ func (h *RacingHandler) observations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	RespondJSON(w, http.StatusOK, h.service.Observations())
+}
+
+func (h *RacingHandler) discoveries(w http.ResponseWriter, r *http.Request) {
+	if h.store == nil || h.service == nil {
+		RespondError(w, http.StatusServiceUnavailable, "Source observations are unavailable")
+		return
+	}
+	items, err := h.store.Discoveries(r.Context(), 100)
+	if err != nil {
+		RespondError(w, http.StatusServiceUnavailable, "Source observations are unavailable")
+		return
+	}
+	RespondJSON(w, http.StatusOK, struct {
+		Items        []models.RacingDiscovery `json:"items"`
+		Sources      []racing.SourceStatus    `json:"sources"`
+		Capabilities []sources.Capability     `json:"capabilities"`
+	}{items, h.service.SourceStatuses(), sources.Capabilities()})
 }

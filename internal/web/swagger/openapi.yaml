@@ -171,6 +171,20 @@ paths:
                 $ref: '#/components/schemas/RacingObservations'
         '503':
           description: Racing service unavailable
+  /api/racing/discoveries:
+    get:
+      tags: [Racing]
+      summary: Read recent source observations and adapter capabilities
+      description: Latest 100 observations. Private transport URLs are excluded. Eligibility refers only to the persistent source baseline, not rule acceptance.
+      responses:
+        '200':
+          description: Observations and current source worker status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingDiscoveries'
+        '503':
+          description: Source observation service unavailable
   /api/racing/configuration:
     get:
       tags:
@@ -7364,9 +7378,191 @@ components:
         updatedAt:
           type: string
           format: date-time
+    RacingEvidence:
+      type: object
+      required:
+      - value
+      properties:
+        value:
+          type: string
+          enum:
+          - 'true'
+          - 'false'
+          - unknown
+        basis:
+          type: string
+    RacingSourceItem:
+      type: object
+      required:
+      - torrentId
+      - eventKey
+      - title
+      - official
+      - free
+      - revival
+      properties:
+        torrentId:
+          type: string
+        eventKey:
+          type: string
+        title:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        reportedHash:
+          type: string
+          description: Source-reported hash; not yet verified against torrent metadata.
+        publishedAt:
+          type: string
+          format: date-time
+        originalPublishedAt:
+          type: string
+          format: date-time
+        freeExpiresAt:
+          type: string
+          format: date-time
+        official:
+          $ref: '#/components/schemas/RacingEvidence'
+        free:
+          $ref: '#/components/schemas/RacingEvidence'
+        revival:
+          $ref: '#/components/schemas/RacingEvidence'
+    RacingDiscovery:
+      type: object
+      required:
+      - id
+      - sourceId
+      - siteId
+      - eventKey
+      - item
+      - eligible
+      - firstSeenAt
+      - lastSeenAt
+      - revision
+      properties:
+        id:
+          type: integer
+          format: int64
+        sourceId:
+          type: integer
+        siteId:
+          type: integer
+        eventKey:
+          type: string
+        item:
+          $ref: '#/components/schemas/RacingSourceItem'
+        eligible:
+          type: boolean
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        revision:
+          type: integer
+          format: int64
+    RacingSourceStatus:
+      type: object
+      required:
+      - sourceId
+      - inFlight
+      - lastItemCount
+      properties:
+        sourceId:
+          type: integer
+        inFlight:
+          type: boolean
+        lastStartedAt:
+          type: string
+          format: date-time
+        lastSuccessAt:
+          type: string
+          format: date-time
+        nextAttemptAt:
+          type: string
+          format: date-time
+        lastError:
+          type: string
+          enum:
+          - authentication_required
+          - unsupported_adapter
+          - invalid_listing
+          - response_too_large
+          - request_failed
+          - persistence_unavailable
+        lastItemCount:
+          type: integer
+    RacingSourceCapability:
+      type: object
+      required:
+      - id
+      - site
+      - kinds
+      - pagination
+      - official
+      - free
+      - revival
+      - validation
+      properties:
+        id:
+          type: string
+        site:
+          type: string
+        kinds:
+          type: array
+          items:
+            type: string
+        pagination:
+          type: boolean
+        official:
+          type: boolean
+        free:
+          type: boolean
+        revival:
+          type: boolean
+        validation:
+          type: string
+          enum:
+          - synthetic_fixtures
+    RacingDiscoveries:
+      type: object
+      required:
+      - items
+      - sources
+      - capabilities
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingDiscovery'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingSourceStatus'
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingSourceCapability'
     RacingSourceInput:
       type: object
       properties:
+        adapter:
+          type: string
+          enum: ['', generic-rss, chd, mteam]
+          description: Empty RSS adapter defaults to generic-rss. Web sources require an explicit supported adapter before they can fetch.
+        pageCount:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 1
+        initialLookbackSeconds:
+          type: integer
+          minimum: 0
+          maximum: 604800
+          default: 0
+          description: Applied only when the persistent discovery baseline is first created.
         siteId:
           type: integer
           minimum: 1
@@ -7399,6 +7595,21 @@ components:
     RacingSource:
       type: object
       properties:
+        adapter:
+          type: string
+          enum: ['', generic-rss, chd, mteam]
+          description: Empty RSS adapter defaults to generic-rss. Web sources require an explicit supported adapter before they can fetch.
+        pageCount:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 1
+        initialLookbackSeconds:
+          type: integer
+          minimum: 0
+          maximum: 604800
+          default: 0
+          description: Applied only when the persistent discovery baseline is first created.
         siteId:
           type: integer
           minimum: 1

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """在独立空库验证 Q1 配置、认证、秘密字段、重启及只读边界。"""
 
+from datetime import datetime, timedelta, timezone
 import http.cookiejar
 import http.server
 import json
@@ -31,6 +32,46 @@ class SourceTrap(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     do_POST = do_GET
+
+
+class DiscoveryFixture(http.server.BaseHTTPRequestHandler):
+    def log_message(self, *_args):
+        pass
+
+    def do_GET(self):
+        self.server.calls += 1
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/rss":
+            self.server.rss_started.set()
+            self.server.release.wait(30)
+            body = self.rss(42, "/details.php?id=42")
+        elif parsed.path == "/mteam":
+            body = self.rss(73, "/detail/73")
+        elif parsed.path == "/torrents.php":
+            if urllib.parse.parse_qs(parsed.query).get("page") == ["1"]:
+                self.server.later_page.set()
+                self.server.release.wait(30)
+                self.send_response(503)
+                self.end_headers()
+                return
+            stamp = self.server.published.astimezone(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
+            body = f'<table class="torrents"><tr><td><a href="details.php?id=42" title="Example Aurora Full Synthetic Title-CHD"><b>Example Aurora...</b></a><span>官方</span><a href="download.php?id=42&amp;key=synthetic-private">Download</a></td><td>1 GiB</td><td class="rowfollow nowrap"><span title="{stamp}">now</span></td></tr></table>'
+        else:
+            self.send_response(404)
+            self.end_headers()
+            return
+        data = body.encode()
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def rss(self, torrent_id, details):
+        current = self.server.published.strftime("%a, %d %b %Y %H:%M:%S +0000")
+        return f'<rss><channel><item><title>Example Aurora Full Synthetic Title-CHD</title><link>{details}</link><pubDate>{current}</pubDate><enclosure url="/download?id={torrent_id}&amp;key=synthetic-private" length="1073741824"/><attr name="downloadvolumefactor" value="0"/></item><item><title>Example Old Entry</title><link>/details.php?id=1</link><pubDate>Thu, 01 Jan 2015 00:00:00 +0000</pubDate><enclosure url="/download?id=1" length="1024"/></item></channel></rss>'
 
 
 class DownloaderMock(http.server.BaseHTTPRequestHandler):
@@ -93,9 +134,15 @@ def main():
         source = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SourceTrap)
         threading.Thread(target=source.serve_forever, daemon=True).start()
         origin = f"http://127.0.0.1:{source.server_port}"
+        discovery = http.server.ThreadingHTTPServer(("127.0.0.1", 0), DiscoveryFixture)
+        discovery.calls = 0
+        discovery.published = datetime.now(timezone.utc)
+        discovery.release, discovery.rss_started, discovery.later_page = threading.Event(), threading.Event(), threading.Event()
+        threading.Thread(target=discovery.serve_forever, daemon=True).start()
         config = Path(directory) / "config.toml"
         config.write_text(
             f'host="127.0.0.1"\nport={port}\ncheckForUpdates=false\n'
+            f'sessionSecret="{secrets.token_urlsafe(32)}"\n'
             'trackerIconsFetchEnabled=false\nlogLevel="WARN"\n', encoding="utf-8"
         )
         config.chmod(0o600)
@@ -165,7 +212,7 @@ def main():
                 site = request("/api/racing/sites", dict(name="Synthetic site", baseUrl=origin,
                     enabled=True, requestIntervalSeconds=5, credential="synthetic-cookie-secret"), expected=201)["id"]
                 feed = request("/api/racing/sources", dict(name="Synthetic feed", siteId=site,
-                    kind="rss", enabled=True, intervalSeconds=1,
+                    kind="rss", enabled=False, intervalSeconds=1,
                     url=origin + "/private?passkey=synthetic-source-secret"), expected=201)["id"]
                 group = request("/api/racing/groups", dict(name="Synthetic group", enabled=True,
                     instanceIds=[]), expected=201)["id"]
@@ -228,8 +275,67 @@ def main():
                 assert request("/api/racing/configuration") == before
                 status = request("/api/racing/status")
                 assert status["running"] and status["configurationReady"] and status["rules"] == 1
-                assert SourceTrap.requests == 0, "Q1 must not fetch sources or execute actions"
+                assert SourceTrap.requests == 0, "disabled source must not be fetched"
                 assert all(not mock.actions for mock in downloaders), "Q1 must not add, delete or modify downloader settings"
+                discovery.published = datetime.now(timezone.utc)
+                discovery_origin = f"http://127.0.0.1:{discovery.server_port}"
+                discovery_site = request("/api/racing/sites", dict(name="Synthetic discovery site", baseUrl=discovery_origin,
+                    enabled=True, requestIntervalSeconds=1, credential="sid=synthetic-private"), expected=201)["id"]
+                source_inputs = [
+                    dict(name="Slow RSS", kind="rss", adapter="chd", url=discovery_origin + "/rss"),
+                    dict(name="Fast web", kind="web", adapter="chd", url=discovery_origin + "/torrents.php", pageCount=2),
+                    dict(name="M-Team fixture", kind="rss", adapter="mteam", url=discovery_origin + "/mteam"),
+                ]
+                discovery_ids = []
+                for index, payload in enumerate(source_inputs):
+                    payload.update(siteId=discovery_site, enabled=True, intervalSeconds=1, initialLookbackSeconds=60)
+                    discovery_ids.append(request("/api/racing/sources", payload, expected=201)["id"])
+                    if index == 0:
+                        assert discovery.rss_started.wait(5), "RSS source did not start"
+                deadline = time.monotonic() + 8
+                while True:
+                    found = request("/api/racing/discoveries")
+                    web_items = [item for item in found["items"] if item["sourceId"] == discovery_ids[1]]
+                    if web_items:
+                        break
+                    assert time.monotonic() < deadline, "fast web waited for slow RSS"
+                    time.sleep(0.05)
+                assert not discovery.release.is_set()
+                assert web_items[0]["item"]["title"] == "Example Aurora Full Synthetic Title-CHD"
+                assert web_items[0]["eligible"] and web_items[0]["item"]["official"]["value"] == "true"
+                assert discovery.later_page.wait(5), "second page did not start"
+                assert any(item["sourceId"] == discovery_ids[1] for item in request("/api/racing/discoveries")["items"]), "first page waited for later page"
+                first = web_items[0]
+                discovery.release.set()
+                deadline = time.monotonic() + 8
+                while True:
+                    found = request("/api/racing/discoveries")
+                    sources_seen = {item["sourceId"] for item in found["items"]}
+                    if all(source_id in sources_seen for source_id in discovery_ids):
+                        break
+                    assert time.monotonic() < deadline, "source fixture did not produce observations"
+                    time.sleep(0.05)
+                assert "synthetic-private" not in json.dumps(found)
+                assert len(found["capabilities"]) == 3
+                assert all(not item["eligible"] for item in found["items"] if item["item"]["torrentId"] == "1")
+                assert any(item["item"]["torrentId"] == "73" and item["item"]["free"]["value"] == "true" for item in found["items"])
+                stop(process)
+                process = start(log)
+                request("/api/auth/login", credentials)
+                deadline = time.monotonic() + 8
+                while True:
+                    after = request("/api/racing/discoveries")
+                    current = next(item for item in after["items"] if item["id"] == first["id"])
+                    if current["lastSeenAt"] != first["lastSeenAt"]:
+                        break
+                    assert time.monotonic() < deadline
+                    time.sleep(0.1)
+                assert current["firstSeenAt"] == first["firstSeenAt"]
+                assert all(not item["eligible"] for item in after["items"] if item["item"]["torrentId"] == "1")
+                for source_id in discovery_ids:
+                    request(f"/api/racing/sources/{source_id}", method="DELETE", expected=204)
+                request(f"/api/racing/sites/{discovery_site}", method="DELETE", expected=204)
+                assert all(not mock.actions for mock in downloaders), "discovery must not mutate downloaders"
                 for mapping in mappings:
                     request(f"/api/racing/path-mappings/{mapping}", method="DELETE", expected=204)
                 for storage_pool in [pool, other_pool]:
@@ -238,7 +344,7 @@ def main():
                 request(f"/api/racing/groups/{group}", method="DELETE", expected=204)
                 request(f"/api/racing/sources/{feed}", method="DELETE", expected=204)
                 request(f"/api/racing/sites/{site}", method="DELETE", expected=204)
-                print("PASS：Q1 认证、配置保存/改名、敏感字段隐藏、引用保护、进程重启恢复、后台独立同步、慢实例隔离、共盘去重、异盘空间未知、只观察且不请求来源或执行下载器动作。")
+                print("PASS：Q1 认证、配置保存/改名、敏感字段隐藏、引用保护、进程重启恢复、后台独立同步、慢实例隔离、共盘去重、异盘空间未知、停用来源不抓取；RSS/网页独立逐项发现、后页不阻塞、两站适配夹具、旧条目基线、重启去重、不执行下载器动作。")
             except BaseException:
                 log.seek(0)
                 print(log.read()[-12000:])
@@ -246,6 +352,9 @@ def main():
             finally:
                 if process is not None and process.poll() is None:
                     stop(process)
+                discovery.release.set()
+                discovery.shutdown()
+                discovery.server_close()
                 source.shutdown()
                 source.server_close()
                 for mock in downloaders:

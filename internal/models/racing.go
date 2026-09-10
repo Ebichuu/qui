@@ -27,24 +27,30 @@ type RacingSiteInput struct {
 }
 
 type RacingSource struct {
-	ID              int    `json:"id"`
-	SiteID          int    `json:"siteId"`
-	Name            string `json:"name"`
-	Kind            string `json:"kind"`
-	Enabled         bool   `json:"enabled"`
-	IntervalSeconds int    `json:"intervalSeconds"`
+	Adapter                string `json:"adapter"`
+	PageCount              int    `json:"pageCount"`
+	InitialLookbackSeconds int    `json:"initialLookbackSeconds"`
+	ID                     int    `json:"id"`
+	SiteID                 int    `json:"siteId"`
+	Name                   string `json:"name"`
+	Kind                   string `json:"kind"`
+	Enabled                bool   `json:"enabled"`
+	IntervalSeconds        int    `json:"intervalSeconds"`
 	// Never return the endpoint path, user info or query (which may contain keys).
 	URLOrigin string `json:"urlOrigin"`
 	UpdatedAt string `json:"updatedAt"`
 }
 
 type RacingSourceInput struct {
-	SiteID          int     `json:"siteId"`
-	Name            string  `json:"name"`
-	Kind            string  `json:"kind"`
-	Enabled         bool    `json:"enabled"`
-	IntervalSeconds int     `json:"intervalSeconds"`
-	URL             *string `json:"url,omitempty"`
+	Adapter                string  `json:"adapter"`
+	PageCount              int     `json:"pageCount"`
+	InitialLookbackSeconds int     `json:"initialLookbackSeconds"`
+	SiteID                 int     `json:"siteId"`
+	Name                   string  `json:"name"`
+	Kind                   string  `json:"kind"`
+	Enabled                bool    `json:"enabled"`
+	IntervalSeconds        int     `json:"intervalSeconds"`
+	URL                    *string `json:"url,omitempty"`
 }
 
 type RacingGroupInput struct {
