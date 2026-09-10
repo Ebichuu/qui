@@ -300,8 +300,10 @@ func TestNewClientWithTimeoutToleratesSlowCapabilitiesFetch(t *testing.T) {
 			_, _ = w.Write([]byte("Ok."))
 		case "/api/v2/app/webapiVersion":
 			// A saturated-but-alive WebUI: the request parks until the caller's
-			// deadline expires without ever answering.
+			// deadline expires without ever answering. Abort instead of returning:
+			// a normal return can race cancellation by sending an empty HTTP 200.
 			<-r.Context().Done()
+			panic(http.ErrAbortHandler)
 		default:
 			http.NotFound(w, r)
 		}
