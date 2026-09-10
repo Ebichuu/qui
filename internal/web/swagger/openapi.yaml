@@ -171,6 +171,26 @@ paths:
                 $ref: '#/components/schemas/RacingObservations'
         '503':
           description: Racing service unavailable
+  /api/racing/candidates:
+    get:
+      tags: [Racing]
+      summary: Read correlated site events and complete rule selections
+      description: Read-only decisions, not allocations or permission to modify a downloader. Records retain first discovery times across rescans and restarts.
+      parameters:
+      - name: after
+        in: query
+        description: Candidate key cursor from the previous page
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Up to 100 candidate records in stable key order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingCandidates'
+        '503':
+          description: Candidate observations unavailable
   /api/racing/discoveries:
     get:
       tags: [Racing]
@@ -7378,6 +7398,143 @@ components:
         updatedAt:
           type: string
           format: date-time
+    RacingVerifiedMetadata:
+      type: object
+      required: [name, sizeBytes]
+      properties:
+        name:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        hashV1:
+          type: string
+          description: SHA-1 of the original info dictionary bytes when v1 is present.
+        hashV2:
+          type: string
+          description: SHA-256 of the original info dictionary bytes when v2 is present.
+    RacingCandidate:
+      type: object
+      required:
+      - key
+      - siteId
+      - eventKey
+      - item
+      - firstSeenAt
+      - sourceIds
+      - eligibleSourceIds
+      - conflicts
+      properties:
+        verifiedMetadata:
+          $ref: '#/components/schemas/RacingVerifiedMetadata'
+        key:
+          type: string
+        siteId:
+          type: integer
+        eventKey:
+          type: string
+        item:
+          $ref: '#/components/schemas/RacingSourceItem'
+        firstSeenAt:
+          type: string
+          format: date-time
+        sourceIds:
+          type: array
+          items:
+            type: integer
+        eligibleSourceIds:
+          type: array
+          items:
+            type: integer
+        conflicts:
+          type: array
+          items:
+            type: string
+    RacingRuleSelection:
+      type: object
+      required:
+      - state
+      - reason
+      - priority
+      - matchedKinds
+      - missingFields
+      properties:
+        state:
+          type: string
+          enum:
+          - ready
+          - waiting_metadata
+          - waiting_target
+          - rejected
+          - expired
+        reason:
+          type: string
+        priority:
+          type: string
+          enum:
+          - official
+          - normal
+          - unknown
+        rule:
+          $ref: '#/components/schemas/RacingRule'
+        matchedKinds:
+          type: array
+          items:
+            type: string
+        missingFields:
+          type: array
+          items:
+            type: string
+        deadline:
+          type: string
+          format: date-time
+    RacingCandidateRecord:
+      type: object
+      required:
+      - key
+      - siteId
+      - eventKey
+      - sourceScope
+      - firstSeenAt
+      - candidate
+      - selection
+      - state
+      - updatedAt
+      properties:
+        key:
+          type: string
+        siteId:
+          type: integer
+        eventKey:
+          type: string
+        sourceScope:
+          type: integer
+        firstSeenAt:
+          type: string
+          format: date-time
+        candidate:
+          $ref: '#/components/schemas/RacingCandidate'
+        selection:
+          $ref: '#/components/schemas/RacingRuleSelection'
+        state:
+          type: string
+        nextEvaluationAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RacingCandidates:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingCandidateRecord'
+        nextCursor:
+          type: string
     RacingEvidence:
       type: object
       required:
@@ -7401,6 +7558,9 @@ components:
       - free
       - revival
       properties:
+        sizeApproximate:
+          type: boolean
+          description: True for rounded listing sizes. Exact RSS or torrent metadata takes precedence during event correlation.
         torrentId:
           type: string
         eventKey:

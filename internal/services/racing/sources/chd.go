@@ -158,6 +158,7 @@ func parseCHDRow(row *html.Node, address string, revival bool) (Item, bool) {
 		}
 		if size := parseSize(nodeText(child)); size != nil {
 			item.SizeBytes = size
+			item.SizeApproximate = true
 		}
 		if hasClass(child, "rowfollow") && hasClass(child, "nowrap") {
 			if stamp := findNode(child, func(n *html.Node) bool { return n.Data == "span" && attr(n, "title") != "" }); stamp != nil {

@@ -292,6 +292,14 @@ def main():
                     discovery_ids.append(request("/api/racing/sources", payload, expected=201)["id"])
                     if index == 0:
                         assert discovery.rss_started.wait(5), "RSS source did not start"
+                official_rule = dict(name="Official choice", enabled=True, sourceIds=discovery_ids[:2],
+                    acceptKinds=["official"], receiveWindowSeconds=900, sortOrder=99,
+                    targetGroupId=group, allowOfficialReclaim=False)
+                official_rule_id = request("/api/racing/rules", official_rule, expected=201)["id"]
+                free_rule = dict(name="Free choice", enabled=True, sourceIds=discovery_ids[:2],
+                    acceptKinds=["free"], receiveWindowSeconds=1800, sortOrder=0,
+                    targetGroupId=group, allowOfficialReclaim=True)
+                free_rule_id = request("/api/racing/rules", free_rule, expected=201)["id"]
                 deadline = time.monotonic() + 8
                 while True:
                     found = request("/api/racing/discoveries")
@@ -319,6 +327,31 @@ def main():
                 assert len(found["capabilities"]) == 3
                 assert all(not item["eligible"] for item in found["items"] if item["item"]["torrentId"] == "1")
                 assert any(item["item"]["torrentId"] == "73" and item["item"]["free"]["value"] == "true" for item in found["items"])
+                deadline = time.monotonic() + 5
+                while True:
+                    candidates = request("/api/racing/candidates")["items"]
+                    paired = [item for item in candidates if item["siteId"] == discovery_site and item["eventKey"] == "torrent:42:published"]
+                    if len(paired) == 1 and len(paired[0]["candidate"]["sourceIds"]) == 2:
+                        break
+                    assert time.monotonic() < deadline, "dual sources did not become one event"
+                    time.sleep(0.05)
+                assert paired[0]["selection"]["rule"]["id"] == official_rule_id
+                assert not paired[0]["selection"]["rule"]["allowOfficialReclaim"]
+                assert paired[0]["selection"]["priority"] == "official"
+                original_candidate = paired[0]
+                official_rule["enabled"] = False
+                request(f"/api/racing/rules/{official_rule_id}", official_rule, method="PUT")
+                deadline = time.monotonic() + 5
+                while True:
+                    candidates = request("/api/racing/candidates")["items"]
+                    selected = next(item for item in candidates if item["key"] == original_candidate["key"])
+                    if selected["selection"].get("rule", {}).get("id") == free_rule_id:
+                        break
+                    assert time.monotonic() < deadline
+                    time.sleep(0.05)
+                assert selected["selection"]["rule"]["allowOfficialReclaim"]
+                assert selected["selection"]["priority"] == "official"
+                assert selected["firstSeenAt"] == original_candidate["firstSeenAt"]
                 stop(process)
                 process = start(log)
                 request("/api/auth/login", credentials)
@@ -332,6 +365,11 @@ def main():
                     time.sleep(0.1)
                 assert current["firstSeenAt"] == first["firstSeenAt"]
                 assert all(not item["eligible"] for item in after["items"] if item["item"]["torrentId"] == "1")
+                candidate_after = next(item for item in request("/api/racing/candidates")["items"] if item["key"] == original_candidate["key"])
+                assert candidate_after["firstSeenAt"] == original_candidate["firstSeenAt"]
+                assert "synthetic-private" not in json.dumps(candidate_after)
+                for rule_id in [official_rule_id, free_rule_id]:
+                    request(f"/api/racing/rules/{rule_id}", method="DELETE", expected=204)
                 for source_id in discovery_ids:
                     request(f"/api/racing/sources/{source_id}", method="DELETE", expected=204)
                 request(f"/api/racing/sites/{discovery_site}", method="DELETE", expected=204)
@@ -344,7 +382,7 @@ def main():
                 request(f"/api/racing/groups/{group}", method="DELETE", expected=204)
                 request(f"/api/racing/sources/{feed}", method="DELETE", expected=204)
                 request(f"/api/racing/sites/{site}", method="DELETE", expected=204)
-                print("PASS：Q1 认证、配置保存/改名、敏感字段隐藏、引用保护、进程重启恢复、后台独立同步、慢实例隔离、共盘去重、异盘空间未知、停用来源不抓取；RSS/网页独立逐项发现、后页不阻塞、两站适配夹具、旧条目基线、重启去重、不执行下载器动作。")
+                print("PASS：Q1 认证、配置保存/改名、敏感字段隐藏、引用保护、进程重启恢复、后台独立同步、慢实例隔离、共盘去重、异盘空间未知、停用来源不抓取；RSS/网页独立逐项发现、后页不阻塞、两站适配夹具、旧条目基线、重启去重、双来源事件合并、官种规则优先、完整规则重选、不执行下载器动作。")
             except BaseException:
                 log.seek(0)
                 print(log.read()[-12000:])

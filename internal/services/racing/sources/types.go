@@ -28,6 +28,7 @@ type Evidence struct {
 // Item separates source identity from a reported (not yet verified) infohash.
 // URLs are private transport data; API handlers must only expose PublicItem.
 type PublicItem struct {
+	SizeApproximate     bool       `json:"sizeApproximate"`
 	TorrentID           string     `json:"torrentId"`
 	EventKey            string     `json:"eventKey"`
 	Title               string     `json:"title"`

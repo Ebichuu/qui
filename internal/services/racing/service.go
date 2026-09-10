@@ -8,6 +8,7 @@ package racing
 import (
 	"context"
 	"errors"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -31,6 +32,8 @@ type Status struct {
 }
 
 type Service struct {
+	metadata            *metadataResolver
+	evaluator           *candidateEvaluator
 	discovery           *discoveryRunner
 	configuration       *models.RacingConfiguration
 	observations        ObservationReader
@@ -47,6 +50,15 @@ func NewService(store ConfigurationStore) *Service {
 	s := &Service{store: store, changed: make(chan struct{}, 1), status: Status{Mode: "observe_only"}}
 	if discovery, ok := store.(DiscoveryStore); ok {
 		s.discovery = newDiscoveryRunner(discovery)
+	}
+	if candidates, ok := store.(CandidateStore); ok {
+		s.evaluator = newCandidateEvaluator(candidates, s)
+		if s.discovery != nil {
+			s.discovery.onObserved = s.evaluator.observed
+		}
+	}
+	if metadata, ok := store.(MetadataStore); ok && s.evaluator != nil && s.discovery != nil {
+		s.metadata = newMetadataResolver(metadata, s)
 	}
 	return s
 }
@@ -88,10 +100,18 @@ func (s *Service) setConfiguration(config *models.RacingConfiguration) {
 
 func (s *Service) run(ctx context.Context) {
 	s.ConfigurationChanged()
+	var evaluations sync.WaitGroup
+	if s.metadata != nil {
+		evaluations.Go(func() { s.metadata.run(ctx) })
+	}
+	if s.evaluator != nil {
+		evaluations.Go(func() { s.evaluator.run(ctx) })
+	}
 	defer func() {
 		if s.discovery != nil {
 			s.discovery.stop()
 		}
+		evaluations.Wait()
 		s.mu.Lock()
 		s.status.Running = false
 		s.mu.Unlock()
@@ -107,12 +127,21 @@ func (s *Service) run(ctx context.Context) {
 				err = s.discovery.reconcile(ctx)
 			}
 			s.mu.Lock()
+			reconfigured := err == nil && !reflect.DeepEqual(s.configuration, config)
 			if err != nil {
 				s.status.ConfigurationReady = false
 			} else {
 				s.setConfiguration(config)
 			}
 			s.mu.Unlock()
+			if err == nil {
+				if s.metadata != nil && reconfigured {
+					s.metadata.configurationChanged()
+				}
+				if s.evaluator != nil {
+					s.evaluator.configurationChanged()
+				}
+			}
 			if err != nil && ctx.Err() == nil {
 				// Retry after transient database contention, independently of the browser.
 				timer := time.NewTimer(time.Second)

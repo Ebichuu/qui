@@ -144,17 +144,7 @@ func (s *RacingStore) Discoveries(ctx context.Context, limit int) ([]RacingDisco
 		return nil, err
 	}
 	defer rows.Close()
-	result := []RacingDiscovery{}
-	for rows.Next() {
-		var item RacingDiscovery
-		var public string
-		if err := rows.Scan(&item.ID, &item.SourceID, &item.SiteID, &item.EventKey, &public, &item.Eligible, &item.FirstSeenAt, &item.LastSeenAt, &item.Revision); err != nil {
-			return nil, err
-		}
-		item.Item = json.RawMessage(public)
-		result = append(result, item)
-	}
-	return result, rows.Err()
+	return readDiscoveries(rows)
 }
 
 // PrivateDiscovery is reserved for later metadata verification. Callers must

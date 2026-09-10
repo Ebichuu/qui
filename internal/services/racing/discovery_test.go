@@ -5,7 +5,9 @@ package racing
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -16,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/autobrr/qui/internal/models"
+	"github.com/autobrr/qui/internal/services/racing/sources"
 	"github.com/autobrr/qui/internal/testutil/testdb"
 )
 
@@ -129,4 +132,49 @@ func TestDiscoveryServiceIndependentWorkersAndRestart(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, baseline, again)
 	require.Equal(t, beforeRequests, rssRequests.Load())
+}
+
+type isolatedDiscoveryStore struct{ saved chan string }
+
+func (s *isolatedDiscoveryStore) RuntimeSources(context.Context) ([]models.RacingRuntimeSource, error) {
+	return nil, nil
+}
+func (s *isolatedDiscoveryStore) SourceBaseline(context.Context, int, int) (time.Time, error) {
+	return time.Now().Add(-time.Hour), nil
+}
+func (s *isolatedDiscoveryStore) SaveDiscovery(_ context.Context, _ models.RacingRuntimeSource, event string, _, _ []byte, _ bool) error {
+	s.saved <- event
+	return nil
+}
+func (s *isolatedDiscoveryStore) CompleteSourceScan(context.Context, models.RacingRuntimeSource) error {
+	return nil
+}
+
+func TestCandidateEvaluationFailureDoesNotAbortFollowingDiscoveries(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`<rss><channel><item><title>Example First-CHD</title><link>/details.php?id=1</link><enclosure url="/download?id=1"/></item><item><title>Example Second-CHD</title><link>/details.php?id=2</link><enclosure url="/download?id=2"/></item></channel></rss>`))
+	}))
+	defer server.Close()
+	store := &isolatedDiscoveryStore{saved: make(chan string, 2)}
+	runner := newDiscoveryRunner(store)
+	runner.onObserved = func(context.Context, models.RacingRuntimeSource, string, []byte) error {
+		return errors.New("synthetic evaluation failure")
+	}
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	finished := make(chan struct{})
+	go func() {
+		runner.observe(ctx, models.RacingRuntimeSource{ID: 1, Adapter: "chd", Kind: "rss", PageCount: 1, IntervalSeconds: 60, URL: server.URL}, &sources.Budget{}, 0)
+		close(finished)
+	}()
+	for _, expected := range []string{"torrent:1:published", "torrent:2:published"} {
+		select {
+		case actual := <-store.saved:
+			require.Equal(t, expected, actual)
+		case <-time.After(2 * time.Second):
+			t.Fatal("next discovery was blocked by preceding candidate failure")
+		}
+	}
+	cancel()
+	<-finished
 }

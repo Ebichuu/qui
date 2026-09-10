@@ -40,13 +40,15 @@ type sourceWorker struct {
 }
 
 type discoveryRunner struct {
-	store    DiscoveryStore
-	fetcher  sources.Fetcher
-	workers  map[int]sourceWorker
-	budgets  map[string]*sources.Budget
-	wg       sync.WaitGroup
-	mu       sync.RWMutex
-	statuses map[int]SourceStatus
+	budgetMu   sync.Mutex
+	onObserved func(context.Context, models.RacingRuntimeSource, string, []byte) error
+	store      DiscoveryStore
+	fetcher    sources.Fetcher
+	workers    map[int]sourceWorker
+	budgets    map[string]*sources.Budget
+	wg         sync.WaitGroup
+	mu         sync.RWMutex
+	statuses   map[int]SourceStatus
 }
 
 func newDiscoveryRunner(store DiscoveryStore) *discoveryRunner {
@@ -77,6 +79,8 @@ func (d *discoveryRunner) reconcile(ctx context.Context) error {
 			d.mu.Unlock()
 		}
 	}
+	d.budgetMu.Lock()
+	defer d.budgetMu.Unlock()
 	for key := range d.budgets {
 		if _, ok := intervals[key]; !ok {
 			delete(d.budgets, key)
@@ -92,6 +96,7 @@ func (d *discoveryRunner) reconcile(ctx context.Context) error {
 			budget = &sources.Budget{}
 			d.budgets[key] = budget
 		}
+		budget.SetMinimum(time.Duration(intervals[key]) * time.Second)
 		workerCtx, cancel := context.WithCancel(ctx)
 		d.workers[input.ID] = sourceWorker{source: input, cancel: cancel, requestInterval: intervals[key]}
 		d.wg.Go(func() { d.observe(workerCtx, input, budget, time.Duration(intervals[key])*time.Second) })
@@ -151,6 +156,9 @@ func (d *discoveryRunner) observe(ctx context.Context, input models.RacingRuntim
 					return err
 				}
 				status.LastItemCount++
+				if d.onObserved != nil {
+					_ = d.onObserved(ctx, input, item.EventKey, public)
+				}
 				return nil
 			})
 		}
@@ -214,4 +222,16 @@ func (s *Service) SourceStatuses() []SourceStatus {
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].SourceID < result[j].SourceID })
 	return result
+}
+
+func (d *discoveryRunner) requestBudget(origin string) *sources.Budget {
+	d.budgetMu.Lock()
+	defer d.budgetMu.Unlock()
+	key := strings.ToLower(origin)
+	budget := d.budgets[key]
+	if budget == nil {
+		budget = &sources.Budget{}
+		d.budgets[key] = budget
+	}
+	return budget
 }

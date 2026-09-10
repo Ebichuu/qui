@@ -33,6 +33,7 @@ func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/status", h.status)
 	r.Get("/observations", h.observations)
 	r.Get("/discoveries", h.discoveries)
+	r.Get("/candidates", h.candidates)
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		r.Route("/"+resource, func(r chi.Router) {
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) { h.save(w, r, resource, false) })
@@ -201,4 +202,24 @@ func (h *RacingHandler) discoveries(w http.ResponseWriter, r *http.Request) {
 		Sources      []racing.SourceStatus    `json:"sources"`
 		Capabilities []sources.Capability     `json:"capabilities"`
 	}{items, h.service.SourceStatuses(), sources.Capabilities()})
+}
+
+func (h *RacingHandler) candidates(w http.ResponseWriter, r *http.Request) {
+	if h.store == nil {
+		RespondError(w, http.StatusServiceUnavailable, "Candidate observations are unavailable")
+		return
+	}
+	items, err := h.store.CandidateRecords(r.Context(), r.URL.Query().Get("after"), nil, 100)
+	if err != nil {
+		RespondError(w, http.StatusServiceUnavailable, "Candidate observations are unavailable")
+		return
+	}
+	next := ""
+	if len(items) == 100 {
+		next = items[len(items)-1].Key
+	}
+	RespondJSON(w, http.StatusOK, struct {
+		Items      []models.RacingCandidateRecord `json:"items"`
+		NextCursor string                         `json:"nextCursor,omitempty"`
+	}{items, next})
 }

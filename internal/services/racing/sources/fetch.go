@@ -19,9 +19,12 @@ var ErrResponseLimit = errors.New("source response exceeds size limit")
 // Budget serializes request starts, not responses. A slow RSS response cannot
 // occupy the site's entire request budget and hold a web response behind it.
 type Budget struct {
-	mu   sync.Mutex
-	next time.Time
+	mu      sync.Mutex
+	next    time.Time
+	minimum time.Duration
 }
+
+func (b *Budget) SetMinimum(interval time.Duration) { b.mu.Lock(); b.minimum = interval; b.mu.Unlock() }
 
 func (b *Budget) Wait(ctx context.Context, interval time.Duration) error {
 	for {
@@ -31,7 +34,7 @@ func (b *Budget) Wait(ctx context.Context, interval time.Duration) error {
 		b.mu.Lock()
 		delay := time.Until(b.next)
 		if delay <= 0 {
-			b.next = time.Now().Add(interval)
+			b.next = time.Now().Add(max(interval, b.minimum))
 			b.mu.Unlock()
 			return nil
 		}
@@ -77,18 +80,7 @@ func (f *Fetcher) Fetch(ctx context.Context, input Request, emit Emit) error {
 	if err != nil {
 		return err
 	}
-	client := http.Client{}
-	if f.Client != nil {
-		client = *f.Client
-	}
-	// Never forward credentials through redirects, including a redirect to login
-	// on a different host. URLs in errors are deliberately not returned.
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		if len(via) >= 5 || !sameOrigin(via[0].URL.String(), req.URL.String()) {
-			return ErrRequest
-		}
-		return nil
-	}
+	client := f.client()
 	timeout := f.Timeout
 	if timeout <= 0 {
 		timeout = 20 * time.Second
@@ -108,6 +100,22 @@ func (f *Fetcher) Fetch(ctx context.Context, input Request, emit Emit) error {
 		}
 	}
 	return nil
+}
+
+func (f *Fetcher) client() http.Client {
+	client := http.Client{}
+	if f.Client != nil {
+		client = *f.Client
+	}
+	// Never forward credentials through redirects, including a redirect to login
+	// on a different host. URLs in errors are deliberately not returned.
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 5 || !sameOrigin(via[0].URL.String(), req.URL.String()) {
+			return ErrRequest
+		}
+		return nil
+	}
+	return client
 }
 
 func (f *Fetcher) page(parent context.Context, client *http.Client, input Request, address string, timeout time.Duration, limit int64, emit Emit) error {
