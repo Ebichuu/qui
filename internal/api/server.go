@@ -150,7 +150,12 @@ type Dependencies struct {
 func NewServer(deps *Dependencies) *Server {
 	streamManager := sse.NewStreamManager(deps.ClientPool, deps.SyncManager, deps.InstanceStore)
 	if deps.ClientPool != nil {
-		deps.ClientPool.SetSyncEventSink(streamManager)
+		if deps.RacingService != nil {
+			deps.RacingService.SetObservationReader(deps.ClientPool)
+			deps.ClientPool.SetSyncEventSink(qbittorrent.SyncEventFanout{streamManager, deps.RacingService})
+		} else {
+			deps.ClientPool.SetSyncEventSink(streamManager)
+		}
 	}
 	if deps.ActivityHub != nil {
 		streamManager.SetActivityHub(deps.ActivityHub)
@@ -284,6 +289,9 @@ func (s *Server) tryToServe(addr, protocol string, ready chan<- struct{}) error 
 
 	return s.server.Serve(listener)
 }
+
+// StartBackgroundSync attaches application-owned consumers to the shared sync loops.
+func (s *Server) StartBackgroundSync() { s.streamManager.StartBackgroundSync() }
 
 func (s *Server) Shutdown(ctx context.Context) error {
 	shutdownCtx, cancel := context.WithTimeout(ctx, 10*time.Second)

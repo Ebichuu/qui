@@ -142,6 +142,9 @@ func (s *RacingStore) Configuration(ctx context.Context) (*RacingConfiguration, 
 		return nil, err
 	}
 	rows.Close()
+	if err := readRacingStorage(ctx, tx, result); err != nil {
+		return nil, err
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}

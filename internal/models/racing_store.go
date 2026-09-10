@@ -82,6 +82,10 @@ func racingIDs(ids []int) ([]int, error) {
 // Only these fixed internal identifiers may be interpolated into store queries.
 func racingTable(kind string) (string, error) {
 	switch kind {
+	case "storage-pools":
+		return "racing_storage_pools", nil
+	case "path-mappings":
+		return "racing_path_mappings", nil
 	case "sites":
 		return "racing_sites", nil
 	case "sources":
@@ -382,6 +386,8 @@ func (s *RacingStore) Delete(ctx context.Context, kind string, id int) error {
 	_, err = s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		var referenceQuery string
 		switch kind {
+		case "storage-pools":
+			referenceQuery = "SELECT count(*) FROM racing_path_mappings WHERE storage_pool_id=?"
 		case "sites":
 			referenceQuery = "SELECT count(*) FROM racing_sources WHERE site_id=?"
 		case "sources":

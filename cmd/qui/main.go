@@ -921,6 +921,7 @@ func (app *Application) runServer() {
 
 	select {
 	case <-serverReady:
+		httpServer.StartBackgroundSync()
 		crossSeedService.StartAutomation(automationCtx)
 		go func() {
 			defer close(partialPoolDone)

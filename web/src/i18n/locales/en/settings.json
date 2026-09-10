@@ -1022,5 +1022,37 @@
       "copied": "{{label}} copied to clipboard",
       "copyFailed": "Failed to copy {{label}}"
     }
+  },
+  "racingGroups": {
+    "groups": "Downloader groups",
+    "groupHelp": "Groups share a target selection; they do not combine disk capacity or deletion permissions.",
+    "members": "Members",
+    "emptyGroup": "No members",
+    "pools": "Storage pools",
+    "poolHelp": "Map paths on the same physical disk to one pool, even across downloaders. Separate disks require separate pools.",
+    "mappings": "Path mappings",
+    "path": "Absolute path on downloader",
+    "pool": "Storage pool",
+    "instance": "Downloader",
+    "addGroup": "Add group",
+    "addPool": "Add storage pool",
+    "addMapping": "Add path mapping",
+    "name": "Name",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "empty": "Nothing configured yet",
+    "error": "Unable to save changes. Check references and input values.",
+    "loadError": "Unable to load configuration",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteHelp": "Referenced groups and storage pools must have their references removed first. Existing torrents are unaffected.",
+    "fresh": "Current",
+    "stale": "Stale or unavailable",
+    "freeSpace": "Observed free space",
+    "unknown": "Unknown",
+    "observeOnly": "Observation only; automatic adding and deletion are not enabled."
   }
 }

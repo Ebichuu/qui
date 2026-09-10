@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 // Package racing owns qui's independent source configuration. Q1 observes
-// configuration only; it has no qB client, add, delete or reannounce capability.
+// and shared cached downloader state; it has no add, delete or reannounce capability.
 package racing
 
 import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/autobrr/qui/internal/models"
@@ -30,12 +31,15 @@ type Status struct {
 }
 
 type Service struct {
-	store   ConfigurationStore
-	changed chan struct{}
-	done    chan struct{}
-	mu      sync.RWMutex
-	status  Status
-	cancel  context.CancelFunc
+	configuration       *models.RacingConfiguration
+	observations        ObservationReader
+	observationRevision atomic.Uint64
+	store               ConfigurationStore
+	changed             chan struct{}
+	done                chan struct{}
+	mu                  sync.RWMutex
+	status              Status
+	cancel              context.CancelFunc
 }
 
 func NewService(store ConfigurationStore) *Service {
@@ -67,6 +71,7 @@ func (s *Service) Start(ctx context.Context) error {
 }
 
 func (s *Service) setConfiguration(config *models.RacingConfiguration) {
+	s.configuration = config
 	now := time.Now().UTC()
 	s.status.ConfigurationReady = true
 	s.status.LoadedAt = &now

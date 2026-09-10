@@ -1022,5 +1022,37 @@
       "copied": "{{label}} in die Zwischenablage kopiert",
       "copyFailed": "{{label}} konnte nicht kopiert werden"
     }
+  },
+  "racingGroups": {
+    "groups": "Downloader-Gruppen",
+    "groupHelp": "Gruppen teilen eine Zielauswahl; sie kombinieren weder Speicherkapazität noch Löschberechtigungen.",
+    "members": "Mitglieder",
+    "emptyGroup": "Keine Mitglieder",
+    "pools": "Speicherpools",
+    "poolHelp": "Ordne Pfade auf derselben physischen Festplatte einem Pool zu, auch über mehrere Downloader hinweg. Separate Festplatten erfordern separate Pools.",
+    "mappings": "Pfadzuordnungen",
+    "path": "Absoluter Pfad auf dem Downloader",
+    "pool": "Speicherpool",
+    "instance": "Downloader",
+    "addGroup": "Gruppe hinzufügen",
+    "addPool": "Speicherpool hinzufügen",
+    "addMapping": "Pfadzuordnung hinzufügen",
+    "name": "Name",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "empty": "Noch nichts konfiguriert",
+    "error": "Änderungen konnten nicht gespeichert werden. Überprüfe Referenzen und Eingabewerte.",
+    "loadError": "Konfiguration konnte nicht geladen werden",
+    "deleteTitle": "{{name}} löschen?",
+    "deleteHelp": "Referenzen auf verwendete Gruppen und Speicherpools müssen zuerst entfernt werden. Vorhandene Torrents bleiben unverändert.",
+    "fresh": "Aktuell",
+    "stale": "Veraltet oder nicht verfügbar",
+    "freeSpace": "Beobachteter freier Speicherplatz",
+    "unknown": "Unbekannt",
+    "observeOnly": "Nur Beobachtung; automatisches Hinzufügen und Löschen sind nicht aktiviert."
   }
 }

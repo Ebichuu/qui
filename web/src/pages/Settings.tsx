@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+import { DownloaderGroups } from "@/components/instances/DownloaderGroups"
+
 import { IndexersPage } from "@/components/indexers/IndexersPage"
 import { InstanceCard } from "@/components/instances/InstanceCard"
 import { InstanceForm } from "@/components/instances/InstanceForm"
@@ -736,6 +738,8 @@ function InstancesManager({ search, onSearchChange }: InstancesManagerProps) {
           />
         </div>
       </div>
+
+      <DownloaderGroups instances={instances ?? []} />
 
       <Dialog open={isDialogOpen} onOpenChange={(open) => open ? handleOpenAddDialog() : handleCloseDialog()}>
         <DialogContent className="sm:max-w-[425px] max-h-[90dvh] flex flex-col">

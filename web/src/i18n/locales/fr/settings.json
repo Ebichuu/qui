@@ -1022,5 +1022,37 @@
       "copied": "{{label}} copié dans le presse-papiers",
       "copyFailed": "Échec de la copie de {{label}}"
     }
+  },
+  "racingGroups": {
+    "groups": "Groupes de téléchargement",
+    "groupHelp": "Les groupes partagent une sélection de cible ; ils ne combinent ni la capacité disque ni les autorisations de suppression.",
+    "members": "Membres",
+    "emptyGroup": "Aucun membre",
+    "pools": "Pools de stockage",
+    "poolHelp": "Associez les chemins situés sur un même disque physique à un seul pool, même entre plusieurs téléchargeurs. Les disques distincts nécessitent des pools distincts.",
+    "mappings": "Mappages de chemins",
+    "path": "Chemin absolu sur le téléchargeur",
+    "pool": "Pool de stockage",
+    "instance": "Téléchargeur",
+    "addGroup": "Ajouter un groupe",
+    "addPool": "Ajouter un pool de stockage",
+    "addMapping": "Ajouter un mappage de chemin",
+    "name": "Nom",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "empty": "Rien n’est encore configuré",
+    "error": "Impossible d’enregistrer les modifications. Vérifiez les références et les valeurs saisies.",
+    "loadError": "Impossible de charger la configuration",
+    "deleteTitle": "Supprimer {{name}} ?",
+    "deleteHelp": "Les groupes et pools de stockage référencés doivent d’abord être dissociés. Les torrents existants ne sont pas affectés.",
+    "fresh": "Actuel",
+    "stale": "Obsolète ou indisponible",
+    "freeSpace": "Espace libre observé",
+    "unknown": "Inconnu",
+    "observeOnly": "Observation uniquement ; l’ajout et la suppression automatiques ne sont pas activés."
   }
 }

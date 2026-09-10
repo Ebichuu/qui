@@ -1019,5 +1019,37 @@
       "copied": "{{label}} 已複製到剪貼簿",
       "copyFailed": "複製 {{label}} 失敗"
     }
+  },
+  "racingGroups": {
+    "groups": "下載器群組",
+    "groupHelp": "群組共用目標選擇；不會合併磁碟容量或刪除權限。",
+    "members": "成員",
+    "emptyGroup": "沒有成員",
+    "pools": "儲存池",
+    "poolHelp": "將同一實體磁碟上的路徑對應至同一個儲存池，即使這些路徑屬於不同下載器。不同磁碟需要使用不同的儲存池。",
+    "mappings": "路徑對應",
+    "path": "下載器上的絕對路徑",
+    "pool": "儲存池",
+    "instance": "下載器",
+    "addGroup": "新增群組",
+    "addPool": "新增儲存池",
+    "addMapping": "新增路徑對應",
+    "name": "名稱",
+    "enabled": "已啟用",
+    "disabled": "已停用",
+    "save": "儲存",
+    "cancel": "取消",
+    "edit": "編輯",
+    "delete": "刪除",
+    "empty": "尚未設定任何內容",
+    "error": "無法儲存變更。請檢查參照和輸入值。",
+    "loadError": "無法載入設定",
+    "deleteTitle": "刪除 {{name}}？",
+    "deleteHelp": "必須先移除對相關群組和儲存池的參照。現有種子不受影響。",
+    "fresh": "最新",
+    "stale": "過時或無法使用",
+    "freeSpace": "觀察到的可用空間",
+    "unknown": "未知",
+    "observeOnly": "僅供觀察；未啟用自動新增和刪除。"
   }
 }

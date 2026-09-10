@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+import type { RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
+
 import type {
   AddRSSFeedRequest,
   AddRSSFolderRequest,
@@ -475,6 +477,17 @@ function mapRawCrossSeedInstanceResult(instance: RawCrossSeedInstanceResult): Cr
 }
 
 class ApiClient {
+  getRacingConfiguration() { return this.request<RacingConfiguration>("/racing/configuration") }
+  getRacingObservations() { return this.request<RacingObservations>("/racing/observations") }
+  saveRacingResource(resource: RacingResource, id: number | null, input: RacingResourceInput) {
+    return this.request<{ id: number }>(`/racing/${resource}${id === null ? "" : `/${id}`}`, {
+      method: id === null ? "POST" : "PUT", body: JSON.stringify(input),
+    })
+  }
+  deleteRacingResource(resource: RacingResource, id: number) {
+    return this.request<void>(`/racing/${resource}/${id}`, { method: "DELETE" })
+  }
+
   private async request<T>(
     endpoint: string,
     options?: RequestInit

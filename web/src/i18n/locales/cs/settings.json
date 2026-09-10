@@ -1022,5 +1022,37 @@
       "copied": "{{label}} zkopírováno do schránky",
       "copyFailed": "Nepodařilo se zkopírovat {{label}}"
     }
+  },
+  "racingGroups": {
+    "groups": "Skupiny stahovačů",
+    "groupHelp": "Skupiny sdílejí výběr cíle; neslučují kapacitu disků ani oprávnění k mazání.",
+    "members": "Členové",
+    "emptyGroup": "Žádní členové",
+    "pools": "Úložné fondy",
+    "poolHelp": "Namapujte cesty na stejném fyzickém disku do jednoho úložného fondu, a to i napříč stahovači. Samostatné disky vyžadují samostatné fondy.",
+    "mappings": "Mapování cest",
+    "path": "Absolutní cesta ve stahovači",
+    "pool": "Úložný fond",
+    "instance": "Stahovač",
+    "addGroup": "Přidat skupinu",
+    "addPool": "Přidat úložný fond",
+    "addMapping": "Přidat mapování cesty",
+    "name": "Název",
+    "enabled": "Povoleno",
+    "disabled": "Zakázáno",
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "edit": "Upravit",
+    "delete": "Smazat",
+    "empty": "Zatím není nic nakonfigurováno",
+    "error": "Změny se nepodařilo uložit. Zkontrolujte odkazy a zadané hodnoty.",
+    "loadError": "Konfiguraci se nepodařilo načíst",
+    "deleteTitle": "Smazat {{name}}?",
+    "deleteHelp": "Nejprve je nutné odstranit odkazy na používané skupiny a úložné fondy. Stávající torrenty zůstanou nedotčené.",
+    "fresh": "Aktuální",
+    "stale": "Zastaralé nebo nedostupné",
+    "freeSpace": "Zjištěné volné místo",
+    "unknown": "Neznámé",
+    "observeOnly": "Pouze sledování; automatické přidávání a mazání není povoleno."
   }
 }

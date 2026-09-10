@@ -1019,5 +1019,37 @@
       "copied": "{{label}} 已复制到剪贴板",
       "copyFailed": "复制 {{label}} 失败"
     }
+  },
+  "racingGroups": {
+    "groups": "下载器群组",
+    "groupHelp": "群组共享目标选择；不会合并磁盘容量或删除权限。",
+    "members": "成员",
+    "emptyGroup": "无成员",
+    "pools": "存储池",
+    "poolHelp": "将同一物理磁盘上的路径映射到一个存储池，即使这些路径属于不同下载器。不同磁盘需要使用不同的存储池。",
+    "mappings": "路径映射",
+    "path": "下载器上的绝对路径",
+    "pool": "存储池",
+    "instance": "下载器",
+    "addGroup": "添加群组",
+    "addPool": "添加存储池",
+    "addMapping": "添加路径映射",
+    "name": "名称",
+    "enabled": "已启用",
+    "disabled": "已停用",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "empty": "尚未配置任何内容",
+    "error": "无法保存更改。请检查引用和输入值。",
+    "loadError": "无法加载配置",
+    "deleteTitle": "删除 {{name}}？",
+    "deleteHelp": "必须先移除对相关群组和存储池的引用。现有种子不受影响。",
+    "fresh": "最新",
+    "stale": "已过期或不可用",
+    "freeSpace": "观测到的可用空间",
+    "unknown": "未知",
+    "observeOnly": "仅供观测；未启用自动添加和删除。"
   }
 }

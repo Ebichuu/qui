@@ -89,20 +89,25 @@ type Client struct {
 	syncManager                *qbt.SyncManager
 	peerSyncManager            map[string]*qbt.PeerSyncManager // Map of torrent hash to PeerSyncManager
 	// optimisticUpdates stores temporary optimistic state changes for this instance
-	optimisticUpdates    *ttlcache.Cache[string, *OptimisticTorrentUpdate]
-	trackerExclusions    map[string]map[string]struct{} // Domains to hide hashes from until fresh sync arrives
-	lastServerState      *qbt.ServerState
-	appInfoCache         *AppInfo
-	appInfoFetchedAt     time.Time
-	mu                   sync.RWMutex
-	serverStateMu        sync.RWMutex
-	healthMu             sync.RWMutex
-	appInfoMu            sync.RWMutex
-	preferencesCache     *qbt.AppPreferences
-	preferencesJSON      json.RawMessage
-	preferencesFetchedAt time.Time
-	preferencesMu        sync.RWMutex
-	syncEventSink        SyncEventSink
+	optimisticUpdates     *ttlcache.Cache[string, *OptimisticTorrentUpdate]
+	trackerExclusions     map[string]map[string]struct{} // Domains to hide hashes from until fresh sync arrives
+	serverStateObservedAt time.Time
+	serverStateErrorAt    time.Time
+	metadataRefreshMu     sync.Mutex
+	metadataRefreshing    bool
+	metadataAttemptAt     time.Time
+	lastServerState       *qbt.ServerState
+	appInfoCache          *AppInfo
+	appInfoFetchedAt      time.Time
+	mu                    sync.RWMutex
+	serverStateMu         sync.RWMutex
+	healthMu              sync.RWMutex
+	appInfoMu             sync.RWMutex
+	preferencesCache      *qbt.AppPreferences
+	preferencesJSON       json.RawMessage
+	preferencesFetchedAt  time.Time
+	preferencesMu         sync.RWMutex
+	syncEventSink         SyncEventSink
 
 	// countsGen versions every client-owned input of the sidebar counts: it
 	// moves on each applied sync and on tracker-exclusion changes, so the
@@ -290,6 +295,10 @@ func (c *Client) handleSyncManagerError(err error) {
 		return
 	}
 
+	c.serverStateMu.Lock()
+	c.serverStateErrorAt = time.Now()
+	c.serverStateMu.Unlock()
+
 	if isDeadlineExpired(err) {
 		log.Debug().
 			Err(err).
@@ -472,6 +481,7 @@ func (c *Client) updateServerState(data *qbt.MainData) {
 
 	stateCopy := data.ServerState
 	c.lastServerState = &stateCopy
+	c.serverStateObservedAt = time.Now()
 }
 
 func (c *Client) clearServerState() {

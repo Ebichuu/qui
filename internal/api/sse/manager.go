@@ -194,13 +194,16 @@ type StreamManager struct {
 	eventsDropped   atomic.Uint64
 	syncErrorsTotal atomic.Uint64
 
-	subscriptions  map[string]*subscriptionState
-	instanceIndex  map[int]map[string]*subscriptionState
-	groups         map[string]*subscriptionGroup
-	instanceGroups map[int]map[string]*subscriptionGroup
-	syncLoops      map[int]*syncLoopState
-	heartbeatLoops map[int]*heartbeatLoopState
-	syncBackoff    map[int]*backoffState
+	subscriptions       map[string]*subscriptionState
+	instanceIndex       map[int]map[string]*subscriptionState
+	groups              map[string]*subscriptionGroup
+	instanceGroups      map[int]map[string]*subscriptionGroup
+	backgroundInstances map[int]struct{}
+	backgroundStarted   bool
+	backgroundWG        sync.WaitGroup
+	syncLoops           map[int]*syncLoopState
+	heartbeatLoops      map[int]*heartbeatLoopState
+	syncBackoff         map[int]*backoffState
 
 	// activityTopics is the set of per-connection go-sse topics that should receive
 	// activity events (and activity heartbeats). One topic per open SSE session.
@@ -577,15 +580,11 @@ func (m *StreamManager) Unregister(id string) {
 				delete(subs, id)
 				if len(subs) == 0 {
 					delete(m.instanceIndex, instanceID)
-					if loop, ok := m.syncLoops[instanceID]; ok {
-						loop.cancel()
-						delete(m.syncLoops, instanceID)
-					}
+					m.stopUnusedSyncLoopLocked(instanceID)
 					if hbLoop, ok := m.heartbeatLoops[instanceID]; ok {
 						hbLoop.cancel()
 						delete(m.heartbeatLoops, instanceID)
 					}
-					delete(m.syncBackoff, instanceID)
 				}
 			}
 		}
@@ -1910,6 +1909,8 @@ func (m *StreamManager) Shutdown(ctx context.Context) error {
 		}
 	}
 
+	m.backgroundWG.Wait()
+
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -2088,6 +2089,11 @@ func (m *StreamManager) forceSync(parent context.Context, instanceID int) {
 		// through the client sync event sink to this StreamManager.
 		// Avoid double-reporting the same failure and advancing backoff twice.
 		return
+	}
+	if m.clientPool != nil {
+		if client, err := m.clientPool.GetClientOffline(parent, instanceID); err == nil {
+			client.RefreshMetadataInBackground(parent)
+		}
 	}
 }
 

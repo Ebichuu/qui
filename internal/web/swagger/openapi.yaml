@@ -18,6 +18,159 @@ security:
   - SessionAuth: []
 
 paths:
+  /api/racing/storage-pools:
+    post:
+      tags:
+      - Racing
+      summary: Create racing storage-pools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingStoragePoolInput'
+      responses:
+        '201':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+  /api/racing/storage-pools/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags:
+      - Racing
+      summary: Replace racing storage-pools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingStoragePoolInput'
+      responses:
+        '200':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+    delete:
+      tags:
+      - Racing
+      summary: Delete racing storage-pools
+      description: Referenced objects must be detached first. Group membership never
+        grants operation ownership.
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Object not found
+        '409':
+          description: Object still referenced
+  /api/racing/path-mappings:
+    post:
+      tags:
+      - Racing
+      summary: Create racing path-mappings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingPathMappingInput'
+      responses:
+        '201':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+  /api/racing/path-mappings/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags:
+      - Racing
+      summary: Replace racing path-mappings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingPathMappingInput'
+      responses:
+        '200':
+          description: Stable object ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingSavedID'
+        '400':
+          description: Invalid configuration or reference
+        '404':
+          description: Object not found
+        '500':
+          description: Configuration write failed
+    delete:
+      tags:
+      - Racing
+      summary: Delete racing path-mappings
+      description: Referenced objects must be detached first. Group membership never
+        grants operation ownership.
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Object not found
+        '409':
+          description: Object still referenced
+  /api/racing/observations:
+    get:
+      tags:
+      - Racing
+      summary: Read shared cached downloader and storage observations
+      description: No client creation or network refresh. Data older than five seconds
+        or followed by a sync error is stale. Storage capacity requires fresh path metadata
+        and a subsequent MainData observation.
+      responses:
+        '200':
+          description: Observation snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingObservations'
+        '503':
+          description: Racing service unavailable
   /api/racing/configuration:
     get:
       tags:
@@ -7021,6 +7174,138 @@ components:
           type: integer
           description: All-time uploaded bytes. Absent until the instance completes its first sync.
 
+    RacingStoragePoolInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required:
+      - name
+    RacingStoragePool:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        id:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+    RacingPathMappingInput:
+      type: object
+      properties:
+        instanceId:
+          type: integer
+          minimum: 1
+        storagePoolId:
+          type: integer
+          minimum: 1
+        path:
+          type: string
+          description: Absolute downloader path. POSIX, Windows drive and UNC paths accepted;
+            parent traversal rejected. Windows paths normalized case-insensitively.
+      required:
+      - instanceId
+      - storagePoolId
+      - path
+    RacingPathMapping:
+      type: object
+      properties:
+        instanceId:
+          type: integer
+          minimum: 1
+        storagePoolId:
+          type: integer
+          minimum: 1
+        path:
+          type: string
+          description: Absolute downloader path. POSIX, Windows drive and UNC paths accepted;
+            parent traversal rejected. Windows paths normalized case-insensitively.
+        id:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+    RacingObservation:
+      type: object
+      properties:
+        instanceId:
+          type: integer
+        observedAt:
+          type: string
+          format: date-time
+        fresh:
+          type: boolean
+        healthy:
+          type: boolean
+        downloadSpeed:
+          type: integer
+          format: int64
+        uploadSpeed:
+          type: integer
+          format: int64
+        defaultPathFreeBytes:
+          type: integer
+          format: int64
+          description: Only the qB default save path, not arbitrary target directories.
+        version:
+          type: string
+        webAPIVersion:
+          type: string
+        metadataObservedAt:
+          type: string
+          format: date-time
+        preferencesObservedAt:
+          type: string
+          format: date-time
+        preferencesFresh:
+          type: boolean
+        savePath:
+          type: string
+        tempPath:
+          type: string
+        tempPathEnabled:
+          type: boolean
+        categories:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              name:
+                type: string
+              savePath:
+                type: string
+    RacingStorageObservation:
+      type: object
+      properties:
+        storagePoolId:
+          type: integer
+        freeBytes:
+          type: integer
+          format: int64
+          description: Omitted when unknown. Multiple observations of a shared disk are
+            never summed.
+        observedAt:
+          type: string
+          format: date-time
+    RacingObservations:
+      type: object
+      properties:
+        revision:
+          type: integer
+          format: uint64
+        instances:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingObservation'
+        storagePools:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingStorageObservation'
     RacingSiteInput:
       type: object
       properties:
@@ -7339,6 +7624,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RacingRule'
+        storagePools:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingStoragePool'
+        pathMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/RacingPathMapping'
     RacingStatus:
       type: object
       properties:

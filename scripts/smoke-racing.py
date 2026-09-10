@@ -14,6 +14,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import urllib.parse
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,6 +33,49 @@ class SourceTrap(http.server.BaseHTTPRequestHandler):
     do_POST = do_GET
 
 
+class DownloaderMock(http.server.BaseHTTPRequestHandler):
+    def log_message(self, *_args):
+        pass
+
+    def respond(self, value):
+        data = (value if isinstance(value, str) else json.dumps(value)).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def do_POST(self):
+        self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        if self.path.endswith("/auth/login"):
+            return self.respond("Ok.")
+        self.server.actions.append(self.path)
+        self.respond("")
+
+    def do_GET(self):
+        path = urllib.parse.urlparse(self.path).path
+        if path.endswith("/app/version"):
+            return self.respond("v5.1.2")
+        if path.endswith("/app/webapiVersion"):
+            return self.respond("2.11.4")
+        if path.endswith("/app/buildInfo"):
+            return self.respond({"qt": "6.8", "libtorrent": "2.0.11", "bitness": 64})
+        if path.endswith("/app/preferences"):
+            return self.respond({"save_path": "/synthetic/disk-a", "temp_path": "/synthetic/disk-b", "temp_path_enabled": True})
+        if path.endswith("/sync/maindata"):
+            self.server.samples += 1
+            if self.server.stalled:
+                time.sleep(15)
+            return self.respond({"rid": self.server.samples, "full_update": True, "torrents": {},
+                "categories": {"other": {"name": "other", "savePath": "/synthetic/disk-b"}}, "tags": [],
+                "server_state": {"connection_status": "connected", "free_space_on_disk": 1000000,
+                    "up_info_speed": 1234, "dl_info_speed": 0, "alltime_ul": self.server.samples * 1000}})
+        self.respond([])
+
+
 def main():
     binary = ROOT / ("qui.exe" if os.name == "nt" else "qui")
     env = {key: value for key, value in os.environ.items() if not key.startswith("QUI__")}
@@ -40,6 +84,12 @@ def main():
             sock.bind(("127.0.0.1", 0))
             port = sock.getsockname()[1]
         base = f"http://127.0.0.1:{port}"
+        downloaders = []
+        for _ in range(2):
+            mock = http.server.ThreadingHTTPServer(("127.0.0.1", 0), DownloaderMock)
+            mock.samples, mock.actions, mock.stalled = 0, [], False
+            threading.Thread(target=mock.serve_forever, daemon=True).start()
+            downloaders.append(mock)
         source = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SourceTrap)
         threading.Thread(target=source.serve_forever, daemon=True).start()
         origin = f"http://127.0.0.1:{source.server_port}"
@@ -111,7 +161,7 @@ def main():
                 request("/api/auth/setup", credentials, expected=201)
                 request("/api/racing/configuration", expected=403, authenticated=False)
                 request("/api/auth/login", credentials)
-                assert request("/api/racing/configuration") == dict(sites=[], sources=[], groups=[], rules=[])
+                assert request("/api/racing/configuration") == dict(sites=[], sources=[], groups=[], rules=[], storagePools=[], pathMappings=[])
                 site = request("/api/racing/sites", dict(name="Synthetic site", baseUrl=origin,
                     enabled=True, requestIntervalSeconds=5, credential="synthetic-cookie-secret"), expected=201)["id"]
                 feed = request("/api/racing/sources", dict(name="Synthetic feed", siteId=site,
@@ -125,6 +175,39 @@ def main():
                 request(f"/api/racing/sites/{site}", dict(name="Renamed site", baseUrl=origin,
                     enabled=True, requestIntervalSeconds=5), method="PUT")
                 request(f"/api/racing/groups/{group}", method="DELETE", expected=409)
+                instance_ids = []
+                for index, mock in enumerate(downloaders):
+                    instance = request("/api/instances", dict(name=f"Synthetic downloader {index + 1}",
+                        host=f"http://127.0.0.1:{mock.server_port}", username="synthetic", password="synthetic"), expected=201)
+                    instance_ids.append(instance["id"])
+                request(f"/api/racing/groups/{group}", dict(name="Synthetic group", enabled=True,
+                    instanceIds=instance_ids + instance_ids), method="PUT")
+                pool = request("/api/racing/storage-pools", dict(name="Shared disk A"), expected=201)["id"]
+                other_pool = request("/api/racing/storage-pools", dict(name="Other disk"), expected=201)["id"]
+                mappings = []
+                for instance_id in instance_ids:
+                    mappings.append(request("/api/racing/path-mappings", dict(instanceId=instance_id,
+                        storagePoolId=pool, path="/synthetic/disk-a"), expected=201)["id"])
+                mappings.append(request("/api/racing/path-mappings", dict(instanceId=instance_ids[0],
+                    storagePoolId=other_pool, path="/synthetic/disk-b"), expected=201)["id"])
+                request(f"/api/racing/storage-pools/{pool}", method="DELETE", expected=409)
+                deadline = time.monotonic() + 30
+                while True:
+                    observation = request("/api/racing/observations")
+                    capacity = {item["storagePoolId"]: item.get("freeBytes") for item in observation["storagePools"]}
+                    if len(observation["instances"]) == 2 and all(item["fresh"] for item in observation["instances"]) and capacity.get(pool) == 1000000:
+                        break
+                    assert time.monotonic() < deadline, "background state did not become ready"
+                    time.sleep(0.2)
+                assert capacity[other_pool] is None, "default directory space must not count for another disk"
+                start_count = downloaders[1].samples
+                downloaders[0].stalled = True
+                time.sleep(7)
+                observation = request("/api/racing/observations")
+                state = {item["instanceId"]: item for item in observation["instances"]}
+                assert not state[instance_ids[0]]["fresh"]
+                assert state[instance_ids[1]]["fresh"] and downloaders[1].samples >= start_count + 2
+                downloaders[0].stalled = False
                 before = request("/api/racing/configuration")
                 assert before["sites"][0]["id"] == site and before["sites"][0]["hasCredential"]
                 assert before["sources"][0]["urlOrigin"] == origin
@@ -146,11 +229,16 @@ def main():
                 status = request("/api/racing/status")
                 assert status["running"] and status["configurationReady"] and status["rules"] == 1
                 assert SourceTrap.requests == 0, "Q1 must not fetch sources or execute actions"
+                assert all(not mock.actions for mock in downloaders), "Q1 must not add, delete or modify downloader settings"
+                for mapping in mappings:
+                    request(f"/api/racing/path-mappings/{mapping}", method="DELETE", expected=204)
+                for storage_pool in [pool, other_pool]:
+                    request(f"/api/racing/storage-pools/{storage_pool}", method="DELETE", expected=204)
                 request(f"/api/racing/rules/{rule}", method="DELETE", expected=204)
                 request(f"/api/racing/groups/{group}", method="DELETE", expected=204)
                 request(f"/api/racing/sources/{feed}", method="DELETE", expected=204)
                 request(f"/api/racing/sites/{site}", method="DELETE", expected=204)
-                print("PASS：Q1 认证、配置保存/改名、敏感字段隐藏、引用保护、进程重启恢复、只观察且不请求来源。")
+                print("PASS：Q1 认证、配置保存/改名、敏感字段隐藏、引用保护、进程重启恢复、后台独立同步、慢实例隔离、共盘去重、异盘空间未知、只观察且不请求来源或执行下载器动作。")
             except BaseException:
                 log.seek(0)
                 print(log.read()[-12000:])
@@ -160,6 +248,9 @@ def main():
                     stop(process)
                 source.shutdown()
                 source.server_close()
+                for mock in downloaders:
+                    mock.shutdown()
+                    mock.server_close()
 
 
 if __name__ == "__main__":

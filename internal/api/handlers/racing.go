@@ -30,7 +30,8 @@ func NewRacingHandler(store *models.RacingStore, service *racing.Service) *Racin
 func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/configuration", h.configuration)
 	r.Get("/status", h.status)
-	for _, resource := range []string{"sites", "sources", "groups", "rules"} {
+	r.Get("/observations", h.observations)
+	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		r.Route("/"+resource, func(r chi.Router) {
 			r.Post("/", func(w http.ResponseWriter, r *http.Request) { h.save(w, r, resource, false) })
 			r.Put("/{id}", func(w http.ResponseWriter, r *http.Request) { h.save(w, r, resource, true) })
@@ -96,6 +97,16 @@ func (h *RacingHandler) save(w http.ResponseWriter, r *http.Request, resource st
 	}
 	var err error
 	switch resource {
+	case "storage-pools":
+		var input models.RacingStoragePoolInput
+		if err = decodeRacing(w, r, &input); err == nil {
+			id, err = h.store.SaveStoragePool(r.Context(), id, input)
+		}
+	case "path-mappings":
+		var input models.RacingPathMappingInput
+		if err = decodeRacing(w, r, &input); err == nil {
+			id, err = h.store.SavePathMapping(r.Context(), id, input)
+		}
 	case "sites":
 		var input models.RacingSiteInput
 		if err = decodeRacing(w, r, &input); err == nil {
@@ -163,4 +174,12 @@ func racingError(w http.ResponseWriter, err error) {
 		// or log arbitrary driver error strings for these configuration writes.
 		RespondError(w, http.StatusInternalServerError, "Unable to save racing configuration")
 	}
+}
+
+func (h *RacingHandler) observations(w http.ResponseWriter, r *http.Request) {
+	if h.service == nil {
+		RespondError(w, http.StatusServiceUnavailable, "Racing service is unavailable")
+		return
+	}
+	RespondJSON(w, http.StatusOK, h.service.Observations())
 }

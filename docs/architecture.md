@@ -18,9 +18,9 @@ Internal reference for agents and maintainers. Read this before changing cross-m
 
 ## Core Data Flow
 
-1. `SyncManager` polls qBittorrent instances through `ClientPool`.
+1. The existing per-instance sync loops poll qBittorrent through `SyncManager` and `ClientPool`. Active instances have an application-owned background consumer as well as optional SSE consumers; closing the last page does not stop background sync.
 2. Torrent state is cached in memory with delta updates.
-3. Frontend reads state through REST APIs and receives live updates through SSE.
+3. Frontend reads state through REST APIs and receives live updates through SSE. Racing receives the same notifications and reads a small projection of the shared cache, without keeping another full torrent snapshot.
 4. Cross-seed services react to torrent completion and search/match events.
 
 ## Frontend Live State Note

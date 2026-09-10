@@ -1022,5 +1022,37 @@
       "copied": "{{label}} copiado para a área de transferência",
       "copyFailed": "Falha ao copiar {{label}}"
     }
+  },
+  "racingGroups": {
+    "groups": "Grupos de download",
+    "groupHelp": "Os grupos compartilham uma seleção de destino; não combinam capacidade de disco nem permissões de exclusão.",
+    "members": "Membros",
+    "emptyGroup": "Nenhum membro",
+    "pools": "Pools de armazenamento",
+    "poolHelp": "Mapeie caminhos no mesmo disco físico para um único pool, mesmo entre diferentes clientes de download. Discos separados exigem pools separados.",
+    "mappings": "Mapeamentos de caminho",
+    "path": "Caminho absoluto no cliente de download",
+    "pool": "Pool de armazenamento",
+    "instance": "Cliente de download",
+    "addGroup": "Adicionar grupo",
+    "addPool": "Adicionar pool de armazenamento",
+    "addMapping": "Adicionar mapeamento de caminho",
+    "name": "Nome",
+    "enabled": "Ativado",
+    "disabled": "Desativado",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "empty": "Nada configurado ainda",
+    "error": "Não foi possível salvar as alterações. Verifique as referências e os valores informados.",
+    "loadError": "Não foi possível carregar a configuração",
+    "deleteTitle": "Excluir {{name}}?",
+    "deleteHelp": "As referências aos grupos e pools de armazenamento referenciados devem ser removidas primeiro. Os torrents existentes não são afetados.",
+    "fresh": "Atual",
+    "stale": "Desatualizado ou indisponível",
+    "freeSpace": "Espaço livre observado",
+    "unknown": "Desconhecido",
+    "observeOnly": "Somente observação; a adição e a exclusão automáticas não estão ativadas."
   }
 }
