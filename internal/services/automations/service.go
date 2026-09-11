@@ -556,6 +556,8 @@ type Service struct {
 	lastFreeSpaceDeleteAt  map[int]time.Time            // instanceID -> last FREE_SPACE delete timestamp
 	deleteConditionMatches map[deleteConditionMatchKey]deleteConditionMatchState
 	inFlightExports        map[string]struct{} // "targetInstanceID:hash" -> in-progress export
+	instanceRuns           sync.Map
+	restoredInstances      map[int]bool
 	mu                     sync.RWMutex
 
 	activityPublisher activity.Publisher
@@ -737,6 +739,8 @@ func (s *Service) ApplyRuleDryRun(ctx context.Context, instanceID int, rule *mod
 		return nil, nil
 	}
 
+	unlock := s.lockInstanceRun(instanceID)
+	defer unlock()
 	dryRunRule := prepareRuleForDryRun(rule, instanceID)
 	activities, err := s.applyRulesForInstance(ctx, instanceID, true, []*models.Automation{dryRunRule}, true)
 	if err != nil {
@@ -1909,7 +1913,30 @@ func (s *Service) blockedDeleteCandidates(
 	return s.verifyDeleteCandidates(ctx, instanceID, hardlinkIndex, torrentByHash, candidates)
 }
 
-func (s *Service) applyForInstance(ctx context.Context, instanceID int, force bool) error {
+func (s *Service) applyForInstance(ctx context.Context, instanceID int, force bool) (resultErr error) {
+	unlock := s.lockInstanceRun(instanceID)
+	defer unlock()
+	if err := s.restoreConditionObservations(ctx, instanceID); err != nil {
+		return err
+	}
+	defer func() {
+		if resultErr != nil {
+			s.mu.Lock()
+			for key := range s.deleteConditionMatches {
+				if key.instanceID == instanceID {
+					delete(s.deleteConditionMatches, key)
+				}
+			}
+			s.mu.Unlock()
+		}
+		resultErr = errors.Join(resultErr, s.checkpointConditionObservations(ctx, instanceID))
+	}()
+	// A crash during an incomplete observation must not restore old maturity.
+	if s.ruleStore != nil {
+		if err := s.ruleStore.SaveConditionObservations(ctx, instanceID, nil); err != nil {
+			return err
+		}
+	}
 	rules, err := s.ruleStore.ListByInstance(ctx, instanceID)
 	if err != nil {
 		log.Error().Err(err).Int("instanceID", instanceID).Msg("automations: failed to load rules")
@@ -2285,6 +2312,11 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 	// Group rules into batches based on sorting config equality
 	s.buildAndExecuteBatches(instanceID, eligibleRules, torrents, evalCtx, skipCheck, ruleStats, states)
 	s.pruneDeleteConditionMatches(instanceID, eligibleRules, dryRun, deleteDurationSeen)
+	if !dryRun {
+		if err := s.checkpointConditionObservations(ctx, instanceID); err != nil {
+			return nil, err
+		}
+	}
 
 	if len(states) == 0 {
 		log.Trace().
@@ -3927,6 +3959,23 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 
 		limited := limitHashBatch(hashes, s.cfg.MaxBatchHashes)
 		for _, batch := range limited {
+			if mode != DeleteModeKeepFiles {
+				for _, hash := range batch {
+					pending := pendingByHash[hash]
+					if _, ok := freeSpaceDeleteRuleIDs[pending.ruleID]; ok {
+						attemptedAt := time.Now()
+						if s.ruleStore != nil {
+							if err := s.ruleStore.RecordDeleteCooldown(ctx, instanceID, attemptedAt); err != nil {
+								return nil, err
+							}
+						}
+						s.mu.Lock()
+						s.lastFreeSpaceDeleteAt[instanceID] = attemptedAt
+						s.mu.Unlock()
+						break
+					}
+				}
+			}
 			if err := s.syncManager.BulkAction(ctx, instanceID, batch, mode); err != nil {
 				log.Warn().Err(err).Int("instanceID", instanceID).Str("action", mode).Int("count", len(batch)).Strs("hashes", batch).Msg("automations: delete failed")
 
@@ -3960,25 +4009,6 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 				} else {
 					log.Info().Int("instanceID", instanceID).Int("count", len(batch)).Msg("automations: removed torrents with files")
 
-					// Start FREE_SPACE cooldown if files were deleted by a FREE_SPACE rule
-					// This allows qBittorrent time to refresh its disk free space reading
-					if len(freeSpaceDeleteRuleIDs) > 0 {
-						for _, hash := range batch {
-							if pending, ok := pendingByHash[hash]; ok {
-								if _, isFSRule := freeSpaceDeleteRuleIDs[pending.ruleID]; isFSRule {
-									s.mu.Lock()
-									s.lastFreeSpaceDeleteAt[instanceID] = now
-									s.mu.Unlock()
-									log.Debug().
-										Int("instanceID", instanceID).
-										Int("ruleID", pending.ruleID).
-										Dur("cooldown", freeSpaceDeleteCooldown).
-										Msg("automations: started FREE_SPACE delete cooldown")
-									break // Only need to set once per batch
-								}
-							}
-						}
-					}
 				}
 
 				// Record successful deletion activity

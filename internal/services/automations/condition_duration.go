@@ -28,6 +28,7 @@ type deleteConditionMatchState struct {
 	duration     time.Duration
 	uploaded     int64
 	downloaded   int64
+	restored     bool
 }
 
 func deleteConditionDuration(rule *models.Automation) time.Duration {
@@ -92,8 +93,14 @@ func (s *Service) deleteConditionReadyForRule(
 		interval = time.Duration(*rule.IntervalSeconds) * time.Second
 	}
 	s.mu.Lock()
-	if state, ok := s.deleteConditionMatches[key]; ok && (now.Sub(state.lastSeen) > 2*interval || torrent.Uploaded < state.uploaded || torrent.Downloaded < state.downloaded) {
+	if state, ok := s.deleteConditionMatches[key]; ok && (now.Before(state.lastSeen) || now.Sub(state.lastSeen) > 2*interval || torrent.Uploaded < state.uploaded || torrent.Downloaded < state.downloaded) {
 		delete(s.deleteConditionMatches, key)
+	} else if ok && state.restored {
+		// Preserve measured time, but never credit the unobserved restart gap.
+		state.matchedSince = state.matchedSince.Add(now.Sub(state.lastSeen))
+		state.lastSeen = now
+		state.restored = false
+		s.deleteConditionMatches[key] = state
 	}
 	s.mu.Unlock()
 	ready := s.deleteConditionReady(now, key, duration, matched)

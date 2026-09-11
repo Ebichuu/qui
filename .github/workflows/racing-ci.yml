@@ -65,3 +65,5 @@ jobs:
         run: make smoke-racing-execution
       - name: Verify reception fault isolation and timing
         run: make smoke-racing-integration
+      - name: Verify automation observation crash recovery
+        run: make smoke-automation-observation

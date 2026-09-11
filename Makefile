@@ -111,7 +111,7 @@ test:
 	@echo "Running tests..."
 	go test -race -count=1 -v ./...
 
-.PHONY: smoke-baseline smoke-racing smoke-racing-execution smoke-racing-integration
+.PHONY: smoke-baseline smoke-racing smoke-racing-execution smoke-racing-integration smoke-automation-observation
 smoke-baseline:
 	python3 scripts/smoke-baseline.py
 
@@ -123,6 +123,9 @@ smoke-racing-execution:
 
 smoke-racing-integration:
 	python3 scripts/smoke-racing-integration.py
+
+smoke-automation-observation:
+	python3 scripts/smoke-automation-observation.py
 
 # Run frontend tests (vitest)
 test-frontend:
