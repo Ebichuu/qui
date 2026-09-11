@@ -352,5 +352,62 @@
       "conditionSemantics": "Complete AND/OR and comparison semantics",
       "sources": "Source links"
     }
+  },
+  "execution": {
+    "title": "Downloader reception",
+    "setupHelp": "Enable reception per downloader after mapping its storage paths and configuring the site’s Tracker hosts. Missing or stale capacity keeps candidates waiting.",
+    "enabledIntro": "Reception is enabled on selected downloaders. Matching rules can add torrents; submitted requests are reconciled on their original target.",
+    "disabledIntro": "Reception is disabled. Sources and rules can be configured and previewed without adding torrents.",
+    "configurationHelp": "Changes affect future decisions on downloaders with reception enabled. Submitted requests keep their original target and rule.",
+    "statusUnavailable": "Reception status unavailable",
+    "loadError": "Unable to load reception data.",
+    "noInstances": "Add a downloader before configuring reception.",
+    "enabled": "Reception enabled",
+    "disabled": "Reception disabled",
+    "editTitle": "Reception · {{name}}",
+    "enableLabel": "Allow matching rules to add torrents to this downloader",
+    "enableWarning": "Saving with reception enabled allows automatic adding. Stop overlapping automatic adding in qBittorrent or Vertex before enabling. Disabling stops new submissions; requests already sent remain under observation.",
+    "maxConcurrentAdds": "Concurrent add requests",
+    "maxConcurrentAddsHelp": "Maximum outstanding additions on this downloader. A slow downloader does not block other downloaders.",
+    "maxActiveDownloads": "Download slots",
+    "maxActiveDownloadsHelp": "Incomplete torrents and unresolved additions occupy slots, including paused and queued torrents.",
+    "minFreeBytes": "Keep free (bytes)",
+    "minFreeBytesHelp": "Leave this much space after accounting for existing future writes and new reservations on every required disk.",
+    "category": "Existing category (optional)",
+    "autoTMM": "Use automatic torrent management",
+    "savePath": "Save path (optional)",
+    "savePathHelp": "Leave empty to use the current default path. Every final and temporary path must have a storage-pool mapping.",
+    "startPaused": "Add paused",
+    "history": "Reception records",
+    "historyHelp": "Request acceptance, task confirmation, runnable state and first transfer are separate stages. Unknown requests keep their target and disk reservation and are never blindly resent.",
+    "emptyHistory": "No reception records yet.",
+    "notObserved": "Not observed",
+    "states": {
+      "reserved": "Space reserved",
+      "submitted": "Request submitted",
+      "unknown": "Result unknown",
+      "accepted": "Request accepted",
+      "confirmed": "Task and Tracker confirmed",
+      "cancelled": "Cancelled before submission",
+      "retired": "Confirmed task removed"
+    },
+    "reasons": {
+      "reevaluation_required": "Configuration or evidence changed; reevaluation is required.",
+      "target_unavailable": "Waiting for a fresh, healthy target observation.",
+      "tracker_identity_unverified": "The site and account Tracker has not been confirmed.",
+      "existing_tracker_mismatch": "This hash already exists with a different or unverified Tracker. No add request was sent.",
+      "metainfo_unavailable": "Verified torrent metadata is unavailable.",
+      "awaiting_task": "Waiting for the original downloader to report this task.",
+      "unknown": "Waiting for further confirmation.",
+      "task_removed": "The previously confirmed task remained absent in fresh observations; its reservation was released."
+    },
+    "stages": {
+      "reservedAt": "Space reserved",
+      "submittedAt": "Request submitted",
+      "acceptedAt": "Request accepted",
+      "confirmedAt": "Task confirmed",
+      "runnableAt": "Runnable observed",
+      "transferredAt": "First transfer observed"
+    }
   }
 }

@@ -171,6 +171,72 @@ paths:
                 $ref: '#/components/schemas/RacingObservations'
         '503':
           description: Racing service unavailable
+  /api/racing/reception-policies:
+    get:
+      tags: [Racing]
+      summary: Read explicit downloader reception opt-ins and limits
+      responses:
+        '200':
+          description: Saved policies; missing instances have reception disabled
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RacingInstancePolicy'
+        '503':
+          description: Reception configuration unavailable
+  /api/racing/reception-policies/{id}:
+    put:
+      tags: [Racing]
+      summary: Set one downloader reception policy
+      description: Enabling allows matching sources and rules to add torrents. Disabling prevents new submissions; unknown submitted requests keep their original target and reservation for reconciliation. No deletion or tracker mutation is granted.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingInstancePolicy'
+      responses:
+        '204':
+          description: Policy saved
+        '400':
+          description: Invalid policy or instance mismatch
+        '503':
+          description: Reception configuration unavailable
+  /api/racing/add-intents:
+    get:
+      tags: [Racing]
+      summary: Read durable reception plans and confirmation stages
+      parameters:
+      - name: after
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Up to 100 intents in stable candidate-key order; private metainfo is never returned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RacingAddIntent'
+                  nextCursor:
+                    type: string
+        '503':
+          description: Reception history unavailable
   /api/racing/candidates:
     get:
       tags: [Racing]
@@ -7235,6 +7301,121 @@ components:
           type: integer
           description: All-time uploaded bytes. Absent until the instance completes its first sync.
 
+    RacingInstancePolicy:
+      type: object
+      required: [instanceId, enabled, maxConcurrentAdds, maxActiveDownloads, minFreeBytes, savePath, category, autoTMM, startPaused]
+      properties:
+        instanceId:
+          type: integer
+          minimum: 1
+        enabled:
+          type: boolean
+        maxConcurrentAdds:
+          type: integer
+          minimum: 1
+          maximum: 8
+        maxActiveDownloads:
+          type: integer
+          minimum: 1
+        minFreeBytes:
+          type: integer
+          format: int64
+          minimum: 0
+        savePath:
+          type: string
+        category:
+          type: string
+        autoTMM:
+          type: boolean
+        startPaused:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+    RacingAddPlan:
+      type: object
+      properties:
+        candidateKey:
+          type: string
+        siteId:
+          type: integer
+        instanceId:
+          type: integer
+        configurationRevision:
+          type: integer
+          format: int64
+        candidateUpdatedAt:
+          type: string
+          format: date-time
+        trackerHosts:
+          type: array
+          items:
+            type: string
+        rule:
+          $ref: '#/components/schemas/RacingRule'
+        policy:
+          $ref: '#/components/schemas/RacingInstancePolicy'
+        hashV1:
+          type: string
+        hashV2:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        options:
+          type: object
+          additionalProperties:
+            type: string
+        poolIds:
+          type: array
+          items:
+            type: integer
+        deadline:
+          type: string
+          format: date-time
+        firstSeenAt:
+          type: string
+          format: date-time
+    RacingAddIntent:
+      type: object
+      required: [candidateKey, instanceId, plan, state, reason, reservedAt, updatedAt]
+      properties:
+        candidateKey:
+          type: string
+        instanceId:
+          type: integer
+        plan:
+          $ref: '#/components/schemas/RacingAddPlan'
+        state:
+          type: string
+          enum: [reserved, submitted, unknown, accepted, confirmed, cancelled, retired]
+        reason:
+          type: string
+          enum: ['', reevaluation_required, target_unavailable, tracker_identity_unverified, existing_tracker_mismatch, metainfo_unavailable, awaiting_task, task_removed]
+        reservedAt:
+          type: string
+          format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        confirmedAt:
+          type: string
+          format: date-time
+        runnableAt:
+          type: string
+          format: date-time
+        transferredAt:
+          type: string
+          format: date-time
+        observedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     RacingStoragePoolInput:
       type: object
       properties:
@@ -8037,6 +8218,7 @@ components:
           type: string
           enum:
           - observe_only
+            - reception_enabled
         running:
           type: boolean
         configurationReady:

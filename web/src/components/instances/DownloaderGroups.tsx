@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import type { InstanceResponse } from "@/types"
 import type { RacingConfiguration, RacingResource, RacingResourceInput } from "@/types/racing"
+import { DownloaderReception, ReceptionStatus } from "./DownloaderReception"
 import { formatBytes } from "@/lib/utils"
 
 type Selection = { resource: Extract<RacingResource, "groups" | "storage-pools" | "path-mappings">; id: number | null }
@@ -21,7 +22,7 @@ const titles = { groups: "groups", "storage-pools": "pools", "path-mappings": "m
 const addLabels = { groups: "addGroup", "storage-pools": "addPool", "path-mappings": "addMapping" } as const
 
 export function DownloaderGroups({ instances }: { instances: InstanceResponse[] }) {
-  const { t } = useTranslation("settings")
+  const { t } = useTranslation(["settings", "rss"])
   const queryClient = useQueryClient()
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
@@ -53,7 +54,8 @@ export function DownloaderGroups({ instances }: { instances: InstanceResponse[] 
     "path-mappings": data.pathMappings.map(mapping => ({ id: mapping.id, name: `${instanceName(mapping.instanceId)} · ${mapping.path}`, detail: data.storagePools.find(pool => pool.id === mapping.storagePoolId)?.name ?? t("racingGroups.unknown") })),
   }
   return <section className="space-y-4">
-    <p className="text-sm text-muted-foreground">{t("racingGroups.observeOnly")}</p>
+    <ReceptionStatus />
+    <DownloaderReception instances={instances} />
     {(["groups", "storage-pools", "path-mappings"] as const).map(resource => <div key={resource} className="rounded-lg border p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-medium flex items-center gap-2">{t(`racingGroups.${titles[resource]}`)}
@@ -84,7 +86,7 @@ export function DownloaderGroups({ instances }: { instances: InstanceResponse[] 
     </div>}
     <Dialog open={editing !== null} onOpenChange={open => { if (!open) setEditing(null) }}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{editing && t(`racingGroups.${titles[editing.resource]}`)}</DialogTitle><DialogDescription>{t("racingGroups.observeOnly")}</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>{editing && t(`racingGroups.${titles[editing.resource]}`)}</DialogTitle><DialogDescription>{t("rss:execution.configurationHelp")}</DialogDescription></DialogHeader>
         {editing && <ConfigurationForm key={`${editing.resource}:${editing.id}`} selection={editing} config={data} instances={instances} onClose={() => setEditing(null)} />}
       </DialogContent>
     </Dialog>
@@ -102,7 +104,7 @@ export function DownloaderGroups({ instances }: { instances: InstanceResponse[] 
 }
 
 function ConfigurationForm({ selection, config, instances, onClose }: { selection: Selection; config: RacingConfiguration; instances: InstanceResponse[]; onClose: () => void }) {
-  const { t } = useTranslation("settings")
+  const { t } = useTranslation(["settings", "rss"])
   const queryClient = useQueryClient()
   const { resource, id } = selection
   const group = resource === "groups" ? config.groups.find(item => item.id === id) : undefined

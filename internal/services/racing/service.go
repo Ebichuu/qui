@@ -1,8 +1,8 @@
 // Copyright (c) 2026, s0up and the autobrr contributors.
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Package racing owns qui's independent source configuration. Q1 observes
-// and shared cached downloader state; it has no add, delete or reannounce capability.
+// Package racing owns independent sources, rule selection and opt-in reception.
+// Downloader execution uses durable intents and the shared observation cache.
 package racing
 
 import (
@@ -32,6 +32,9 @@ type Status struct {
 }
 
 type Service struct {
+	executor            *executionRunner
+	executionReader     ExecutionReader
+	executionClient     ExecutionClient
 	metadata            *metadataResolver
 	evaluator           *candidateEvaluator
 	discovery           *discoveryRunner
@@ -59,6 +62,9 @@ func NewService(store ConfigurationStore) *Service {
 	}
 	if metadata, ok := store.(MetadataStore); ok && s.evaluator != nil && s.discovery != nil {
 		s.metadata = newMetadataResolver(metadata, s)
+	}
+	if execution, ok := store.(*models.RacingStore); ok {
+		s.executor = newExecutionRunner(execution, s)
 	}
 	return s
 }
@@ -89,6 +95,13 @@ func (s *Service) Start(ctx context.Context) error {
 
 func (s *Service) setConfiguration(config *models.RacingConfiguration) {
 	s.configuration = config
+	s.status.Mode = "observe_only"
+	for _, policy := range config.ExecutionPolicies {
+		if policy.Enabled {
+			s.status.Mode = "reception_enabled"
+			break
+		}
+	}
 	now := time.Now().UTC()
 	s.status.ConfigurationReady = true
 	s.status.LoadedAt = &now
@@ -101,6 +114,9 @@ func (s *Service) setConfiguration(config *models.RacingConfiguration) {
 func (s *Service) run(ctx context.Context) {
 	s.ConfigurationChanged()
 	var evaluations sync.WaitGroup
+	if s.executor != nil {
+		evaluations.Go(func() { s.executor.run(ctx) })
+	}
 	if s.metadata != nil {
 		evaluations.Go(func() { s.metadata.run(ctx) })
 	}

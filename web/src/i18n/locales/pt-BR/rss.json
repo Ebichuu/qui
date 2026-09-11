@@ -352,5 +352,62 @@
     "originalField": "Campo original",
     "originalValue": "Valor original",
     "mapping": "Mapeamento proposto"
+  },
+  "execution": {
+    "title": "Recepção no downloader",
+    "setupHelp": "Ative a recepção por downloader depois de mapear os caminhos de armazenamento e configurar os hosts de Tracker do site. Quando a capacidade estiver ausente ou desatualizada, os candidatos aguardarão.",
+    "enabledIntro": "A recepção está ativada nos downloaders selecionados. As regras correspondentes podem adicionar torrents; as solicitações enviadas são reconciliadas com seu destino original.",
+    "disabledIntro": "A recepção está desativada. Fontes e regras podem ser configuradas e visualizadas sem adicionar torrents.",
+    "configurationHelp": "As alterações afetam decisões futuras nos downloaders com recepção ativada. As solicitações enviadas mantêm seu destino e regra originais.",
+    "statusUnavailable": "Status da recepção indisponível",
+    "loadError": "Não foi possível carregar os dados de recepção.",
+    "noInstances": "Adicione um downloader antes de configurar a recepção.",
+    "enabled": "Recepção ativada",
+    "disabled": "Recepção desativada",
+    "editTitle": "Recepção · {{name}}",
+    "enableLabel": "Permitir que regras correspondentes adicionem torrents a este downloader",
+    "enableWarning": "Salvar com a recepção ativada permite adições automáticas. Antes de ativar, interrompa as adições automáticas sobrepostas no qBittorrent ou no Vertex. Desativar interrompe novos envios; as solicitações já enviadas continuam sob observação.",
+    "maxConcurrentAdds": "Solicitações de adição simultâneas",
+    "maxConcurrentAddsHelp": "Máximo de adições pendentes neste downloader. Um downloader lento não bloqueia outros downloaders.",
+    "maxActiveDownloads": "Vagas de download",
+    "maxActiveDownloadsHelp": "Torrents incompletos e adições não resolvidas ocupam vagas, incluindo torrents pausados e na fila.",
+    "minFreeBytes": "Manter livre (bytes)",
+    "minFreeBytesHelp": "Deixe este espaço depois de considerar as gravações futuras existentes e as novas reservas em cada disco necessário.",
+    "category": "Categoria existente (opcional)",
+    "autoTMM": "Usar gerenciamento automático de torrents",
+    "savePath": "Caminho de salvamento (opcional)",
+    "savePathHelp": "Deixe vazio para usar o caminho padrão atual. Todo caminho final e temporário deve ter um mapeamento para um pool de armazenamento.",
+    "startPaused": "Adicionar pausado",
+    "history": "Registros de recepção",
+    "historyHelp": "A aceitação da solicitação, a confirmação da tarefa, o estado executável e a primeira transferência são etapas separadas. Solicitações desconhecidas mantêm seu destino e reserva de disco e nunca são reenviadas às cegas.",
+    "emptyHistory": "Ainda não há registros de recepção.",
+    "notObserved": "Não observado",
+    "states": {
+      "reserved": "Espaço reservado",
+      "submitted": "Solicitação enviada",
+      "unknown": "Resultado desconhecido",
+      "accepted": "Solicitação aceita",
+      "confirmed": "Tarefa e Tracker confirmados",
+      "cancelled": "Cancelada antes do envio",
+      "retired": "Tarefa confirmada removida"
+    },
+    "reasons": {
+      "reevaluation_required": "A configuração ou as evidências mudaram; é necessário reavaliar.",
+      "target_unavailable": "Aguardando uma observação recente e saudável do destino.",
+      "tracker_identity_unverified": "O Tracker do site e da conta ainda não foi confirmado.",
+      "existing_tracker_mismatch": "Este hash já existe com um Tracker diferente ou não verificado. Nenhuma solicitação de adição foi enviada.",
+      "metainfo_unavailable": "Os metadados verificados do torrent estão indisponíveis.",
+      "awaiting_task": "Aguardando o downloader original informar esta tarefa.",
+      "unknown": "Aguardando confirmação adicional.",
+      "task_removed": "A tarefa anteriormente confirmada permaneceu ausente nas observações recentes; sua reserva foi liberada."
+    },
+    "stages": {
+      "reservedAt": "Espaço reservado",
+      "submittedAt": "Solicitação enviada",
+      "acceptedAt": "Solicitação aceita",
+      "confirmedAt": "Tarefa confirmada",
+      "runnableAt": "Estado executável observado",
+      "transferredAt": "Primeira transferência observada"
+    }
   }
 }

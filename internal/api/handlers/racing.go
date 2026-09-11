@@ -34,6 +34,9 @@ func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/observations", h.observations)
 	r.Get("/discoveries", h.discoveries)
 	r.Get("/candidates", h.candidates)
+	r.Get("/reception-policies", h.receptionPolicies)
+	r.Put("/reception-policies/{id}", h.saveReceptionPolicy)
+	r.Get("/add-intents", h.addIntents)
 	r.Put("/rules/order", h.reorderRules)
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		r.Route("/"+resource, func(r chi.Router) {

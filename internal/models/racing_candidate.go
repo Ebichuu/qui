@@ -158,3 +158,37 @@ func (s *RacingStore) CandidateRecords(ctx context.Context, after string, dueBef
 	}
 	return result, rows.Err()
 }
+
+// ExecutableCandidates orders all ready events before paging, so an official
+// candidate cannot sit behind an earlier ordinary candidate-key page. Offsets
+// are scan-local; the next scheduler tick starts a new scan after concurrent edits.
+func (s *RacingStore) ExecutableCandidates(ctx context.Context, offset, limit int) ([]RacingCandidateRecord, error) {
+	if offset < 0 {
+		offset = 0
+	}
+	if limit < 1 || limit > 100 {
+		limit = 100
+	}
+	priority := `json_extract(selection_json,'$.priority')`
+	if dbinterface.DialectOf(s.db) == "postgres" {
+		priority = `(selection_json::jsonb->>'priority')`
+	}
+	query := `SELECT candidate_key,site_id,event_key,source_scope,first_seen_at,candidate_json,selection_json,state,next_evaluation_at,updated_at FROM racing_candidates WHERE state='ready' ORDER BY CASE WHEN ` + priority + `='official' THEN 0 ELSE 1 END,first_seen_at,candidate_key LIMIT ? OFFSET ?`
+	rows, err := s.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []RacingCandidateRecord{}
+	for rows.Next() {
+		var record RacingCandidateRecord
+		var candidate, selection string
+		if err := rows.Scan(&record.Key, &record.SiteID, &record.EventKey, &record.SourceScope, &record.FirstSeenAt, &candidate, &selection, &record.State, &record.NextEvaluationAt, &record.UpdatedAt); err != nil {
+			return nil, err
+		}
+		record.Candidate = json.RawMessage(candidate)
+		record.Selection = json.RawMessage(selection)
+		result = append(result, record)
+	}
+	return result, rows.Err()
+}

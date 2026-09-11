@@ -352,5 +352,62 @@
       "conditionSemantics": "Úplná sémantika AND/OR a porovnání",
       "sources": "Odkazy na zdroje"
     }
+  },
+  "execution": {
+    "title": "Příjem stahovače",
+    "setupHelp": "Povolte příjem pro každý stahovač po namapování jeho úložných cest a nastavení hostitelů Trackeru webu. Chybějící nebo zastaralá kapacita nechá kandidáty čekat.",
+    "enabledIntro": "Příjem je povolen u vybraných stahovačů. Odpovídající pravidla mohou přidávat torrenty; odeslané požadavky se porovnávají s původním cílem.",
+    "disabledIntro": "Příjem je zakázán. Zdroje a pravidla lze konfigurovat a zobrazit v náhledu bez přidávání torrentů.",
+    "configurationHelp": "Změny ovlivní budoucí rozhodování u stahovačů s povoleným příjmem. Odeslané požadavky si zachovají původní cíl a pravidlo.",
+    "statusUnavailable": "Stav příjmu není dostupný",
+    "loadError": "Data příjmu se nepodařilo načíst.",
+    "noInstances": "Před konfigurací příjmu přidejte stahovač.",
+    "enabled": "Příjem povolen",
+    "disabled": "Příjem zakázán",
+    "editTitle": "Příjem · {{name}}",
+    "enableLabel": "Povolit odpovídajícím pravidlům přidávat torrenty do tohoto stahovače",
+    "enableWarning": "Uložení s povoleným příjmem umožňuje automatické přidávání. Před povolením zastavte překrývající se automatické přidávání v qBittorrentu nebo Vertexu. Zakázáním se zastaví nová odeslání; již odeslané požadavky zůstanou sledované.",
+    "maxConcurrentAdds": "Souběžné požadavky na přidání",
+    "maxConcurrentAddsHelp": "Maximální počet nevyřízených přidání u tohoto stahovače. Pomalý stahovač neblokuje ostatní stahovače.",
+    "maxActiveDownloads": "Stahovací sloty",
+    "maxActiveDownloadsHelp": "Nedokončené torrenty a nevyřešená přidání zabírají sloty, včetně pozastavených a zařazených torrentů.",
+    "minFreeBytes": "Ponechat volné (bajty)",
+    "minFreeBytesHelp": "Po započtení stávajících budoucích zápisů a nových rezervací ponechte tolik místa na každém potřebném disku.",
+    "category": "Existující kategorie (volitelné)",
+    "autoTMM": "Použít automatickou správu torrentů",
+    "savePath": "Cesta pro uložení (volitelné)",
+    "savePathHelp": "Ponechte prázdné pro použití aktuální výchozí cesty. Každá výsledná i dočasná cesta musí mít mapování úložného fondu.",
+    "startPaused": "Přidat pozastavené",
+    "history": "Záznamy příjmu",
+    "historyHelp": "Přijetí požadavku, potvrzení úlohy, stav připravenosti ke spuštění a první přenos jsou samostatné fáze. Neznámé požadavky si zachovají cíl a rezervaci místa na disku a nikdy se bezhlavě neposílají znovu.",
+    "emptyHistory": "Zatím žádné záznamy příjmu.",
+    "notObserved": "Nesledováno",
+    "states": {
+      "reserved": "Místo rezervováno",
+      "submitted": "Požadavek odeslán",
+      "unknown": "Výsledek neznámý",
+      "accepted": "Požadavek přijat",
+      "confirmed": "Úloha a Tracker potvrzeny",
+      "cancelled": "Zrušeno před odesláním",
+      "retired": "Potvrzená úloha odstraněna"
+    },
+    "reasons": {
+      "reevaluation_required": "Konfigurace nebo důkazy se změnily; je nutné nové vyhodnocení.",
+      "target_unavailable": "Čeká se na čerstvé pozorování funkčního cíle.",
+      "tracker_identity_unverified": "Web a Tracker účtu nebyly potvrzeny.",
+      "existing_tracker_mismatch": "Tento hash již existuje s jiným nebo neověřeným Trackerem. Nebyl odeslán žádný požadavek na přidání.",
+      "metainfo_unavailable": "Ověřená metadata torrentu nejsou dostupná.",
+      "awaiting_task": "Čeká se, až původní stahovač nahlásí tuto úlohu.",
+      "unknown": "Čeká se na další potvrzení.",
+      "task_removed": "Dříve potvrzená úloha v aktuálních pozorováních nadále chybí; její rezervace byla uvolněna."
+    },
+    "stages": {
+      "reservedAt": "Místo rezervováno",
+      "submittedAt": "Požadavek odeslán",
+      "acceptedAt": "Požadavek přijat",
+      "confirmedAt": "Úloha potvrzena",
+      "runnableAt": "Připravenost ke spuštění zaznamenána",
+      "transferredAt": "První přenos zaznamenán"
+    }
   }
 }

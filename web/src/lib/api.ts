@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-import type { RacingCandidates, RacingDiscoveries, RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
+import type { RacingInstancePolicy, RacingAddIntents, RacingCandidates, RacingDiscoveries, RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
 
 import type {
   AddRSSFeedRequest,
@@ -480,6 +480,9 @@ class ApiClient {
   reorderRacingRules(ids: number[]) { return this.request<void>("/racing/rules/order", { method: "PUT", body: JSON.stringify({ ids }) }) }
   getRacingDiscoveries() { return this.request<RacingDiscoveries>("/racing/discoveries") }
   getRacingCandidates(after = "") { return this.request<RacingCandidates>(`/racing/candidates?after=${encodeURIComponent(after)}`) }
+  getRacingReceptionPolicies() { return this.request<RacingInstancePolicy[]>("/racing/reception-policies") }
+  saveRacingReceptionPolicy(policy: RacingInstancePolicy) { return this.request<void>(`/racing/reception-policies/${policy.instanceId}`, { method: "PUT", body: JSON.stringify(policy) }) }
+  getRacingAddIntents(after = "") { return this.request<RacingAddIntents>(`/racing/add-intents?after=${encodeURIComponent(after)}`) }
   getRacingConfiguration() { return this.request<RacingConfiguration>("/racing/configuration") }
   getRacingObservations() { return this.request<RacingObservations>("/racing/observations") }
   saveRacingResource(resource: RacingResource, id: number | null, input: RacingResourceInput) {

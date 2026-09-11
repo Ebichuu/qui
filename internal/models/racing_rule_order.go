@@ -18,7 +18,7 @@ func (s *RacingStore) ReorderRules(ctx context.Context, ids []int) error {
 	if err != nil || len(unique) != len(ids) {
 		return racingInvalid("rule order must contain unique positive IDs")
 	}
-	_, err = s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	_, err = s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		query := "SELECT id FROM racing_rules ORDER BY id"
 		if dbinterface.DialectOf(s.db) == "postgres" {
 			query += " FOR UPDATE"

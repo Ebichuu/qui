@@ -352,5 +352,62 @@
       "conditionSemantics": "Vollständige UND/ODER- und Vergleichssemantik",
       "sources": "Quellenverknüpfungen"
     }
+  },
+  "execution": {
+    "title": "Downloader-Empfang",
+    "setupHelp": "Aktivieren Sie den Empfang pro Downloader, nachdem Sie dessen Speicherpfade zugeordnet und die Tracker-Hosts der Site konfiguriert haben. Fehlende oder veraltete Kapazitätsdaten halten Kandidaten in Wartestellung.",
+    "enabledIntro": "Der Empfang ist für ausgewählte Downloader aktiviert. Passende Regeln können Torrents hinzufügen; übermittelte Anfragen werden mit ihrem ursprünglichen Ziel abgeglichen.",
+    "disabledIntro": "Der Empfang ist deaktiviert. Quellen und Regeln können konfiguriert und in der Vorschau angezeigt werden, ohne Torrents hinzuzufügen.",
+    "configurationHelp": "Änderungen wirken sich auf künftige Entscheidungen bei Downloadern mit aktiviertem Empfang aus. Übermittelte Anfragen behalten ihr ursprüngliches Ziel und ihre ursprüngliche Regel.",
+    "statusUnavailable": "Empfangsstatus nicht verfügbar",
+    "loadError": "Empfangsdaten konnten nicht geladen werden.",
+    "noInstances": "Fügen Sie einen Downloader hinzu, bevor Sie den Empfang konfigurieren.",
+    "enabled": "Empfang aktiviert",
+    "disabled": "Empfang deaktiviert",
+    "editTitle": "Empfang · {{name}}",
+    "enableLabel": "Passenden Regeln erlauben, Torrents zu diesem Downloader hinzuzufügen",
+    "enableWarning": "Das Speichern mit aktiviertem Empfang erlaubt automatische Hinzufügungen. Beenden Sie überlappende automatische Hinzufügungen in qBittorrent oder Vertex, bevor Sie den Empfang aktivieren. Beim Deaktivieren werden neue Übermittlungen gestoppt; bereits gesendete Anfragen bleiben unter Beobachtung.",
+    "maxConcurrentAdds": "Gleichzeitige Hinzufügungsanfragen",
+    "maxConcurrentAddsHelp": "Maximale Anzahl ausstehender Hinzufügungen bei diesem Downloader. Ein langsamer Downloader blockiert keine anderen Downloader.",
+    "maxActiveDownloads": "Download-Slots",
+    "maxActiveDownloadsHelp": "Unvollständige Torrents und nicht aufgelöste Hinzufügungen belegen Slots, einschließlich pausierter und eingereihter Torrents.",
+    "minFreeBytes": "Freihalten (Bytes)",
+    "minFreeBytesHelp": "Lassen Sie nach Berücksichtigung vorhandener künftiger Schreibvorgänge und neuer Reservierungen auf jeder benötigten Festplatte so viel Speicher frei.",
+    "category": "Vorhandene Kategorie (optional)",
+    "autoTMM": "Automatische Torrent-Verwaltung verwenden",
+    "savePath": "Speicherpfad (optional)",
+    "savePathHelp": "Leer lassen, um den aktuellen Standardpfad zu verwenden. Jeder endgültige und temporäre Pfad muss eine Speicherpool-Zuordnung haben.",
+    "startPaused": "Pausiert hinzufügen",
+    "history": "Empfangsprotokolle",
+    "historyHelp": "Annahme der Anfrage, Bestätigung der Aufgabe, ausführbarer Zustand und erster Transfer sind getrennte Phasen. Unbekannte Anfragen behalten ihr Ziel und ihre Speicherplatzreservierung und werden nie blind erneut gesendet.",
+    "emptyHistory": "Noch keine Empfangsprotokolle.",
+    "notObserved": "Nicht beobachtet",
+    "states": {
+      "reserved": "Speicherplatz reserviert",
+      "submitted": "Anfrage übermittelt",
+      "unknown": "Ergebnis unbekannt",
+      "accepted": "Anfrage angenommen",
+      "confirmed": "Aufgabe und Tracker bestätigt",
+      "cancelled": "Vor der Übermittlung abgebrochen",
+      "retired": "Bestätigte Aufgabe entfernt"
+    },
+    "reasons": {
+      "reevaluation_required": "Konfiguration oder Nachweise wurden geändert; eine neue Bewertung ist erforderlich.",
+      "target_unavailable": "Warten auf eine aktuelle, funktionierende Zielbeobachtung.",
+      "tracker_identity_unverified": "Site und Konto-Tracker wurden nicht bestätigt.",
+      "existing_tracker_mismatch": "Dieser Hash existiert bereits mit einem anderen oder nicht verifizierten Tracker. Es wurde keine Hinzufügungsanfrage gesendet.",
+      "metainfo_unavailable": "Verifizierte Torrent-Metadaten sind nicht verfügbar.",
+      "awaiting_task": "Warten auf die Meldung dieser Aufgabe durch den ursprünglichen Downloader.",
+      "unknown": "Warten auf eine weitere Bestätigung.",
+      "task_removed": "Die zuvor bestätigte Aufgabe fehlt weiterhin in aktuellen Beobachtungen; ihre Reservierung wurde freigegeben."
+    },
+    "stages": {
+      "reservedAt": "Speicherplatz reserviert",
+      "submittedAt": "Anfrage übermittelt",
+      "acceptedAt": "Anfrage angenommen",
+      "confirmedAt": "Aufgabe bestätigt",
+      "runnableAt": "Ausführbarkeit beobachtet",
+      "transferredAt": "Erster Transfer beobachtet"
+    }
   }
 }

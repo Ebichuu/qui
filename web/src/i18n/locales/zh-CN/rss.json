@@ -352,5 +352,62 @@
       "conditionSemantics": "完整与／或及比较语义",
       "sources": "来源关联"
     }
+  },
+  "execution": {
+    "title": "下载器接种",
+    "setupHelp": "完成存储路径映射和站点 Tracker 域名配置后，按下载器启用接种。容量未知或数据过期时，候选继续等待。",
+    "enabledIntro": "部分下载器已启用接种。命中规则的候选可以自动添加；已发送的请求继续在原目标核实。",
+    "disabledIntro": "接种尚未启用。可以配置来源、规则并查看匹配结果，不会自动添加种子。",
+    "configurationHelp": "更改会影响已启用接种的下载器后续决策。已发送的请求保留原目标和原规则。",
+    "statusUnavailable": "接种状态暂不可用",
+    "loadError": "无法加载接种数据。",
+    "noInstances": "请先添加下载器，再配置接种。",
+    "enabled": "接种已启用",
+    "disabled": "接种已停用",
+    "editTitle": "接种设置 · {{name}}",
+    "enableLabel": "允许命中规则的种子自动添加到此下载器",
+    "enableWarning": "启用后保存将允许自动添加。请先停止 qBittorrent 或 Vertex 中与本范围重叠的自动添加。停用只阻止新的发送，已发送的请求仍会继续核实。",
+    "maxConcurrentAdds": "并发添加数",
+    "maxConcurrentAddsHelp": "此下载器尚未确认的添加上限。慢下载器不会阻塞其他下载器。",
+    "maxActiveDownloads": "下载名额",
+    "maxActiveDownloadsHelp": "未完成的种子和结果未明的添加占用名额，暂停和排队的种子也计入。",
+    "minFreeBytes": "保留空闲空间（字节）",
+    "minFreeBytesHelp": "在每个所需磁盘扣除已有任务未来写入和新预留后，仍须留下的空间。",
+    "category": "已有分类（选填）",
+    "autoTMM": "使用自动种子管理",
+    "savePath": "保存路径（选填）",
+    "savePathHelp": "留空使用当前默认路径。最终目录和临时目录均须配置存储池映射。",
+    "startPaused": "添加后暂停",
+    "history": "接种记录",
+    "historyHelp": "请求受理、任务确认、可运行和首次传输分别记录。结果未知时保留原目标及空间预留，不会盲目重发。",
+    "emptyHistory": "暂无接种记录。",
+    "notObserved": "尚未观察到",
+    "states": {
+      "reserved": "已预留空间",
+      "submitted": "请求已发送",
+      "unknown": "结果未知",
+      "accepted": "请求已受理",
+      "confirmed": "任务及 Tracker 已确认",
+      "cancelled": "发送前已取消",
+      "retired": "已确认任务已移除"
+    },
+    "reasons": {
+      "reevaluation_required": "配置或证据已变化，等待重新评估。",
+      "target_unavailable": "等待目标下载器恢复健康且数据新鲜。",
+      "tracker_identity_unverified": "尚未确认本站及本账号的 Tracker。",
+      "existing_tracker_mismatch": "此哈希已存在，但 Tracker 不同或尚未核实，未发送添加请求。",
+      "metainfo_unavailable": "经验证的种子元数据暂不可用。",
+      "awaiting_task": "等待原下载器返回此任务。",
+      "unknown": "等待进一步核实。",
+      "task_removed": "连续新鲜观测确认原任务已不在，空间预留已释放。"
+    },
+    "stages": {
+      "reservedAt": "空间预留",
+      "submittedAt": "请求发送",
+      "acceptedAt": "请求受理",
+      "confirmedAt": "任务确认",
+      "runnableAt": "观察到可运行",
+      "transferredAt": "观察到首次传输"
+    }
   }
 }

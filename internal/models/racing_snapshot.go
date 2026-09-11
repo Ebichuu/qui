@@ -18,6 +18,9 @@ func (s *RacingStore) Configuration(ctx context.Context) (*RacingConfiguration, 
 	}
 	defer func() { _ = tx.Rollback() }()
 	result := &RacingConfiguration{Sites: []RacingSite{}, Sources: []RacingSource{}, Groups: []RacingGroup{}, Rules: []RacingRule{}}
+	if err := tx.QueryRowContext(ctx, "SELECT revision FROM racing_configuration_revision WHERE id=1").Scan(&result.Revision); err != nil {
+		return nil, err
+	}
 	rows, err := tx.QueryContext(ctx, `SELECT id,name,base_url,enabled,tracker_hosts,request_interval_seconds,credential_id IS NOT NULL,updated_at FROM racing_sites ORDER BY id`)
 	if err != nil {
 		return nil, err
@@ -143,6 +146,10 @@ func (s *RacingStore) Configuration(ctx context.Context) (*RacingConfiguration, 
 	}
 	rows.Close()
 	if err := readRacingStorage(ctx, tx, result); err != nil {
+		return nil, err
+	}
+	result.ExecutionPolicies, err = readInstancePolicies(ctx, tx)
+	if err != nil {
 		return nil, err
 	}
 	if err := tx.Commit(); err != nil {

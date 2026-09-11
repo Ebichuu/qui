@@ -50,7 +50,7 @@ func (s *RacingStore) SaveStoragePool(ctx context.Context, id int, input RacingS
 	if err != nil {
 		return 0, err
 	}
-	return s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	return s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		now := time.Now().UTC().Format(time.RFC3339Nano)
 		if id == 0 {
 			err := tx.QueryRowContext(ctx, "INSERT INTO racing_storage_pools(name,updated_at) VALUES (?,?) RETURNING id", name, now).Scan(&id)
@@ -65,7 +65,7 @@ func (s *RacingStore) SavePathMapping(ctx context.Context, id int, input RacingP
 	if err != nil {
 		return 0, err
 	}
-	return s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	return s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		if err := racingExists(ctx, tx, "instances", input.InstanceID); err != nil {
 			return 0, err
 		}

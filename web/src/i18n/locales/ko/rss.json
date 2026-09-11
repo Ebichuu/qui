@@ -352,5 +352,62 @@
     "originalField": "원래 필드",
     "originalValue": "원래 값",
     "mapping": "제안된 매핑"
+  },
+  "execution": {
+    "title": "다운로더 수신",
+    "setupHelp": "저장 경로를 매핑하고 사이트의 Tracker 호스트를 설정한 후 다운로더별로 수신을 활성화하세요. 용량이 없거나 오래된 경우 후보는 대기 상태로 유지됩니다.",
+    "enabledIntro": "선택한 다운로더에서 수신이 활성화되었습니다. 일치하는 규칙은 토렌트를 추가할 수 있으며, 제출된 요청은 원래 대상으로 조정됩니다.",
+    "disabledIntro": "수신이 비활성화되었습니다. 토렌트를 추가하지 않고 소스와 규칙을 설정하고 미리 볼 수 있습니다.",
+    "configurationHelp": "변경 사항은 수신이 활성화된 다운로더의 향후 결정에 영향을 줍니다. 제출된 요청은 원래 대상과 규칙을 유지합니다.",
+    "statusUnavailable": "수신 상태를 사용할 수 없습니다",
+    "loadError": "수신 데이터를 불러올 수 없습니다.",
+    "noInstances": "수신을 설정하기 전에 다운로더를 추가하세요.",
+    "enabled": "수신 활성화됨",
+    "disabled": "수신 비활성화됨",
+    "editTitle": "수신 · {{name}}",
+    "enableLabel": "일치하는 규칙이 이 다운로더에 토렌트를 추가하도록 허용",
+    "enableWarning": "수신을 활성화한 상태로 저장하면 자동 추가가 허용됩니다. 활성화하기 전에 qBittorrent 또는 Vertex에서 범위가 겹치는 자동 추가를 중지하세요. 비활성화하면 새 제출이 중지되며, 이미 전송된 요청은 계속 관찰됩니다.",
+    "maxConcurrentAdds": "동시 추가 요청",
+    "maxConcurrentAddsHelp": "이 다운로더에서 처리 중인 추가 작업의 최대 개수입니다. 느린 다운로더가 다른 다운로더를 차단하지 않습니다.",
+    "maxActiveDownloads": "다운로드 슬롯",
+    "maxActiveDownloadsHelp": "완료되지 않은 토렌트와 해결되지 않은 추가 작업이 슬롯을 차지하며, 일시 중지 및 대기 중인 토렌트도 포함됩니다.",
+    "minFreeBytes": "확보할 여유 공간(바이트)",
+    "minFreeBytesHelp": "필요한 각 디스크에서 기존 작업의 향후 쓰기와 새 예약을 고려한 뒤에도 이만큼의 공간을 남깁니다.",
+    "category": "기존 카테고리(선택 사항)",
+    "autoTMM": "자동 토렌트 관리 사용",
+    "savePath": "저장 경로(선택 사항)",
+    "savePathHelp": "비워 두면 현재 기본 경로를 사용합니다. 모든 최종 경로와 임시 경로에는 저장소 풀 매핑이 있어야 합니다.",
+    "startPaused": "일시 중지 상태로 추가",
+    "history": "수신 기록",
+    "historyHelp": "요청 수락, 작업 확인, 실행 가능 상태 및 첫 전송은 별도의 단계입니다. 결과를 알 수 없는 요청은 대상과 디스크 예약을 유지하며 절대 무작정 재전송하지 않습니다.",
+    "emptyHistory": "수신 기록이 아직 없습니다.",
+    "notObserved": "관찰되지 않음",
+    "states": {
+      "reserved": "공간 예약됨",
+      "submitted": "요청 제출됨",
+      "unknown": "결과 알 수 없음",
+      "accepted": "요청 수락됨",
+      "confirmed": "작업 및 Tracker 확인됨",
+      "cancelled": "제출 전에 취소됨",
+      "retired": "확인된 작업 제거됨"
+    },
+    "reasons": {
+      "reevaluation_required": "구성 또는 증거가 변경되었습니다. 재평가가 필요합니다.",
+      "target_unavailable": "새롭고 정상적인 대상 관찰 결과를 기다리는 중입니다.",
+      "tracker_identity_unverified": "사이트 및 계정의 Tracker가 확인되지 않았습니다.",
+      "existing_tracker_mismatch": "이 해시가 이미 존재하지만 Tracker가 다르거나 확인되지 않았습니다. 추가 요청을 보내지 않았습니다.",
+      "metainfo_unavailable": "검증된 토렌트 메타데이터를 사용할 수 없습니다.",
+      "awaiting_task": "원래 다운로더가 이 작업을 보고하기를 기다리는 중입니다.",
+      "unknown": "추가 확인을 기다리는 중입니다.",
+      "task_removed": "이전에 확인된 작업이 최신 관측에서 계속 나타나지 않아 공간 예약이 해제되었습니다."
+    },
+    "stages": {
+      "reservedAt": "공간 예약됨",
+      "submittedAt": "요청 제출됨",
+      "acceptedAt": "요청 수락됨",
+      "confirmedAt": "작업 확인됨",
+      "runnableAt": "실행 가능 상태 관찰됨",
+      "transferredAt": "첫 전송 관찰됨"
+    }
   }
 }

@@ -172,7 +172,7 @@ func (s *RacingStore) SaveSite(ctx context.Context, id int, input RacingSiteInpu
 	slices.Sort(hosts)
 	hosts = slices.Compact(hosts)
 	encoded, _ := json.Marshal(hosts)
-	return s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	return s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		var secretID *int
 		if id > 0 {
 			if err := tx.QueryRowContext(ctx, "SELECT credential_id FROM racing_sites WHERE id = ?", id).Scan(&secretID); err != nil {
@@ -242,7 +242,7 @@ func (s *RacingStore) SaveSource(ctx context.Context, id int, input RacingSource
 	if id == 0 && input.URL == nil {
 		return 0, racingInvalid("source URL is required")
 	}
-	return s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	return s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		if err := racingExists(ctx, tx, "racing_sites", input.SiteID); err != nil {
 			return 0, err
 		}
@@ -281,7 +281,7 @@ func (s *RacingStore) SaveGroup(ctx context.Context, id int, input RacingGroupIn
 	if err != nil {
 		return 0, err
 	}
-	return s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	return s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		for _, member := range members {
 			if err := racingExists(ctx, tx, "instances", member); err != nil {
 				return 0, err
@@ -353,7 +353,7 @@ func (s *RacingStore) SaveRule(ctx context.Context, id int, input RacingRuleInpu
 	}
 	encodedKinds, _ := json.Marshal(kinds)
 	encodedFilters, _ := json.Marshal(f)
-	return s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	return s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		for _, source := range sources {
 			if err := racingExists(ctx, tx, "racing_sources", source); err != nil {
 				return 0, err
@@ -395,11 +395,11 @@ func (s *RacingStore) Delete(ctx context.Context, kind string, id int) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
+	_, err = s.configurationWrite(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		var referenceQuery string
 		switch kind {
 		case "storage-pools":
-			referenceQuery = "SELECT count(*) FROM racing_path_mappings WHERE storage_pool_id=?"
+			referenceQuery = "SELECT count(*) FROM (SELECT storage_pool_id FROM racing_path_mappings UNION ALL SELECT storage_pool_id FROM racing_space_commitments) refs WHERE storage_pool_id=?"
 		case "sites":
 			referenceQuery = "SELECT count(*) FROM racing_sources WHERE site_id=?"
 		case "sources":

@@ -6,6 +6,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -55,4 +56,41 @@ func TestRacingHandlersRedactAndPreserveConfiguration(t *testing.T) {
 	require.Contains(t, status.Body.String(), `"mode":"observe_only"`)
 	request(http.MethodDelete, "/racing/sources/1", "", http.StatusNoContent)
 	request(http.MethodDelete, "/racing/sites/1", "", http.StatusNoContent)
+}
+
+func TestReceptionPolicyExplicitOptInAndValidation(t *testing.T) {
+	db := testdb.NewMigratedSQLite(t, "reception-policy-api")
+	key := bytes.Repeat([]byte{9}, 32)
+	store, err := models.NewRacingStore(db, key)
+	require.NoError(t, err)
+	instances, err := models.NewInstanceStore(db, key)
+	require.NoError(t, err)
+	instance, err := instances.Create(t.Context(), "Synthetic", "http://127.0.0.1:1", "test", "test", nil, nil, false, nil)
+	require.NoError(t, err)
+	router := chi.NewRouter()
+	router.Route("/racing", NewRacingHandler(store, nil).Register)
+	send := func(method, path, body string, expected int) *httptest.ResponseRecorder {
+		t.Helper()
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest(method, path, strings.NewReader(body)))
+		require.Equal(t, expected, response.Code, response.Body.String())
+		return response
+	}
+	require.JSONEq(t, "[]", send("GET", "/racing/reception-policies", "", 200).Body.String())
+	policy := models.RacingInstancePolicy{InstanceID: instance.ID, Enabled: true, MaxConcurrentAdds: 1, MaxActiveDownloads: 8}
+	raw, err := json.Marshal(policy)
+	require.NoError(t, err)
+	send("PUT", fmt.Sprintf("/racing/reception-policies/%d", instance.ID), string(raw), 204)
+	response := send("GET", "/racing/reception-policies", "", 200)
+	var policies []models.RacingInstancePolicy
+	require.NoError(t, json.Unmarshal(response.Body.Bytes(), &policies))
+	require.Len(t, policies, 1)
+	require.True(t, policies[0].Enabled)
+	policy.MaxConcurrentAdds = 0
+	raw, err = json.Marshal(policy)
+	require.NoError(t, err)
+	send("PUT", fmt.Sprintf("/racing/reception-policies/%d", instance.ID), string(raw), 400)
+	send("PUT", "/racing/reception-policies/0", "{}", 400)
+	send("PUT", fmt.Sprintf("/racing/reception-policies/%d", instance.ID), `{"instanceId":99999}`, 400)
+	require.JSONEq(t, `{"items":[]}`, send("GET", "/racing/add-intents", "", 200).Body.String())
 }

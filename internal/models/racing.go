@@ -96,12 +96,14 @@ type RacingRule struct {
 }
 
 type RacingConfiguration struct {
-	StoragePools []RacingStoragePool `json:"storagePools"`
-	PathMappings []RacingPathMapping `json:"pathMappings"`
-	Sites        []RacingSite        `json:"sites"`
-	Sources      []RacingSource      `json:"sources"`
-	Groups       []RacingGroup       `json:"groups"`
-	Rules        []RacingRule        `json:"rules"`
+	ExecutionPolicies []RacingInstancePolicy `json:"-"`
+	Revision          int64                  `json:"-"`
+	StoragePools      []RacingStoragePool    `json:"storagePools"`
+	PathMappings      []RacingPathMapping    `json:"pathMappings"`
+	Sites             []RacingSite           `json:"sites"`
+	Sources           []RacingSource         `json:"sources"`
+	Groups            []RacingGroup          `json:"groups"`
+	Rules             []RacingRule           `json:"rules"`
 }
 
 // A storage pool identifies one physical capacity budget, independently of groups.

@@ -61,3 +61,5 @@ jobs:
         run: make smoke-baseline
       - name: Verify Q1 configuration lifecycle
         run: make smoke-racing
+      - name: Verify reception and restart recovery
+        run: make smoke-racing-execution

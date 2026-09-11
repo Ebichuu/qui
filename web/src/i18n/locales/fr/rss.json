@@ -352,5 +352,62 @@
       "conditionSemantics": "Sémantique complète ET/OU et des comparaisons",
       "sources": "Liens vers les sources"
     }
+  },
+  "execution": {
+    "title": "Réception des téléchargements",
+    "setupHelp": "Activez la réception pour chaque téléchargeur après avoir mappé ses chemins de stockage et configuré les hôtes Tracker du site. Une capacité manquante ou obsolète maintient les candidats en attente.",
+    "enabledIntro": "La réception est activée pour les téléchargeurs sélectionnés. Les règles correspondantes peuvent ajouter des torrents ; les demandes envoyées sont rapprochées de leur cible d’origine.",
+    "disabledIntro": "La réception est désactivée. Les sources et les règles peuvent être configurées et prévisualisées sans ajouter de torrents.",
+    "configurationHelp": "Les modifications concernent les décisions futures des téléchargeurs pour lesquels la réception est activée. Les demandes envoyées conservent leur cible et leur règle d’origine.",
+    "statusUnavailable": "État de la réception indisponible",
+    "loadError": "Impossible de charger les données de réception.",
+    "noInstances": "Ajoutez un téléchargeur avant de configurer la réception.",
+    "enabled": "Réception activée",
+    "disabled": "Réception désactivée",
+    "editTitle": "Réception · {{name}}",
+    "enableLabel": "Autoriser les règles correspondantes à ajouter des torrents à ce téléchargeur",
+    "enableWarning": "Enregistrer avec la réception activée autorise l’ajout automatique. Désactivez les ajouts automatiques qui se chevauchent dans qBittorrent ou Vertex avant de l’activer. La désactivation arrête les nouvelles soumissions ; les demandes déjà envoyées restent surveillées.",
+    "maxConcurrentAdds": "Demandes d’ajout simultanées",
+    "maxConcurrentAddsHelp": "Nombre maximal d’ajouts en attente pour ce téléchargeur. Un téléchargeur lent ne bloque pas les autres téléchargeurs.",
+    "maxActiveDownloads": "Emplacements de téléchargement",
+    "maxActiveDownloadsHelp": "Les torrents incomplets et les ajouts non résolus occupent des emplacements, y compris les torrents en pause et en file d’attente.",
+    "minFreeBytes": "Conserver libres (octets)",
+    "minFreeBytesHelp": "Laissez autant d’espace après prise en compte des écritures futures existantes et des nouvelles réservations sur chaque disque requis.",
+    "category": "Catégorie existante (facultatif)",
+    "autoTMM": "Utiliser la gestion automatique des torrents",
+    "savePath": "Chemin d’enregistrement (facultatif)",
+    "savePathHelp": "Laissez vide pour utiliser le chemin par défaut actuel. Chaque chemin final et temporaire doit avoir un mappage de pool de stockage.",
+    "startPaused": "Ajouter en pause",
+    "history": "Historique de réception",
+    "historyHelp": "L’acceptation de la demande, la confirmation de la tâche, l’état exécutable et le premier transfert sont des étapes distinctes. Les demandes inconnues conservent leur cible et leur réservation disque et ne sont jamais renvoyées aveuglément.",
+    "emptyHistory": "Aucun enregistrement de réception pour le moment.",
+    "notObserved": "Non observé",
+    "states": {
+      "reserved": "Espace réservé",
+      "submitted": "Demande envoyée",
+      "unknown": "Résultat inconnu",
+      "accepted": "Demande acceptée",
+      "confirmed": "Tâche et Tracker confirmés",
+      "cancelled": "Annulée avant l’envoi",
+      "retired": "Tâche confirmée supprimée"
+    },
+    "reasons": {
+      "reevaluation_required": "La configuration ou les éléments de preuve ont changé ; une réévaluation est nécessaire.",
+      "target_unavailable": "En attente d’une observation récente d’une cible saine.",
+      "tracker_identity_unverified": "Le site et le Tracker du compte n’ont pas été confirmés.",
+      "existing_tracker_mismatch": "Ce hash existe déjà avec un Tracker différent ou non vérifié. Aucune demande d’ajout n’a été envoyée.",
+      "metainfo_unavailable": "Les métadonnées vérifiées du torrent sont indisponibles.",
+      "awaiting_task": "En attente du rapport de cette tâche par le téléchargeur d’origine.",
+      "unknown": "En attente d’une confirmation supplémentaire.",
+      "task_removed": "La tâche précédemment confirmée reste absente des observations récentes ; sa réservation a été libérée."
+    },
+    "stages": {
+      "reservedAt": "Espace réservé",
+      "submittedAt": "Demande envoyée",
+      "acceptedAt": "Demande acceptée",
+      "confirmedAt": "Tâche confirmée",
+      "runnableAt": "Exécution observée",
+      "transferredAt": "Premier transfert observé"
+    }
   }
 }

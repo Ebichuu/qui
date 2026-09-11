@@ -352,5 +352,62 @@
       "conditionSemantics": "完整的 AND／OR 與比較語義",
       "sources": "來源關聯"
     }
+  },
+  "execution": {
+    "title": "下載器接種",
+    "setupHelp": "完成儲存路徑對應並設定網站的 Tracker 主機後，按下載器啟用接種。容量缺失或過期時，候選項目會繼續等待。",
+    "enabledIntro": "已在選定的下載器上啟用接種。符合規則的項目可以新增種子；已送出的要求會在其原始目標上核對。",
+    "disabledIntro": "接種已停用。可以設定來源和規則並預覽結果，不會新增種子。",
+    "configurationHelp": "變更會影響已啟用接種的下載器後續決策。已送出的要求會保留其原始目標與規則。",
+    "statusUnavailable": "接種狀態無法取得",
+    "loadError": "無法載入接種資料。",
+    "noInstances": "請先新增下載器，再設定接種。",
+    "enabled": "接種已啟用",
+    "disabled": "接種已停用",
+    "editTitle": "接種 · {{name}}",
+    "enableLabel": "允許符合規則的項目將種子新增至此下載器",
+    "enableWarning": "啟用接種後儲存會允許自動新增。啟用前，請先停止 qBittorrent 或 Vertex 中重疊範圍的自動新增。停用會停止新的送出；已送出的要求仍會繼續觀察。",
+    "maxConcurrentAdds": "並行新增要求",
+    "maxConcurrentAddsHelp": "此下載器同時尚未完成的新增數量上限。速度較慢的下載器不會阻塞其他下載器。",
+    "maxActiveDownloads": "下載名額",
+    "maxActiveDownloadsHelp": "未完成的種子與尚未解析的新增會占用名額，包括已暫停和已排入佇列的種子。",
+    "minFreeBytes": "保留可用空間（位元組）",
+    "minFreeBytesHelp": "計入每個必要磁碟上現有工作未來的寫入量和新的預留後，仍要保留這麼多空間。",
+    "category": "現有分類（選填）",
+    "autoTMM": "使用自動種子管理",
+    "savePath": "儲存路徑（選填）",
+    "savePathHelp": "留空即可使用目前的預設路徑。每個最終路徑與暫存路徑都必須有儲存池對應。",
+    "startPaused": "以暫停狀態新增",
+    "history": "接種記錄",
+    "historyHelp": "要求受理、工作確認、可執行狀態和首次傳輸是不同階段。結果未知的要求會保留其目標與磁碟預留，絕不會盲目重送。",
+    "emptyHistory": "尚無接種記錄。",
+    "notObserved": "尚未觀察",
+    "states": {
+      "reserved": "已預留空間",
+      "submitted": "要求已送出",
+      "unknown": "結果未知",
+      "accepted": "要求已受理",
+      "confirmed": "工作與 Tracker 已確認",
+      "cancelled": "送出前已取消",
+      "retired": "已確認任務已移除"
+    },
+    "reasons": {
+      "reevaluation_required": "設定或證據已變更；需要重新評估。",
+      "target_unavailable": "等待新的、健康的目標觀察結果。",
+      "tracker_identity_unverified": "尚未確認此網站及帳號的 Tracker。",
+      "existing_tracker_mismatch": "此雜湊已存在，但其 Tracker 不同或尚未驗證。未送出新增要求。",
+      "metainfo_unavailable": "經驗證的種子中繼資料無法取得。",
+      "awaiting_task": "等待原始下載器回報此工作。",
+      "unknown": "等待進一步確認。",
+      "task_removed": "連續新鮮觀測確認原任務已不在，空間預留已釋放。"
+    },
+    "stages": {
+      "reservedAt": "空間預留",
+      "submittedAt": "要求已送出",
+      "acceptedAt": "要求已受理",
+      "confirmedAt": "工作已確認",
+      "runnableAt": "已觀察到可執行狀態",
+      "transferredAt": "已觀察到首次傳輸"
+    }
   }
 }

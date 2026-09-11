@@ -13,6 +13,8 @@ import { useCentralRSS, useRSSCandidates, useRSSDiscoveryStatus } from "@/hooks/
 import { api } from "@/lib/api"
 import type { RacingConfiguration, RacingResource, RacingRule } from "@/types/racing"
 import { RSSConfigurationForm, type RSSSelection } from "./RSSConfigurationForm"
+import { ReceptionStatus } from "@/components/instances/DownloaderReception"
+import { ReceptionHistory } from "./ReceptionHistory"
 import { RSSMigrationPreview } from "./RSSMigrationPreview"
 
 export function CentralRSS({ activeTab, onTabChange }: { activeTab: "feeds" | "rules"; onTabChange: (tab: "feeds" | "rules") => void }) {
@@ -49,7 +51,7 @@ export function CentralRSS({ activeTab, onTabChange }: { activeTab: "feeds" | "r
   </div>
   return <section className="p-6 space-y-4">
     <div className="flex flex-wrap justify-between items-center gap-3"><h1 className="text-2xl font-semibold">{t("pageTitle")}</h1><Button variant="outline" onClick={() => setMigration(true)}>{t("central.migration")}</Button></div>
-    <p className="text-sm text-muted-foreground">{t("central.observeOnly")}</p>
+    <ReceptionStatus />
     <Tabs value={activeTab} onValueChange={value => onTabChange(value as "feeds" | "rules")}>
       <TabsList><TabsTrigger value="feeds">{t("tabs.feeds")}</TabsTrigger><TabsTrigger value="rules">{t("tabs.rules")}</TabsTrigger></TabsList>
       <TabsContent value="feeds" className="space-y-4 mt-4">
@@ -82,9 +84,10 @@ export function CentralRSS({ activeTab, onTabChange }: { activeTab: "feeds" | "r
           <div className="flex flex-wrap gap-2"><Button size="sm" variant="ghost" disabled={index === 0 || reorder.isPending} onClick={() => reorder.mutate({ rule, direction: -1 })}>{t("central.moveUp")}</Button><Button size="sm" variant="ghost" disabled={index === data.rules.length - 1 || reorder.isPending} onClick={() => reorder.mutate({ rule, direction: 1 })}>{t("central.moveDown")}</Button>{actions("rules", rule)}</div>
         </div>)}
         {preview && <CandidatePreview config={data} />}
+        <ReceptionHistory config={data} instances={instances ?? []} />
       </TabsContent>
     </Tabs>
-    <Dialog open={editing !== null} onOpenChange={open => { if (!open) setEditing(null) }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>{editing && t(`central.${editing.resource}`)}</DialogTitle><DialogDescription>{t("central.observeOnly")}</DialogDescription></DialogHeader>{editing && <RSSConfigurationForm key={`${editing.resource}:${editing.id}`} selection={editing} config={data} instances={instances ?? []} capabilities={discoveries.data?.capabilities ?? []} onClose={() => setEditing(null)} />}</DialogContent></Dialog>
+    <Dialog open={editing !== null} onOpenChange={open => { if (!open) setEditing(null) }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl"><DialogHeader><DialogTitle>{editing && t(`central.${editing.resource}`)}</DialogTitle><DialogDescription>{t("execution.configurationHelp")}</DialogDescription></DialogHeader>{editing && <RSSConfigurationForm key={`${editing.resource}:${editing.id}`} selection={editing} config={data} instances={instances ?? []} capabilities={discoveries.data?.capabilities ?? []} onClose={() => setEditing(null)} />}</DialogContent></Dialog>
     <AlertDialog open={deleting !== null} onOpenChange={open => { if (!open && !deletion.isPending) setDeleting(null) }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{t("central.deleteTitle", { name: deleting?.name })}</AlertDialogTitle><AlertDialogDescription>{t("central.deleteHelp")}</AlertDialogDescription></AlertDialogHeader>{deletion.isError && <p role="alert" className="text-destructive">{t("central.deleteError")}</p>}<AlertDialogFooter><AlertDialogCancel disabled={deletion.isPending}>{t("central.cancel")}</AlertDialogCancel><AlertDialogAction disabled={deletion.isPending} onClick={event => { event.preventDefault(); if (deleting) deletion.mutate(deleting) }}>{t("central.delete")}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     <Dialog open={migration} onOpenChange={setMigration}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl"><DialogHeader><DialogTitle>{t("central.migration")}</DialogTitle><DialogDescription>{t("central.migrationHelp")}</DialogDescription></DialogHeader><RSSMigrationPreview instances={instances ?? []} /></DialogContent></Dialog>
   </section>

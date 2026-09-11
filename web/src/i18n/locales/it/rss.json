@@ -352,5 +352,62 @@
       "conditionSemantics": "Semantica completa AND/OR e dei confronti",
       "sources": "Collegamenti alle sorgenti"
     }
+  },
+  "execution": {
+    "title": "Ricezione dei downloader",
+    "setupHelp": "Abilita la ricezione per ogni downloader dopo aver mappato i relativi percorsi di archiviazione e configurato gli host Tracker del sito. Una capacità mancante o obsoleta mantiene i candidati in attesa.",
+    "enabledIntro": "La ricezione è abilitata sui downloader selezionati. Le regole corrispondenti possono aggiungere torrent; le richieste inviate vengono riconciliate con la destinazione originale.",
+    "disabledIntro": "La ricezione è disabilitata. È possibile configurare e visualizzare in anteprima sorgenti e regole senza aggiungere torrent.",
+    "configurationHelp": "Le modifiche influiscono sulle decisioni future dei downloader con la ricezione abilitata. Le richieste inviate mantengono la destinazione e la regola originali.",
+    "statusUnavailable": "Stato della ricezione non disponibile",
+    "loadError": "Impossibile caricare i dati della ricezione.",
+    "noInstances": "Aggiungi un downloader prima di configurare la ricezione.",
+    "enabled": "Ricezione abilitata",
+    "disabled": "Ricezione disabilitata",
+    "editTitle": "Ricezione · {{name}}",
+    "enableLabel": "Consenti alle regole corrispondenti di aggiungere torrent a questo downloader",
+    "enableWarning": "Salvare con la ricezione abilitata consente l’aggiunta automatica. Arresta le aggiunte automatiche sovrapposte in qBittorrent o Vertex prima di abilitarla. La disabilitazione interrompe i nuovi invii; le richieste già inviate restano sotto osservazione.",
+    "maxConcurrentAdds": "Richieste di aggiunta simultanee",
+    "maxConcurrentAddsHelp": "Numero massimo di aggiunte in sospeso su questo downloader. Un downloader lento non blocca gli altri downloader.",
+    "maxActiveDownloads": "Slot di download",
+    "maxActiveDownloadsHelp": "I torrent incompleti e le aggiunte non risolte occupano slot, inclusi i torrent in pausa e in coda.",
+    "minFreeBytes": "Mantieni libero (byte)",
+    "minFreeBytesHelp": "Lascia questa quantità di spazio dopo aver considerato le scritture future esistenti e le nuove prenotazioni su ogni disco necessario.",
+    "category": "Categoria esistente (facoltativa)",
+    "autoTMM": "Usa la gestione automatica dei torrent",
+    "savePath": "Percorso di salvataggio (facoltativo)",
+    "savePathHelp": "Lascia vuoto per usare il percorso predefinito corrente. Ogni percorso finale e temporaneo deve avere una mappatura del pool di archiviazione.",
+    "startPaused": "Aggiungi in pausa",
+    "history": "Registri della ricezione",
+    "historyHelp": "L’accettazione della richiesta, la conferma dell’attività, lo stato eseguibile e il primo trasferimento sono fasi distinte. Le richieste sconosciute mantengono la destinazione e la prenotazione dello spazio su disco e non vengono mai reinviate alla cieca.",
+    "emptyHistory": "Nessun registro della ricezione.",
+    "notObserved": "Non osservato",
+    "states": {
+      "reserved": "Spazio riservato",
+      "submitted": "Richiesta inviata",
+      "unknown": "Risultato sconosciuto",
+      "accepted": "Richiesta accettata",
+      "confirmed": "Attività e Tracker confermati",
+      "cancelled": "Annullata prima dell’invio",
+      "retired": "Attività confermata rimossa"
+    },
+    "reasons": {
+      "reevaluation_required": "La configurazione o le prove sono cambiate; è necessaria una rivalutazione.",
+      "target_unavailable": "In attesa di un’osservazione recente di una destinazione disponibile.",
+      "tracker_identity_unverified": "Il sito e il Tracker dell’account non sono stati confermati.",
+      "existing_tracker_mismatch": "Questo hash esiste già con un Tracker diverso o non verificato. Non è stata inviata alcuna richiesta di aggiunta.",
+      "metainfo_unavailable": "I metadati torrent verificati non sono disponibili.",
+      "awaiting_task": "In attesa che il downloader originale segnali questa attività.",
+      "unknown": "In attesa di ulteriori conferme.",
+      "task_removed": "L’attività precedentemente confermata risulta assente nelle osservazioni recenti; la sua prenotazione è stata liberata."
+    },
+    "stages": {
+      "reservedAt": "Spazio riservato",
+      "submittedAt": "Richiesta inviata",
+      "acceptedAt": "Richiesta accettata",
+      "confirmedAt": "Attività confermata",
+      "runnableAt": "Esecuzione osservata",
+      "transferredAt": "Primo trasferimento osservato"
+    }
   }
 }

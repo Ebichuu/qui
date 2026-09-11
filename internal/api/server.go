@@ -152,6 +152,9 @@ func NewServer(deps *Dependencies) *Server {
 	if deps.ClientPool != nil {
 		if deps.RacingService != nil {
 			deps.RacingService.SetObservationReader(deps.ClientPool)
+			if deps.SyncManager != nil {
+				deps.RacingService.SetExecutionClients(deps.ClientPool, deps.SyncManager)
+			}
 			deps.ClientPool.SetSyncEventSink(qbittorrent.SyncEventFanout{streamManager, deps.RacingService})
 		} else {
 			deps.ClientPool.SetSyncEventSink(streamManager)
