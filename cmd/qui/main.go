@@ -741,6 +741,7 @@ func (app *Application) runServer() {
 		//nolint:gocritic // exitAfterDefer: startup failure; the OS closes database handles
 		log.Fatal().Err(err).Msg("Failed to initialize racing configuration")
 	}
+	syncManager.SetAutomaticDeleteStore(racingStore)
 	racingService := racing.NewService(racingStore)
 	racingCtx, racingCancel := context.WithCancel(context.Background())
 	defer racingCancel()

@@ -62,3 +62,22 @@ func TestSingleAttemptAddDoesNotReplayAndSharesAuthentication(t *testing.T) {
 		})
 	}
 }
+
+func TestSingleAttemptDeleteDoesNotReplay(t *testing.T) {
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v2/torrents/delete" {
+			t.Errorf("unexpected delete path: %s", r.URL.Path)
+		}
+		calls.Add(1)
+		connection, _, err := http.NewResponseController(w).Hijack()
+		if err == nil {
+			_ = connection.Close()
+		}
+	}))
+	defer server.Close()
+	config := qbt.Config{Host: server.URL}
+	client := newSingleAttemptClient(config, qbt.NewClient(config))
+	require.Error(t, client.DeleteTorrentsCtx(t.Context(), []string{"synthetic-delete"}, true))
+	require.Equal(t, int32(1), calls.Load())
+}

@@ -3976,7 +3976,11 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 					}
 				}
 			}
-			if err := s.syncManager.BulkAction(ctx, instanceID, batch, mode); err != nil {
+			identities := make([]models.DeleteIdentity, 0, len(batch))
+			for _, hash := range batch {
+				identities = append(identities, models.DeleteIdentity{Hash: hash, AddedOn: torrentByHash[hash].AddedOn})
+			}
+			if err := s.syncManager.AutomaticDelete(ctx, instanceID, identities, mode, "daily"); err != nil {
 				log.Warn().Err(err).Int("instanceID", instanceID).Str("action", mode).Int("count", len(batch)).Strs("hashes", batch).Msg("automations: delete failed")
 
 				// Record failed deletion activity
@@ -6605,7 +6609,12 @@ func (s *Service) executeExportToInstance(_ context.Context, sourceInstanceID in
 				}
 
 				// Clean up the failed torrent from target so it doesn't block re-export on next run
-				if err := s.syncManager.BulkAction(ctx, exec.action.TargetInstanceID, []string{exec.hash}, "delete"); err != nil {
+				target, found, lookupErr := s.syncManager.HasTorrentByAnyHash(ctx, exec.action.TargetInstanceID, []string{exec.hash})
+				if lookupErr != nil || !found {
+					recordAndSend(buildActivity(models.ActivityOutcomeFailed, reason))
+					return
+				}
+				if err := s.syncManager.AutomaticDelete(ctx, exec.action.TargetInstanceID, []models.DeleteIdentity{{Hash: target.Hash, AddedOn: target.AddedOn}}, "delete", "export-cleanup"); err != nil {
 					log.Warn().Err(err).Str("hash", exec.hash).Int("targetInstanceID", exec.action.TargetInstanceID).
 						Msg("automations: failed to clean up torrent from target after verification failure")
 				} else {

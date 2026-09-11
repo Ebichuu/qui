@@ -56,3 +56,7 @@ Reclaim settings are separate from reception opt-ins and RSS rules. A single ins
 ## Daily Trigger Separation
 
 Delete actions optionally carry a `dailyTrigger` alongside the existing candidate `condition`. The processor sends only the candidate result through the sustained observation gate, then checks the daily trigger before scheduling deletion. Preview, condition dependency loading, grouping validation and FREE_SPACE cooldown classification use the conjunction of both trees. Legacy combined expressions remain unchanged. Rule edits continue to invalidate observation versions. The same workflow editor preserves both expressions; official candidate evaluation and shared deletion ownership remain subsequent C10 work.
+
+## Automatic Delete Ownership
+
+Automatic callers pass the evaluated hash and added-on generation through SyncManager.AutomaticDelete. BulkAction resolves variants, checks fresh state and persists a batch under the racing ledger lock before sending through the single-attempt client. Daily workflows and failed-export cleanup share this boundary. Accepted requests await fresh absence; unknown requests retain ownership for explicit reconciliation. Confirmed generations remain tombstones. Manual requests and the qB proxy are external changes. Task absence does not certify physical space release, and automatic requests do not optimistically remove the task from the observed cache.

@@ -376,9 +376,10 @@ type TrackerCustomizationLister interface {
 }
 
 type SyncManager struct {
-	clientPool   *ClientPool
-	exprCache    *ttlcache.Cache[string, *vm.Program]
-	filesManager atomic.Value // stores FilesManager interface value
+	automaticDeleteStore atomic.Pointer[models.RacingStore]
+	clientPool           *ClientPool
+	exprCache            *ttlcache.Cache[string, *vm.Program]
+	filesManager         atomic.Value // stores FilesManager interface value
 
 	// Providers used for testing and specialized flows; nil defaults to live clients.
 	torrentFilesClientProvider func(ctx context.Context, instanceID int) (torrentFilesClient, error)
@@ -2514,9 +2515,23 @@ func (sm *SyncManager) BulkAction(ctx context.Context, instanceID int, hashes []
 		}
 	}
 
-	// Apply optimistic update immediately for instant UI feedback
-	// Use canonical hashes for cache consistency
-	sm.applyOptimisticCacheUpdate(instanceID, canonicalHashes, action, nil)
+	operation, err := sm.beginAutomaticDelete(ctx, instanceID, syncManager, canonicalHashes, action)
+	if err != nil {
+		return err
+	}
+	deleteClient := client.Client
+	if operation != "" {
+		deleteClient = client.singleAttemptClient
+		defer func() {
+			resultCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+			defer cancel()
+			if resultErr := sm.automaticDeleteStore.Load().RecordAutomaticDeleteResult(resultCtx, operation, err == nil); resultErr != nil {
+				log.Error().Err(resultErr).Str("operationID", operation).Msg("Failed to record automatic delete result; intent remains unresolved")
+			}
+		}()
+	} else {
+		sm.applyOptimisticCacheUpdate(instanceID, canonicalHashes, action, nil)
+	}
 
 	// Perform action based on type - use canonicalHashes for API calls
 	switch action {
@@ -2525,7 +2540,7 @@ func (sm *SyncManager) BulkAction(ctx context.Context, instanceID int, hashes []
 	case "resume":
 		err = client.ResumeCtx(ctx, canonicalHashes)
 	case "delete":
-		err = client.DeleteTorrentsCtx(ctx, canonicalHashes, false)
+		err = deleteClient.DeleteTorrentsCtx(ctx, canonicalHashes, false)
 		// Invalidate caches for deleted torrents
 		if err == nil {
 			sm.RemoveHashesFromTrackerHealthCache(instanceID, canonicalHashes)
@@ -2540,7 +2555,7 @@ func (sm *SyncManager) BulkAction(ctx context.Context, instanceID int, hashes []
 			}
 		}
 	case "deleteWithFiles":
-		err = client.DeleteTorrentsCtx(ctx, canonicalHashes, true)
+		err = deleteClient.DeleteTorrentsCtx(ctx, canonicalHashes, true)
 		// Invalidate caches for deleted torrents
 		if err == nil {
 			if managedDeleteBackend != nil {

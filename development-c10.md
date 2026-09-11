@@ -53,3 +53,12 @@
 - 构建后运行 `python3 scripts/smoke-automation-observation.py`，输出 `PASS C10: false daily trigger preserves observation; preview blocks delete; restart excludes downtime; no downloader mutations`。
 - 浏览器实测隔离合成实例：打开工作流，确认主条件上传速度 < 10 B/s、独立日常空间门槛；将门槛编辑为 2 MiB 并保存，重新打开确认主条件、触发条件和 10 分钟持续时间均保留，布局无重叠。规则保持停用与模拟运行，不执行真实删除。
 - 子代理复核已整合；日常触发中的 FREE_SPACE 参与预计空间停止判断，避免达到日常空间目标后继续删除。正式官种回收仍未接入，不使用此路径绕过日常冷却。
+
+## 第四批：统一自动删除归属
+
+- SQLite 102 / PostgreSQL 103 保存整批提交意图、调用者、hash/AddedOn 代次与结果。日常删除和导出失败清理进入同一单次网络请求入口，保留原变体解析、目录清理和文件缓存失效。
+- 发送前重新核对新鲜任务与代次；未知代次不发送。并发调用及重启不能重新认领未决候选，已确认代次保留墓碑。
+- 已接受请求可由新鲜任务缺失确认；超时/断开保留 unknown，等待后续显式核实入口。缺失不声称释放物理空间；未知请求不重放，不自动补做空目录清理。手动与代理请求作为外部变化处理。
+- 双引擎竞争认领、整批回滚、代次/版本保护与迟到结果测试通过；models、qbittorrent、automations 整包 race 测试通过；`make precommit` 和 `make build` 通过。
+- `python3 scripts/smoke-automatic-delete.py` 输出两项 PASS（accepted / disconnect），验证真实进程仅发送一次、持久归属、重启不重发；加入 GitHub Actions。镜像仍仅 Actions 构建。
+- 仍需候选复用、回收设置界面和显式未决操作核实；不把本批称为 C10 完成。
