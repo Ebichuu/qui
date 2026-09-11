@@ -1416,6 +1416,8 @@
       "delete": {
         "mode": "Modalità",
         "conditionDuration": "Durata corrispondenza condizioni",
+        "dailyTrigger": "Attivazione giornaliera (facoltativa)",
+        "dailyTriggerHelp": "La cancellazione giornaliera richiede questa attivazione e le condizioni principali. La durata osservata considera solo le condizioni principali. Lasciare vuoto mantiene il comportamento esistente.",
         "conditionDurationHelp": "Le condizioni di eliminazione devono rimanere soddisfatte nei controlli consecutivi del flusso di lavoro. Una mancata corrispondenza azzera il timer; 0 elimina subito.",
         "minutes": "minuti (0 = immediato)",
         "keepFiles": "Rimuovi (conserva i file)",

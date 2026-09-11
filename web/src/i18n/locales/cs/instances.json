@@ -1416,6 +1416,8 @@
       "delete": {
         "mode": "Režim",
         "conditionDuration": "Doba trvání shody podmínek",
+        "dailyTrigger": "Denní spouštěč (volitelné)",
+        "dailyTriggerHelp": "Denní mazání vyžaduje tento spouštěč i hlavní podmínky. Doba pozorování zahrnuje pouze hlavní podmínky. Prázdná hodnota zachová stávající chování.",
         "conditionDurationHelp": "Podmínky mazání musí zůstat splněné při po sobě jdoucích kontrolách pracovního postupu. Jakákoli neshoda časovač vynuluje; 0 maže okamžitě.",
         "minutes": "minuty (0 = okamžitě)",
         "keepFiles": "Odebrat (zachovat soubory)",

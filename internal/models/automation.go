@@ -946,6 +946,7 @@ type AutoManagementAction struct {
 
 // DeleteAction configures deletion with mode and conditions.
 type DeleteAction struct {
+	DailyTrigger                  *RuleCondition `json:"dailyTrigger,omitempty"` // Additional daily trigger, excluded from sustained candidate observation.
 	Enabled                       bool           `json:"enabled"`
 	Mode                          string         `json:"mode"`                                    // "delete", "deleteWithFiles", "deleteWithFilesPreserveCrossSeeds", "deleteWithFilesIncludeCrossSeeds"
 	IncludeHardlinks              bool           `json:"includeHardlinks,omitempty"`              // Only valid when mode is "deleteWithFilesIncludeCrossSeeds" and instance has local filesystem access
@@ -953,6 +954,15 @@ type DeleteAction struct {
 	Atomic                        string         `json:"atomic,omitempty"`                        // Optional atomic policy: "all" (apply only if all group members match)
 	ConditionMatchDurationSeconds int            `json:"conditionMatchDurationSeconds,omitempty"` // Require the condition to remain matched across rule runs before deleting
 	Condition                     *RuleCondition `json:"condition,omitempty"`
+}
+
+// DailyCondition combines the explicit daily trigger with the unchanged candidate
+// expression. Legacy expressions are never rewritten or stripped of FREE_SPACE.
+func (a *DeleteAction) DailyCondition() *RuleCondition {
+	if a.DailyTrigger == nil {
+		return a.Condition
+	}
+	return &RuleCondition{Operator: OperatorAnd, Conditions: []*RuleCondition{a.Condition, a.DailyTrigger}}
 }
 
 // TagAction configures tagging with smart add/remove logic.

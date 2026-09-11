@@ -402,3 +402,12 @@ func TestValidateConditionGroupingConfig(t *testing.T) {
 		require.Contains(t, msg, "does_not_exist")
 	})
 }
+
+func TestDailyTriggerValidationUsesBothTrees(t *testing.T) {
+	conditions := &models.ActionConditions{Delete: &models.DeleteAction{Enabled: true, Mode: models.DeleteModeKeepFiles, Condition: &models.RuleCondition{Field: models.FieldUpSpeed, Operator: models.OperatorLessThan, Value: "100"}, DailyTrigger: &models.RuleCondition{Field: models.FieldFreeSpace, Operator: models.OperatorLessThan, Value: "200"}}}
+	require.True(t, deleteUsesKeepFilesWithFreeSpace(conditions))
+	require.True(t, conditionsUseField(conditions, automations.FieldFreeSpace))
+	conditions.Delete.DailyTrigger = &models.RuleCondition{Field: models.FieldName, Operator: models.OperatorMatches, Value: "["}
+	errs := collectConditionRegexErrors(conditions)
+	require.Len(t, errs, 1)
+}

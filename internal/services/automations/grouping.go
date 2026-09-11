@@ -311,7 +311,7 @@ func conditionFromDeleteAction(action *models.DeleteAction) *models.RuleConditio
 	if action == nil || !action.Enabled {
 		return nil
 	}
-	return action.Condition
+	return action.DailyCondition()
 }
 
 func conditionFromTagAction(action *models.TagAction) *models.RuleCondition {

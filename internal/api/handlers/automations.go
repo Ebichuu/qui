@@ -516,7 +516,7 @@ func conditionsUseField(conditions *models.ActionConditions, field automations.C
 		(c.Resume != nil && check(c.Resume.Enabled, c.Resume.Condition)) ||
 		(c.Recheck != nil && check(c.Recheck.Enabled, c.Recheck.Condition)) ||
 		(c.Reannounce != nil && check(c.Reannounce.Enabled, c.Reannounce.Condition)) ||
-		(c.Delete != nil && check(c.Delete.Enabled, c.Delete.Condition)) ||
+		(c.Delete != nil && check(c.Delete.Enabled, c.Delete.DailyCondition())) ||
 		anyEnabledTagActionUsesField(c.TagActions(), field) ||
 		(c.Category != nil && check(c.Category.Enabled, c.Category.Condition)) ||
 		(c.Move != nil && check(c.Move.Enabled, c.Move.Condition)) ||
@@ -551,7 +551,7 @@ func deleteUsesKeepFilesWithFreeSpace(conditions *models.ActionConditions) bool 
 	}
 
 	// Check if delete condition uses FREE_SPACE field
-	if !automations.ConditionUsesField(conditions.Delete.Condition, automations.FieldFreeSpace) {
+	if !automations.ConditionUsesField(conditions.Delete.DailyCondition(), automations.FieldFreeSpace) {
 		return false
 	}
 
@@ -662,7 +662,7 @@ func conditionTreesForValidation(conditions *models.ActionConditions) []*models.
 		trees = append(trees, conditions.Reannounce.Condition)
 	}
 	if conditions.Delete != nil && conditions.Delete.Enabled {
-		trees = append(trees, conditions.Delete.Condition)
+		trees = append(trees, conditions.Delete.Condition, conditions.Delete.DailyTrigger)
 	}
 	for _, action := range conditions.TagActions() {
 		if action != nil && action.Enabled {
@@ -1142,6 +1142,7 @@ func collectConditionRegexErrors(conditions *models.ActionConditions) []RegexVal
 	}
 	if conditions.Delete != nil {
 		validateConditionRegex(conditions.Delete.Condition, "/conditions/delete/condition", &result)
+		validateConditionRegex(conditions.Delete.DailyTrigger, "/conditions/delete/dailyTrigger", &result)
 	}
 	for idx, action := range conditions.TagActions() {
 		validateConditionRegex(action.Condition, fmt.Sprintf("/conditions/tags/%d/condition", idx), &result)

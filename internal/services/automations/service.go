@@ -1025,9 +1025,9 @@ func (s *Service) PreviewDeleteRule(ctx context.Context, instanceID int, rule *m
 	evalCtx, instance := s.initPreviewEvalContext(ctx, instanceID, torrents)
 	var deleteCondition *RuleCondition
 	if rule != nil && rule.Conditions != nil && rule.Conditions.Delete != nil {
-		deleteCondition = rule.Conditions.Delete.Condition
-		s.setupPreviewTrackerDisplayNames(ctx, instanceID, rule.Conditions.Delete.Condition, evalCtx)
-		s.setupPreviewCrossMatchContext(ctx, instanceID, rule, rule.Conditions.Delete.Condition, evalCtx)
+		deleteCondition = rule.Conditions.Delete.DailyCondition()
+		s.setupPreviewTrackerDisplayNames(ctx, instanceID, rule.Conditions.Delete.DailyCondition(), evalCtx)
+		s.setupPreviewCrossMatchContext(ctx, instanceID, rule, rule.Conditions.Delete.DailyCondition(), evalCtx)
 	}
 	hardlinkIndex := s.setupDeleteHardlinkContext(ctx, instanceID, rule, torrents, evalCtx, instance)
 	s.setupMissingFilesContext(ctx, instanceID, rule, deleteCondition, torrents, evalCtx, instance)
@@ -1165,10 +1165,10 @@ func shouldDeleteTorrent(rule *models.Automation, torrent *qbt.Torrent, evalCtx 
 	if rule.Conditions == nil || rule.Conditions.Delete == nil || !rule.Conditions.Delete.Enabled {
 		return false
 	}
-	if rule.Conditions.Delete.Condition == nil {
+	if rule.Conditions.Delete.DailyCondition() == nil {
 		return true
 	}
-	return EvaluateConditionWithContext(rule.Conditions.Delete.Condition, *torrent, evalCtx, 0)
+	return EvaluateConditionWithContext(rule.Conditions.Delete.DailyCondition(), *torrent, evalCtx, 0)
 }
 
 // previewDeleteStandard handles standard (non-include-cross-seeds) delete preview.
@@ -1459,7 +1459,7 @@ func (s *Service) torrentMatchesDeleteRule(rule *models.Automation, torrent *qbt
 		return false
 	}
 
-	cond := rule.Conditions.Delete.Condition
+	cond := rule.Conditions.Delete.DailyCondition()
 	return cond == nil || EvaluateConditionWithContext(cond, *torrent, evalCtx, 0)
 }
 
@@ -1866,7 +1866,7 @@ func deleteHardlinkNeeds(rule *models.Automation) (scope, cross, grouping bool) 
 	if rule == nil || rule.Conditions == nil || rule.Conditions.Delete == nil {
 		return false, false, false
 	}
-	cond := rule.Conditions.Delete.Condition
+	cond := rule.Conditions.Delete.DailyCondition()
 	scope = rule.Conditions.Delete.IncludeHardlinks ||
 		ConditionUsesField(cond, FieldHardlinkScope) ||
 		sortingConfigUsesField(rule.SortingConfig, FieldHardlinkScope)
@@ -2030,7 +2030,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 		for _, rule := range eligibleRules {
 			// Skip delete rules that use FREE_SPACE condition
 			if rule.Conditions != nil && rule.Conditions.Delete != nil && rule.Conditions.Delete.Enabled {
-				if ConditionUsesField(rule.Conditions.Delete.Condition, FieldFreeSpace) {
+				if ConditionUsesField(rule.Conditions.Delete.DailyCondition(), FieldFreeSpace) {
 					if deleteConditionDuration(rule) > 0 {
 						filtered = append(filtered, deleteConditionMonitoringRule(rule))
 						suppressedDeleteRuleIDs[rule.ID] = struct{}{}
@@ -2065,7 +2065,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 	freeSpaceDeleteRuleIDs := make(map[int]struct{})
 	for _, rule := range eligibleRules {
 		if rule.Conditions != nil && rule.Conditions.Delete != nil && rule.Conditions.Delete.Enabled {
-			if ConditionUsesField(rule.Conditions.Delete.Condition, FieldFreeSpace) {
+			if ConditionUsesField(rule.Conditions.Delete.DailyCondition(), FieldFreeSpace) {
 				freeSpaceDeleteRuleIDs[rule.ID] = struct{}{}
 			}
 		}
@@ -5093,7 +5093,7 @@ func actionConditionsUseField(ac *models.ActionConditions, field ConditionField)
 		conds = append(conds, ac.AutoManagement.Condition)
 	}
 	if ac.Delete != nil && ac.Delete.Enabled {
-		conds = append(conds, ac.Delete.Condition)
+		conds = append(conds, ac.Delete.DailyCondition())
 	}
 	if ac.Category != nil && ac.Category.Enabled {
 		conds = append(conds, ac.Category.Condition)
@@ -5242,7 +5242,7 @@ func ruleUsesIncludeCrossSeedsDelete(rule *models.Automation) bool {
 }
 
 func ruleUsesIncludeCrossSeedsFreeSpace(rule *models.Automation) bool {
-	return ruleUsesIncludeCrossSeedsDelete(rule) && ConditionUsesField(rule.Conditions.Delete.Condition, FieldFreeSpace)
+	return ruleUsesIncludeCrossSeedsDelete(rule) && ConditionUsesField(rule.Conditions.Delete.DailyCondition(), FieldFreeSpace)
 }
 
 func ruleNeedsCrossSeedFiles(rule *models.Automation) bool {

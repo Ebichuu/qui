@@ -524,6 +524,9 @@ func processRuleForTorrent(rule *models.Automation, torrent qbt.Torrent, state *
 			if evalCtx != nil && evalCtx.DeleteConditionGate != nil {
 				shouldApply = evalCtx.DeleteConditionGate(rule, torrent, shouldApply)
 			}
+			if shouldApply && conditions.Delete.DailyTrigger != nil {
+				shouldApply = EvaluateConditionWithContext(conditions.Delete.DailyTrigger, torrent, evalCtx, 0)
+			}
 			if shouldApply {
 				if stats != nil {
 					stats.DeleteApplied++
@@ -543,7 +546,7 @@ func processRuleForTorrent(rule *models.Automation, torrent qbt.Torrent, state *
 				// Update the cumulative free space cleared for the "free space" condition.
 				// Only call this when the delete condition uses FREE_SPACE, otherwise we might
 				// accidentally mutate a previously-loaded rule's projection state.
-				if evalCtx != nil && ConditionUsesField(conditions.Delete.Condition, FieldFreeSpace) {
+				if evalCtx != nil && ConditionUsesField(conditions.Delete.DailyCondition(), FieldFreeSpace) {
 					updateCumulativeFreeSpaceCleared(torrent, evalCtx, state.deleteMode, cpIndex)
 				}
 			} else if stats != nil {

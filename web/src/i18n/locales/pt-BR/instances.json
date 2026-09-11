@@ -1416,6 +1416,8 @@
       "delete": {
         "mode": "Opções de Exclusão",
         "conditionDuration": "Duração da correspondência das condições",
+        "dailyTrigger": "Gatilho diário (opcional)",
+        "dailyTriggerHelp": "A exclusão diária exige este gatilho e as condições principais. A duração observada considera apenas as condições principais. Deixar vazio mantém o comportamento existente.",
         "conditionDurationHelp": "As condições de exclusão devem permanecer correspondentes em verificações consecutivas do fluxo de trabalho. Qualquer divergência reinicia o temporizador; 0 exclui imediatamente.",
         "minutes": "minutos (0 = imediato)",
         "keepFiles": "Remover (manter arquivos)",

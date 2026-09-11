@@ -39,3 +39,17 @@
 - 构建后运行 `python3 scripts/smoke-reclaim-settings.py`，输出 `PASS C10 settings: inheritance, conflict, explicit disable, crash recovery, reference protection; no downloader mutations`。对应检查加入 GitHub Actions。
 - 未改前端代码，不重复前端全套；全量 Go 回归交由 GitHub CI，本机运行上述受影响包与迁移检查。没有真实站点或真实删除验证，本批不提供删除执行能力。
 - 子代理只读复核已整合。引用删除由外键阻止；极窄的并发解除引用窗口可能返回原数据库错误，操作不会误删，后续重试即可。
+
+## 第三批：日常触发与持续候选条件分离
+
+- `DeleteAction.dailyTrigger` 为可选日常触发条件，保留原 `condition` 不变；日常删除需同时满足两者，持续观察只累计主条件命中。
+- 工作流编辑器新增独立条件栏并保留编辑/保存载荷，十种语言补齐标签和帮助说明。
+- 预览、分组字段、FREE_SPACE 预加载及冷却分类同时读取两棵条件树，保留旧规则及五分钟冷却。规则编辑仍使旧观察资格失效。
+- 旧 FREE_SPACE 混合表达式不自动拆分；本批提供显式编辑分离能力，不授权官种删除。官种候选复用、有效配置表单与统一删除协调仍待后续。
+
+- `make precommit` 通过，0 error、既有前端 58 条 warning；`make build` 通过。
+- `go test -race -count=1 ./internal/services/automations ./internal/api/handlers ./internal/models` 通过，模型测试启用真实 PostgreSQL；`make test-openapi` 通过。
+- 前端工作流工具测试 32 项通过；`pnpm check:i18n` 全部通过（保留既有翻译警告）。完整前端与 Go 回归交由 GitHub CI。
+- 构建后运行 `python3 scripts/smoke-automation-observation.py`，输出 `PASS C10: false daily trigger preserves observation; preview blocks delete; restart excludes downtime; no downloader mutations`。
+- 浏览器实测隔离合成实例：打开工作流，确认主条件上传速度 < 10 B/s、独立日常空间门槛；将门槛编辑为 2 MiB 并保存，重新打开确认主条件、触发条件和 10 分钟持续时间均保留，布局无重叠。规则保持停用与模拟运行，不执行真实删除。
+- 子代理复核已整合；日常触发中的 FREE_SPACE 参与预计空间停止判断，避免达到日常空间目标后继续删除。正式官种回收仍未接入，不使用此路径绕过日常冷却。

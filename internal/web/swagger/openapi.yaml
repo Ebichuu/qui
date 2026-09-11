@@ -8482,6 +8482,10 @@ components:
             - enum: [0]
             - minimum: 60
               maximum: 9223372036
+        dailyTrigger:
+          description: Optional additional daily trigger. Sustained observation evaluates condition alone; daily deletion requires both. Existing condition expressions are never rewritten.
+          allOf:
+            - $ref: '#/components/schemas/AutomationRuleCondition'
         condition:
           $ref: '#/components/schemas/AutomationRuleCondition'
     AutomationRuleCondition:

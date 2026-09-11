@@ -1416,6 +1416,8 @@
       "delete": {
         "mode": "Modus",
         "conditionDuration": "Dauer der Bedingungserfüllung",
+        "dailyTrigger": "Täglicher Auslöser (optional)",
+        "dailyTriggerHelp": "Die tägliche Löschung erfordert diesen Auslöser und die Hauptbedingungen. Die Beobachtungsdauer zählt nur die Hauptbedingungen. Leer lassen behält das bisherige Verhalten bei.",
         "conditionDurationHelp": "Die Löschbedingungen müssen bei aufeinanderfolgenden Workflow-Prüfungen erfüllt bleiben. Eine Abweichung setzt den Timer zurück; 0 löscht sofort.",
         "minutes": "Minuten (0 = sofort)",
         "keepFiles": "Entfernen (Dateien behalten)",

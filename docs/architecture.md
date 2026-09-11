@@ -52,3 +52,7 @@ Automation applies and explicit dry runs serialize per instance. Completed condi
 ## Reclaim Configuration
 
 Reclaim settings are separate from reception opt-ins and RSS rules. A single instance override wins over all enabled group defaults; identical defaults deduplicate, different defaults return a conflict without a policy. Explicit disable suppresses inheritance, while removing the override restores it. Policy writes use the racing configuration revision transaction. Automation references use stable IDs and restrictive foreign keys. The current API stores and resolves configuration only: candidate-expression conversion, budget consumption, deletion ownership and execution are not supplied by a saved policy.
+
+## Daily Trigger Separation
+
+Delete actions optionally carry a `dailyTrigger` alongside the existing candidate `condition`. The processor sends only the candidate result through the sustained observation gate, then checks the daily trigger before scheduling deletion. Preview, condition dependency loading, grouping validation and FREE_SPACE cooldown classification use the conjunction of both trees. Legacy combined expressions remain unchanged. Rule edits continue to invalidate observation versions. The same workflow editor preserves both expressions; official candidate evaluation and shared deletion ownership remain subsequent C10 work.

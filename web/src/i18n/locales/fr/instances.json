@@ -1410,6 +1410,8 @@
       "delete": {
         "mode": "Mode",
         "conditionDuration": "Durée de correspondance des conditions",
+        "dailyTrigger": "Déclencheur quotidien (facultatif)",
+        "dailyTriggerHelp": "La suppression quotidienne exige ce déclencheur et les conditions principales. La durée observée ne concerne que les conditions principales. Laisser vide conserve le comportement existant.",
         "conditionDurationHelp": "Les conditions de suppression doivent rester satisfaites lors de contrôles consécutifs du workflow. Toute non-correspondance réinitialise le minuteur ; 0 supprime immédiatement.",
         "minutes": "minutes (0 = immédiat)",
         "keepFiles": "Supprimer (conserver les fichiers)",

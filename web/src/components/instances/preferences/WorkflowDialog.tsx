@@ -448,6 +448,7 @@ type FormState = {
   sortOrder?: number
   intervalSeconds: number | null // null = use global default (15m)
   // Shared condition for all actions
+  dailyDeleteTrigger: RuleCondition | null
   actionCondition: RuleCondition | null
   // Grouping settings (advanced)
   exprGrouping?: GroupingConfig
@@ -526,6 +527,7 @@ const emptyFormState: FormState = {
   dryRun: false,
   notify: true,
   intervalSeconds: null,
+  dailyDeleteTrigger: null,
   actionCondition: null,
   exprGrouping: undefined,
   speedLimitsEnabled: false,
@@ -1171,6 +1173,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
         }
 
         const newState: FormState = {
+          dailyDeleteTrigger: conditions?.delete?.dailyTrigger ?? null,
           name: rule.name,
           trackerPattern: rule.trackerPattern,
           trackerDomains: mappedDomains,
@@ -1283,14 +1286,14 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
   // Only toast on user edits, not during initial form hydration
   useEffect(() => {
     if (formState.deleteEnabled && formState.exprDeleteMode === "delete") {
-      if (conditionUsesField(formState.actionCondition, "FREE_SPACE")) {
+      if ((conditionUsesField(formState.actionCondition, "FREE_SPACE") || (formState.deleteEnabled && conditionUsesField(formState.dailyDeleteTrigger, "FREE_SPACE")))) {
         setFormState(prev => ({ ...prev, exprDeleteMode: "deleteWithFiles" }))
         if (!isHydrating.current) {
           toast.info(t("preferences.workflowDialog.toast.switchedDeleteModeForFreeSpace"))
         }
       }
     }
-  }, [formState.actionCondition, formState.deleteEnabled, formState.exprDeleteMode, t])
+  }, [formState.dailyDeleteTrigger, formState.actionCondition, formState.deleteEnabled, formState.exprDeleteMode, t])
 
   // Auto-switch interval from 1 minute when FREE_SPACE delete condition is added.
   // Sustained conditions still need 1 minute observations, while the backend
@@ -1299,12 +1302,12 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
   useEffect(() => {
     if (isHydrating.current) return
     if (formState.deleteEnabled && formState.intervalSeconds === 60 && formState.exprDeleteConditionDurationMinutes <= 0) {
-      if (conditionUsesField(formState.actionCondition, "FREE_SPACE")) {
+      if ((conditionUsesField(formState.actionCondition, "FREE_SPACE") || (formState.deleteEnabled && conditionUsesField(formState.dailyDeleteTrigger, "FREE_SPACE")))) {
         setFormState(prev => ({ ...prev, intervalSeconds: 300 })) // Switch to 5 minutes
         toast.info(t("preferences.workflowDialog.toast.switchedIntervalForFreeSpace"))
       }
     }
-  }, [formState.actionCondition, formState.deleteEnabled, formState.exprDeleteConditionDurationMinutes, formState.intervalSeconds, t])
+  }, [formState.dailyDeleteTrigger, formState.actionCondition, formState.deleteEnabled, formState.exprDeleteConditionDurationMinutes, formState.intervalSeconds, t])
 
   // Auto-switch free space source from "path" to "qbittorrent" on Windows (not supported)
   // This must run during hydration to handle legacy workflows opened on Windows.
@@ -1319,7 +1322,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
   }, [supportsFreeSpacePathSource, formState.exprFreeSpaceSourceType, t])
 
   const validateFreeSpaceSource = useCallback((state: FormState): boolean => {
-    const usesFreeSpace = conditionUsesField(state.actionCondition, "FREE_SPACE")
+    const usesFreeSpace = (conditionUsesField(state.actionCondition, "FREE_SPACE") || (state.deleteEnabled && conditionUsesField(state.dailyDeleteTrigger, "FREE_SPACE")))
     if (!usesFreeSpace || state.exprFreeSpaceSourceType !== "path") {
       setFreeSpaceSourcePathError(null)
       return true
@@ -1349,7 +1352,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
   }, [hasLocalFilesystemAccess, supportsFreeSpacePathSource, t])
 
   const hasValidFreeSpaceSourceForLivePreview = useCallback((state: FormState): boolean => {
-    const usesFreeSpace = conditionUsesField(state.actionCondition, "FREE_SPACE")
+    const usesFreeSpace = (conditionUsesField(state.actionCondition, "FREE_SPACE") || (state.deleteEnabled && conditionUsesField(state.dailyDeleteTrigger, "FREE_SPACE")))
     if (!usesFreeSpace || state.exprFreeSpaceSourceType !== "path") {
       return true
     }
@@ -1466,6 +1469,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
         includeHardlinks: input.exprDeleteMode === "deleteWithFilesIncludeCrossSeeds" ? input.exprIncludeHardlinks : undefined,
         groupId: input.exprDeleteGroupId || undefined,
         atomic: input.exprDeleteAtomic || undefined,
+        dailyTrigger: input.dailyDeleteTrigger ?? undefined,
         conditionMatchDurationSeconds: input.exprDeleteConditionDurationMinutes > 0
           ? Math.round(input.exprDeleteConditionDurationMinutes * 60)
           : undefined,
@@ -1537,7 +1541,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
       }
     }
 
-    const usesFreeSpace = conditionUsesField(input.actionCondition, "FREE_SPACE")
+    const usesFreeSpace = (conditionUsesField(input.actionCondition, "FREE_SPACE") || (input.deleteEnabled && conditionUsesField(input.dailyDeleteTrigger, "FREE_SPACE")))
     const trimmedFreeSpacePath = input.exprFreeSpaceSourcePath.trim()
     let freeSpaceSource: AutomationInput["freeSpaceSource"]
     if (usesFreeSpace && input.exprFreeSpaceSourceType === "path" && trimmedFreeSpacePath) {
@@ -1625,8 +1629,8 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
 
   // Check if condition uses FREE_SPACE field (for free space source UI - shown regardless of action)
   const conditionUsesFreeSpace = useMemo(() => {
-    return conditionUsesField(formState.actionCondition, "FREE_SPACE")
-  }, [formState.actionCondition])
+    return (conditionUsesField(formState.actionCondition, "FREE_SPACE") || (formState.deleteEnabled && conditionUsesField(formState.dailyDeleteTrigger, "FREE_SPACE")))
+  }, [formState.actionCondition, formState.dailyDeleteTrigger, formState.deleteEnabled])
 
   // Check if delete rule uses FREE_SPACE field (for preview view toggle - only for delete rules)
   const deleteUsesFreeSpace = formState.deleteEnabled && conditionUsesFreeSpace
@@ -2553,6 +2557,26 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
                     disabledStateValues={getDisabledStateValues(fieldCapabilities)}
                     groupOptions={groupedConditionOptions}
                   />
+                  {formState.deleteEnabled && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Label>{t("preferences.workflowDialog.delete.dailyTrigger")}</Label>
+                        <FieldHelp>{t("preferences.workflowDialog.delete.dailyTriggerHelp")}</FieldHelp>
+                      </div>
+                      <QueryBuilder
+                        condition={formState.dailyDeleteTrigger}
+                        onChange={(condition) => {
+                          setFormState(prev => ({ ...prev, dailyDeleteTrigger: condition }))
+                          setRegexErrors([])
+                        }}
+                        allowEmpty
+                        categoryOptions={categoryOptions}
+                        disabledFields={getDisabledFields(fieldCapabilities)}
+                        disabledStateValues={getDisabledStateValues(fieldCapabilities)}
+                        groupOptions={groupedConditionOptions}
+                      />
+                    </div>
+                  )}
                   {formState.deleteEnabled && !formState.actionCondition && (
                     <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
                       <p className="font-medium text-destructive">{t("preferences.workflowDialog.toast.deleteRequiresCondition")}</p>
@@ -2610,7 +2634,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
                 </div>
 
                 {/* Grouping Configuration - shown when GROUP_SIZE or IS_GROUPED is used */}
-                {(conditionUsesField(formState.actionCondition, "GROUP_SIZE") || conditionUsesField(formState.actionCondition, "IS_GROUPED")) && (
+                {(conditionUsesField(formState.actionCondition, "GROUP_SIZE") || conditionUsesField(formState.actionCondition, "IS_GROUPED") || (formState.deleteEnabled && (conditionUsesField(formState.dailyDeleteTrigger, "GROUP_SIZE") || conditionUsesField(formState.dailyDeleteTrigger, "IS_GROUPED")))) && (
                   <div className="rounded-lg border p-3 space-y-3 bg-muted/30">
                     <div className="flex items-center gap-2">
                       <Label className="text-sm font-medium">{t("preferences.workflowDialog.grouping.title")}</Label>
@@ -3724,7 +3748,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
                         <div className="space-y-1">
                           <Label className="text-xs">{t("preferences.workflowDialog.delete.mode")}</Label>
                           {(() => {
-                            const usesFreeSpace = conditionUsesField(formState.actionCondition, "FREE_SPACE")
+                            const usesFreeSpace = (conditionUsesField(formState.actionCondition, "FREE_SPACE") || (formState.deleteEnabled && conditionUsesField(formState.dailyDeleteTrigger, "FREE_SPACE")))
                             const keepFilesDisabled = usesFreeSpace
                             return (
                               <Select

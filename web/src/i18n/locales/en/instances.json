@@ -1416,6 +1416,8 @@
       "delete": {
         "mode": "Mode",
         "conditionDuration": "Condition match duration",
+        "dailyTrigger": "Daily trigger (optional)",
+        "dailyTriggerHelp": "Daily deletion requires this trigger and the main conditions. Sustained observation counts only the main conditions. Leaving this empty preserves existing behavior.",
         "conditionDurationHelp": "Require the delete conditions to remain matched across consecutive workflow checks. Any non-match resets the timer; 0 deletes immediately.",
         "minutes": "minutes (0 = immediate)",
         "keepFiles": "Remove (keep files)",

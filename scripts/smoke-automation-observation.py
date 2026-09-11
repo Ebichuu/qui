@@ -16,8 +16,11 @@ def main():
         instance = app.request("/api/instances", dict(name="Synthetic C10 observer", host=mock.origin, username="synthetic", password="synthetic"), expected=201)["id"]
         until(lambda: mock.rid >= 2, "shared snapshot did not warm")
         path = f"/api/instances/{instance}/automations"
-        rule = dict(name="Synthetic continuous observation", trackerPattern="*", enabled=True, dryRun=True, notify=False, intervalSeconds=60, conditions={"schemaVersion":"1", "delete":{"enabled":True,"mode":"delete","conditionMatchDurationSeconds":600,"condition":{"field":"UP_SPEED","operator":"LESS_THAN","value":"10"}}})
-        app.request(path,rule,expected=201)
+        rule = dict(name="Synthetic continuous observation", trackerPattern="*", enabled=True, dryRun=True, notify=False, intervalSeconds=60, conditions={"schemaVersion":"1", "delete":{"enabled":True,"mode":"deleteWithFiles","dailyTrigger":{"field":"FREE_SPACE","operator":"LESS_THAN","value":"1"},"conditionMatchDurationSeconds":600,"condition":{"field":"UP_SPEED","operator":"LESS_THAN","value":"10"}}})
+        saved = app.request(path,rule,expected=201)
+        assert saved["conditions"]["delete"]["dailyTrigger"] == rule["conditions"]["delete"]["dailyTrigger"]
+        preview = app.request(path+"/preview", rule)
+        assert preview["totalMatches"] == 0, "daily preview ignored the false trigger"
         def apply():
             app.request(path+"/apply", {}, expected=202)
         apply()
@@ -37,7 +40,7 @@ def main():
         after = app.rows("SELECT elapsed_ns FROM automation_condition_observations")[0][0]
         assert after == before, "restart gap was credited as observation"
         assert not mock.adds and not mock.errors, "observer unexpectedly mutated downloader"
-        print("PASS C10: persisted measured duration; crash recovery excludes downtime; no downloader mutations")
+        print("PASS C10: false daily trigger preserves observation; preview blocks delete; restart excludes downtime; no downloader mutations")
 
 
 if __name__ == "__main__":

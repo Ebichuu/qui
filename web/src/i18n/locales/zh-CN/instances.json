@@ -1397,6 +1397,8 @@
       "delete": {
         "mode": "模式",
         "conditionDuration": "条件持续时间",
+        "dailyTrigger": "日常触发条件（可选）",
+        "dailyTriggerHelp": "日常删除需要此触发条件和主条件同时满足。持续观察只累计主条件的命中时间。留空保留现有行为。",
         "conditionDurationHelp": "删除条件必须在连续的工作流检查中保持匹配。任意一次不匹配都会重置计时；设为 0 时立即执行。",
         "minutes": "分钟（0 = 立即执行）",
         "keepFiles": "移除（保留文件）",

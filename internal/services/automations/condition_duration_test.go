@@ -302,3 +302,57 @@ func TestDeleteConditionVersionDetectsSameSecondEditAndSurvivesCooldown(t *testi
 	rule.Conditions.Delete.Condition = &models.RuleCondition{Field: models.FieldUpSpeed, Operator: models.OperatorLessThan, Value: "100"}
 	require.NotEqual(t, before, deleteConditionRuleVersion(rule))
 }
+
+func TestDailyTriggerDoesNotGateCandidateObservation(t *testing.T) {
+	start := time.Now()
+	rule := durationTestRule(60, start)
+	rule.Enabled = true
+	rule.TrackerPattern = "*"
+	rule.Conditions.Delete.Mode = models.DeleteModeWithFiles
+	rule.Conditions.Delete.Condition = &models.RuleCondition{Field: models.FieldUpSpeed, Operator: models.OperatorLessThan, Value: "100"}
+	rule.Conditions.Delete.DailyTrigger = &models.RuleCondition{Field: models.FieldFreeSpace, Operator: models.OperatorLessThan, Value: "200"}
+	torrent := qbt.Torrent{Hash: "synthetic-trigger", Name: "Synthetic example", UpSpeed: 10, Size: 20}
+	service := &Service{}
+	now := start
+	seen := map[deleteConditionMatchKey]struct{}{}
+	eval := &EvalContext{FreeSpace: 400}
+	eval.DeleteConditionGate = func(r *models.Automation, torrent qbt.Torrent, matched bool) bool {
+		return service.deleteConditionReadyForRule(now, 1, r, torrent, false, matched, nil, seen, deleteConditionRuleVersion(r))
+	}
+	run := func() map[string]*torrentDesiredState {
+		return processTorrents([]qbt.Torrent{torrent}, []*models.Automation{rule}, eval, nil, nil, nil, nil)
+	}
+	require.Empty(t, run())
+	now = start.Add(60 * time.Second)
+	require.Empty(t, run(), "candidate matures even while daily space trigger is false")
+	require.Len(t, service.deleteConditionMatches, 1)
+	require.False(t, shouldDeleteTorrent(rule, &torrent, eval), "preview must also respect trigger")
+	eval.FreeSpace = 100
+	now = start.Add(61 * time.Second)
+	states := run()
+	require.True(t, states[torrent.Hash].shouldDelete, "already observed candidate needs no new duration")
+	require.True(t, actionConditionsUseField(rule.Conditions, FieldFreeSpace))
+	require.True(t, ConditionUsesField(conditionFromDeleteAction(rule.Conditions.Delete), FieldFreeSpace))
+	require.True(t, shouldDeleteTorrent(rule, &torrent, eval))
+	torrent.UpSpeed = 200
+	require.Empty(t, run(), "daily trigger alone must not authorize deletion")
+	require.Empty(t, service.deleteConditionMatches)
+}
+
+func TestLegacyFreeSpaceExpressionRemainsCandidateCondition(t *testing.T) {
+	rule := durationTestRule(60, time.Now())
+	rule.Enabled = true
+	rule.TrackerPattern = "*"
+	low := &models.RuleCondition{Field: models.FieldUpSpeed, Operator: models.OperatorLessThan, Value: "100"}
+	space := &models.RuleCondition{Field: models.FieldFreeSpace, Operator: models.OperatorLessThan, Value: "200"}
+	rule.Conditions.Delete.Condition = &models.RuleCondition{Operator: models.OperatorOr, Conditions: []*models.RuleCondition{low, space}}
+	require.Same(t, rule.Conditions.Delete.Condition, rule.Conditions.Delete.DailyCondition())
+	called := false
+	eval := &EvalContext{FreeSpace: 400, DeleteConditionGate: func(_ *models.Automation, _ qbt.Torrent, matched bool) bool {
+		called = true
+		require.False(t, matched)
+		return false
+	}}
+	processTorrents([]qbt.Torrent{{Hash: "synthetic-legacy", UpSpeed: 200}}, []*models.Automation{rule}, eval, nil, nil, nil, nil)
+	require.True(t, called)
+}
