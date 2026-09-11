@@ -111,8 +111,34 @@ func (s *RacingStore) SaveCandidate(ctx context.Context, record RacingCandidateR
 		return errors.New("invalid racing candidate")
 	}
 	_, err := s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
-		_, err := tx.ExecContext(ctx, `INSERT INTO racing_candidates(candidate_key,site_id,event_key,source_scope,first_seen_at,candidate_json,selection_json,state,next_evaluation_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)
- ON CONFLICT(candidate_key) DO UPDATE SET candidate_json=excluded.candidate_json,selection_json=excluded.selection_json,state=excluded.state,next_evaluation_at=excluded.next_evaluation_at,updated_at=excluded.updated_at`, record.Key, record.SiteID, record.EventKey, record.SourceScope, record.FirstSeenAt, string(record.Candidate), string(record.Selection), record.State, record.NextEvaluationAt, time.Now().UTC().Format(time.RFC3339Nano))
+		// Re-observing unchanged evidence must not invalidate an in-flight
+		// reservation. A newly fetched proof still needs an evaluation fence.
+		updatedAt := time.Now().UTC().Format(time.RFC3339Nano)
+		var previous string
+		var metadataAt *string
+		err := tx.QueryRowContext(ctx, `SELECT c.updated_at,m.observed_at FROM racing_candidates c LEFT JOIN racing_candidate_metadata m ON m.candidate_key=c.candidate_key WHERE c.candidate_key=? AND c.candidate_json=? AND c.selection_json=? AND c.state=?`, record.Key, string(record.Candidate), string(record.Selection), record.State).Scan(&previous, &metadataAt)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return 0, err
+		}
+		if err == nil {
+			newProof := false
+			if metadataAt != nil {
+				proofTime, err := time.Parse(time.RFC3339Nano, *metadataAt)
+				if err != nil {
+					return 0, err
+				}
+				previousTime, err := time.Parse(time.RFC3339Nano, previous)
+				if err != nil {
+					return 0, err
+				}
+				newProof = proofTime.After(previousTime)
+			}
+			if !newProof {
+				updatedAt = previous
+			}
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO racing_candidates(candidate_key,site_id,event_key,source_scope,first_seen_at,candidate_json,selection_json,state,next_evaluation_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)
+ ON CONFLICT(candidate_key) DO UPDATE SET candidate_json=excluded.candidate_json,selection_json=excluded.selection_json,state=excluded.state,next_evaluation_at=excluded.next_evaluation_at,updated_at=excluded.updated_at`, record.Key, record.SiteID, record.EventKey, record.SourceScope, record.FirstSeenAt, string(record.Candidate), string(record.Selection), record.State, record.NextEvaluationAt, updatedAt)
 		if err != nil {
 			return 0, err
 		}

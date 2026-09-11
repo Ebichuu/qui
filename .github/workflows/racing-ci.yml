@@ -63,3 +63,5 @@ jobs:
         run: make smoke-racing
       - name: Verify reception and restart recovery
         run: make smoke-racing-execution
+      - name: Verify reception fault isolation and timing
+        run: make smoke-racing-integration

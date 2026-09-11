@@ -331,3 +331,34 @@ func TestRacingConfirmedRemovalReleasesForLaterRevivalButUnknownDoesNot(t *testi
 		})
 	}
 }
+
+func TestRacingRepeatedEvidencePreservesReservationButNewProofFences(t *testing.T) {
+	for _, engine := range []string{"sqlite", "postgres"} {
+		t.Run(engine, func(t *testing.T) {
+			f := newRacingExecutionFixture(t, engine)
+			input := f.reservation(t, "event:unchanged", "a", 70, f.pools[0])
+			require.NoError(t, f.store.ReserveAdd(t.Context(), input))
+			rows, err := f.store.CandidateRecords(t.Context(), "", nil, 100)
+			require.NoError(t, err)
+			record := rows[0]
+			require.NoError(t, f.store.SaveCandidate(t.Context(), record, nil))
+			require.NoError(t, f.store.SubmitAdd(t.Context(), currentIntent(t, f.store, record.Key), input.Pools, 0, time.Now()))
+
+			second := f.reservation(t, "event:new-proof", "b", 10, f.pools[1])
+			require.NoError(t, f.store.ReserveAdd(t.Context(), second))
+			rows, err = f.store.CandidateRecords(t.Context(), "", nil, 100)
+			require.NoError(t, err)
+			record = rows[0]
+			require.Equal(t, second.Plan.CandidateKey, record.Key)
+			sources, err := f.store.RuntimeSources(t.Context())
+			require.NoError(t, err)
+			require.NoError(t, f.store.SaveCandidateMetadata(t.Context(), record.Key, sources[0], []byte(`{}`), []byte("synthetic-refreshed-proof")))
+			require.ErrorIs(t, f.store.SubmitAdd(t.Context(), currentIntent(t, f.store, record.Key), second.Pools, 0, time.Now()), models.ErrRacingStale)
+			require.NoError(t, f.store.SaveCandidate(t.Context(), record, nil))
+			rows, err = f.store.CandidateRecords(t.Context(), "", nil, 100)
+			require.NoError(t, err)
+			require.NotEqual(t, record.UpdatedAt, rows[0].UpdatedAt)
+			require.ErrorIs(t, f.store.SubmitAdd(t.Context(), currentIntent(t, f.store, record.Key), second.Pools, 0, time.Now()), models.ErrRacingStale)
+		})
+	}
+}

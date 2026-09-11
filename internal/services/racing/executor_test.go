@@ -38,7 +38,7 @@ func (f *executionFake) CachedExecutionObservations() []qbittorrent.ExecutionObs
 	}
 	return result
 }
-func (f *executionFake) AddTorrent(ctx context.Context, id int, _ []byte, _ map[string]string) (*qbt.TorrentAddResponse, error) {
+func (f *executionFake) AddTorrentOnce(ctx context.Context, id int, _ []byte, _ map[string]string) (*qbt.TorrentAddResponse, error) {
 	f.mu.Lock()
 	f.adds[id]++
 	slow := f.slowID == id
@@ -205,5 +205,27 @@ func TestExecutionChangedPolicyCancelsBeforeNetwork(t *testing.T) {
 	current, err := store.AddIntent(t.Context(), intent.CandidateKey)
 	require.NoError(t, err)
 	require.Equal(t, "cancelled", current.State)
+	require.Zero(t, fake.addCount(intent.InstanceID))
+}
+
+func TestConfirmedObservationDoesNotNeedExecutionSlot(t *testing.T) {
+	service, store, fake, intents := setupExecution(t)
+	intent := intents[0]
+	budgets := executionBudgets(service.configuration, fake.CachedExecutionObservations(), intents, time.Now())
+	require.NoError(t, store.SubmitAdd(t.Context(), intent, budgets, 0, time.Now()))
+	require.NoError(t, store.ConfirmAdd(t.Context(), intent.CandidateKey, time.Now(), false, false))
+	intent, err := store.AddIntent(t.Context(), intent.CandidateKey)
+	require.NoError(t, err)
+	fake.mu.Lock()
+	now := time.Now()
+	fake.observations[0].ObservedAt = &now
+	fake.observations[0].Torrents = []qbittorrent.ExecutionTorrent{{Hash: intent.Plan.HashV1, SavePath: "/data", Size: 1024, Remaining: 1023, State: qbt.TorrentStateDownloading, Downloaded: 1}}
+	fake.mu.Unlock()
+	service.executor.slots[intent.InstanceID] = intent.Plan.Policy.MaxConcurrentAdds
+	service.executor.observeConfirmed(t.Context(), intent, fake.CachedExecutionObservations())
+	updated, err := store.AddIntent(t.Context(), intent.CandidateKey)
+	require.NoError(t, err)
+	require.NotNil(t, updated.TransferredAt)
+	require.Equal(t, intent.Plan.Policy.MaxConcurrentAdds, service.executor.slots[intent.InstanceID])
 	require.Zero(t, fake.addCount(intent.InstanceID))
 }

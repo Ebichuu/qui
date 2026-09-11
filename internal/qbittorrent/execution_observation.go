@@ -50,8 +50,9 @@ func (cp *ClientPool) CachedExecutionObservations() []ExecutionObservation {
 }
 
 func (c *Client) cachedExecutionObservation(now time.Time) ExecutionObservation {
-	result := ExecutionObservation{Observation: c.cachedObservation(now), Torrents: []ExecutionTorrent{}}
-	result.Fresh = false
+	observation := c.cachedObservation(now)
+	observation.Fresh = false
+	result := ExecutionObservation{Observation: observation, Torrents: []ExecutionTorrent{}}
 	manager := c.GetSyncManager()
 	if manager == nil {
 		return result

@@ -28,7 +28,7 @@ type ExecutionReader interface {
 	CachedExecutionObservations() []qbittorrent.ExecutionObservation
 }
 type ExecutionClient interface {
-	AddTorrent(context.Context, int, []byte, map[string]string) (*qbt.TorrentAddResponse, error)
+	AddTorrentOnce(context.Context, int, []byte, map[string]string) (*qbt.TorrentAddResponse, error)
 	GetTorrentTrackers(context.Context, int, string) ([]qbt.TorrentTracker, error)
 }
 type executionRunner struct {
@@ -94,7 +94,12 @@ func (e *executionRunner) tick(ctx context.Context) {
 	if err != nil {
 		return
 	}
+	observations := reader.CachedExecutionObservations()
 	for _, intent := range intents {
+		if intent.State == "confirmed" {
+			e.observeConfirmed(ctx, intent, observations)
+			continue
+		}
 		if intent.State == "cancelled" || intent.State == "retired" {
 			continue
 		}
@@ -110,7 +115,6 @@ func (e *executionRunner) tick(ctx context.Context) {
 	if !enabled {
 		return
 	}
-	observations := reader.CachedExecutionObservations()
 	budgets := executionBudgets(config, observations, intents, time.Now())
 	existing := make(map[string]bool, len(intents))
 	for _, intent := range intents {
@@ -224,9 +228,34 @@ func (e *executionRunner) requestMetainfo(ctx context.Context, record models.Rac
 	}
 }
 
+// Confirmed tasks only read the shared snapshot. They cannot occupy network
+// execution slots needed to submit and confirm newly admitted candidates.
+func (e *executionRunner) observeConfirmed(ctx context.Context, intent models.RacingAddIntent, observations []qbittorrent.ExecutionObservation) {
+	e.mu.Lock()
+	if e.busy[intent.CandidateKey] || time.Since(e.attempted[intent.CandidateKey]) < 5*time.Second {
+		e.mu.Unlock()
+		return
+	}
+	e.attempted[intent.CandidateKey] = time.Now()
+	e.mu.Unlock()
+	instance, found := executionInstance(observations, intent.InstanceID)
+	if !found || !freshExecution(instance, time.Now()) {
+		return
+	}
+	torrent, present := intentTorrent(instance, intent)
+	if !present {
+		_ = e.store.ObserveConfirmedMissing(ctx, intent, *instance.ObservedAt)
+		return
+	}
+	_ = e.store.ConfirmAdd(ctx, intent.CandidateKey, *instance.ObservedAt, torrentRunnable(torrent.State), torrent.DownloadSpeed > 0 || torrent.UploadSpeed > 0 || torrent.Downloaded > 0 || torrent.Uploaded > 0)
+}
+
 func (e *executionRunner) launch(ctx context.Context, intent models.RacingAddIntent, reader ExecutionReader, client ExecutionClient) {
 	e.mu.Lock()
 	retry := 5 * time.Second
+	if intent.State == "accepted" || intent.State == "submitted" {
+		retry = time.Second
+	}
 
 	if e.busy[intent.CandidateKey] || time.Since(e.attempted[intent.CandidateKey]) < retry || e.slots[intent.InstanceID] >= max(1, intent.Plan.Policy.MaxConcurrentAdds) {
 		e.mu.Unlock()
@@ -342,7 +371,7 @@ func (e *executionRunner) execute(parent context.Context, intent models.RacingAd
 	}
 	// From this point even cancellation or a malformed response is an unknown
 	// result. Recovery only observes this target; it never calls AddTorrent again.
-	response, err := client.AddTorrent(ctx, intent.InstanceID, raw, intent.Plan.Options)
+	response, err := client.AddTorrentOnce(ctx, intent.InstanceID, raw, intent.Plan.Options)
 	accepted := err == nil && (response == nil || response.FailureCount == 0)
 	persistCtx, persistCancel := context.WithTimeout(parent, 5*time.Second)
 	defer persistCancel()

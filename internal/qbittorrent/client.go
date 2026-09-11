@@ -65,6 +65,7 @@ var errInvalidWebAPIVersion = errors.New("invalid qBittorrent WebAPI version")
 
 type Client struct {
 	*qbt.Client
+	singleAttemptClient        *qbt.Client
 	instanceID                 int
 	webAPIVersion              string
 	supportsSetTags            bool
@@ -175,10 +176,11 @@ func NewClientWithTimeout(instanceID int, instanceHost, username, password, apiK
 	}
 
 	client := &Client{
-		Client:          qbtClient,
-		instanceID:      instanceID,
-		lastHealthCheck: time.Now(),
-		isHealthy:       true,
+		Client:              qbtClient,
+		singleAttemptClient: newSingleAttemptClient(cfg, qbtClient),
+		instanceID:          instanceID,
+		lastHealthCheck:     time.Now(),
+		isHealthy:           true,
 		optimisticUpdates: ttlcache.New(ttlcache.Options[string, *OptimisticTorrentUpdate]{}.
 			SetDefaultTTL(30 * time.Second)), // Updates expire after 30 seconds
 		trackerExclusions: make(map[string]map[string]struct{}),
