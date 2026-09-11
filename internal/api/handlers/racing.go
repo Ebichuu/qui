@@ -37,6 +37,9 @@ func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/reception-policies", h.receptionPolicies)
 	r.Put("/reception-policies/{id}", h.saveReceptionPolicy)
 	r.Get("/add-intents", h.addIntents)
+	r.Get("/reclaim-settings", h.reclaimConfiguration)
+	r.Put("/reclaim-settings/{scope}/{id}", h.writeReclaimSetting)
+	r.Delete("/reclaim-settings/{scope}/{id}", h.writeReclaimSetting)
 	r.Put("/rules/order", h.reorderRules)
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		r.Route("/"+resource, func(r chi.Router) {

@@ -48,3 +48,7 @@ Confirmed reservations remain as durable fallback promises. When a current budge
 ## Automation Observation Recovery
 
 Automation applies and explicit dry runs serialize per instance. Completed condition observations persist the rule definition hash, torrent hash/added-on generation, measured duration, last observation and counters. Restore excludes the unobserved restart gap; stale samples, counter rollback, rule edits and changed task generations invalidate qualification. Before a full scan, its old checkpoint is removed so a crash during incomplete evaluation cannot restore old maturity. Checkpoints are saved before live actions; database errors abort the evaluation. FREE_SPACE deletion attempts persist the existing cooldown before network I/O. This adds recovery to existing workflows, not a new reclaim executor or transfer of deletion authority.
+
+## Reclaim Configuration
+
+Reclaim settings are separate from reception opt-ins and RSS rules. A single instance override wins over all enabled group defaults; identical defaults deduplicate, different defaults return a conflict without a policy. Explicit disable suppresses inheritance, while removing the override restores it. Policy writes use the racing configuration revision transaction. Automation references use stable IDs and restrictive foreign keys. The current API stores and resolves configuration only: candidate-expression conversion, budget consumption, deletion ownership and execution are not supplied by a saved policy.

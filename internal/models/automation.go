@@ -538,6 +538,12 @@ func (s *AutomationStore) Update(ctx context.Context, automation *Automation) (*
 func (s *AutomationStore) Delete(ctx context.Context, instanceID int, id int) error {
 	res, err := s.db.ExecContext(ctx, `DELETE FROM automations WHERE id = ? AND instance_id = ?`, id, instanceID)
 	if err != nil {
+		// The foreign key enforces ownership even if a reference is added
+		// concurrently. Translate its rejection after the failed delete.
+		var referenced bool
+		if checkErr := s.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM racing_reclaim_rule_refs r JOIN automations a ON a.id=r.rule_id WHERE a.id=? AND a.instance_id=?)`, id, instanceID).Scan(&referenced); checkErr == nil && referenced {
+			return ErrRacingReferenced
+		}
 		return err
 	}
 	if rows, err := res.RowsAffected(); err == nil && rows == 0 {

@@ -94,3 +94,33 @@ func TestReceptionPolicyExplicitOptInAndValidation(t *testing.T) {
 	send("PUT", fmt.Sprintf("/racing/reception-policies/%d", instance.ID), `{"instanceId":99999}`, 400)
 	require.JSONEq(t, `{"items":[]}`, send("GET", "/racing/add-intents", "", 200).Body.String())
 }
+
+func TestReclaimSettingsValidateAndRestoreInheritance(t *testing.T) {
+	db := testdb.NewMigratedSQLite(t, "reclaim-handlers")
+	store, err := models.NewRacingStore(db, bytes.Repeat([]byte{9}, 32))
+	require.NoError(t, err)
+	instances, err := models.NewInstanceStore(db, bytes.Repeat([]byte{9}, 32))
+	require.NoError(t, err)
+	instance, err := instances.Create(t.Context(), "Synthetic reclaim", "http://127.0.0.1:1", "synthetic", "synthetic", nil, nil, false, nil)
+	require.NoError(t, err)
+	router := chi.NewRouter()
+	router.Route("/racing", NewRacingHandler(store, nil).Register)
+	request := func(method, path, body string, status int) *httptest.ResponseRecorder {
+		t.Helper()
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest(method, path, strings.NewReader(body)))
+		require.Equal(t, status, response.Code, response.Body.String())
+		return response
+	}
+	path := fmt.Sprintf("/racing/reclaim-settings/instances/%d", instance.ID)
+	request(http.MethodPut, path, `{"enabled":true}`, 400)
+	request(http.MethodPut, path, `{"unexpected":true}`, 400)
+	request(http.MethodPut, path, `{} {}`, 400)
+	request(http.MethodPut, "/racing/reclaim-settings/other/1", `{}`, 400)
+	request(http.MethodPut, path, `{"enabled":false}`, 204)
+	response := request(http.MethodGet, "/racing/reclaim-settings", "", 200)
+	require.Contains(t, response.Body.String(), `"state":"disabled"`)
+	request(http.MethodDelete, path, "", 204)
+	response = request(http.MethodGet, "/racing/reclaim-settings", "", 200)
+	require.Contains(t, response.Body.String(), `"state":"unconfigured"`)
+}

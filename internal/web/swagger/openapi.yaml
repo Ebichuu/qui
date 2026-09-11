@@ -211,6 +211,62 @@ paths:
           description: Invalid policy or instance mismatch
         '503':
           description: Reception configuration unavailable
+  /api/racing/reclaim-settings:
+    get:
+      tags: [Racing]
+      summary: Read saved reclaim settings and per-instance inheritance
+      description: Configuration only. Explicit instance values override enabled group defaults. Different defaults produce a conflict without an effective policy. This endpoint does not qualify candidates or grant deletion ownership.
+      responses:
+        '200':
+          description: Configuration snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingReclaimConfiguration'
+        '503':
+          description: Configuration unavailable
+  /api/racing/reclaim-settings/{scope}/{id}:
+    parameters:
+    - name: scope
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [instances, groups]
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    put:
+      tags: [Racing]
+      summary: Save one instance override or group default
+      description: Saving disabled is an explicit override. Rule references are deduplicated stable IDs; this does not convert candidate expressions, remove FREE_SPACE conditions, or enable a deletion executor. Enabled settings require rules, positive quantity/capacity/window limits, and nonnegative loss/overshoot limits. Overshoot cannot exceed the total capacity limit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingReclaimPolicy'
+      responses:
+        '204':
+          description: Setting saved
+        '400':
+          description: Invalid setting or reference
+        '503':
+          description: Configuration unavailable
+    delete:
+      tags: [Racing]
+      summary: Remove an explicit setting
+      description: Removing an instance override restores group inheritance. This is different from saving disabled.
+      responses:
+        '204':
+          description: Setting removed
+        '400':
+          description: Invalid scope or target
+        '503':
+          description: Configuration unavailable
   /api/racing/add-intents:
     get:
       tags: [Racing]
@@ -708,6 +764,8 @@ paths:
       responses:
         '204':
           description: Rule deleted
+        '409':
+          description: Remove reclaim setting references before deleting this rule
         '404':
           description: Rule not found
 
@@ -7301,6 +7359,74 @@ components:
           type: integer
           description: All-time uploaded bytes. Absent until the instance completes its first sync.
 
+    RacingReclaimPolicy:
+      type: object
+      additionalProperties: false
+      properties:
+        enabled:
+          type: boolean
+        ruleIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        maxDeletes:
+          type: integer
+          minimum: 0
+        maxReclaimBytes:
+          type: integer
+          format: int64
+          minimum: 0
+        maxRecentUploadBytes:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Plan-wide recent upload contribution loss limit in bytes; zero is a strict zero limit.
+        recentUploadWindowSeconds:
+          type: integer
+          minimum: 0
+        maxOvershootBytes:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Maximum excess over the required deficit; the total reclaim byte limit still applies.
+    RacingReclaimConfiguration:
+      type: object
+      required: [revision, settings, effective]
+      properties:
+        revision:
+          type: integer
+          format: int64
+        settings:
+          type: array
+          items:
+            type: object
+            required: [scope, targetId, policy]
+            properties:
+              scope:
+                type: string
+                enum: [instances, groups]
+              targetId:
+                type: integer
+              policy:
+                $ref: '#/components/schemas/RacingReclaimPolicy'
+        effective:
+          type: array
+          items:
+            type: object
+            required: [instanceId, state, groupIds]
+            properties:
+              instanceId:
+                type: integer
+              state:
+                type: string
+                enum: [unconfigured, explicit, inherited, disabled, conflict]
+              groupIds:
+                type: array
+                items:
+                  type: integer
+              policy:
+                $ref: '#/components/schemas/RacingReclaimPolicy'
     RacingInstancePolicy:
       type: object
       required: [instanceId, enabled, maxConcurrentAdds, maxActiveDownloads, minFreeBytes, savePath, category, autoTMM, startPaused]

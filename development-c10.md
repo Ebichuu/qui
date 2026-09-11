@@ -21,3 +21,21 @@
 - 本批未修改前端或 API 契约，不重复前端全套与 OpenAPI 检查；全量 Go 测试交由 GitHub CI。本机只运行受影响三包。
 
 使用两引擎合成数据库和本机模拟下载器，不连接真实站点；恢复脚本使用 dry-run，不执行真实删除，冷却存取由双引擎测试覆盖。镜像仅由 GitHub Actions 构建发布。
+
+## 第二批：回收设置持久化与继承 API
+
+- SQLite 101 / PostgreSQL 102 保存下载器显式设置、群组默认及稳定自动化规则引用。所有设置修改纳入 racing 配置版本事务。
+- 单机显式值优先，包括显式关闭；删除单机设置恢复继承。仅启用且当前包含实例的群组参与解析，相同默认去重，不同默认返回冲突且不提供有效策略，不扩大预算或合并引用。
+- 数量、回收量、近期上传贡献损失、窗口与超额量使用明确单位；零损失预算不是无限制。被引用规则不能删除，改名不丢引用。
+- 提供读取、保存、移除设置 API 及 OpenAPI；RSS 保持仅允许开关，没有新增候选规则或预算字段。
+- 本批仅配置存储与解析；候选定义的显式复用/旧 FREE_SPACE 转换、预算执行、统一删除归属、前端表单仍待后续接入。保存启用不代表允许实际删除，也不改变原日常动作。
+
+验证：
+
+- `make precommit` 通过，保留既有前端 58 条 warning、0 error。
+- `go test -race -count=1 ./internal/models ./internal/api/handlers` 通过；启用真实 PostgreSQL 测试连接。引用错误处理调整后重新运行双引擎 `TestRacingReclaimInheritance` 通过。
+- 数据库迁移编号、幂等、完整迁移及 string_pool 外键索引检查通过；新设置生命周期与事务回滚同时在 SQLite / PostgreSQL 验证。
+- `make test-openapi` 通过；`make build` 通过。
+- 构建后运行 `python3 scripts/smoke-reclaim-settings.py`，输出 `PASS C10 settings: inheritance, conflict, explicit disable, crash recovery, reference protection; no downloader mutations`。对应检查加入 GitHub Actions。
+- 未改前端代码，不重复前端全套；全量 Go 回归交由 GitHub CI，本机运行上述受影响包与迁移检查。没有真实站点或真实删除验证，本批不提供删除执行能力。
+- 子代理只读复核已整合。引用删除由外键阻止；极窄的并发解除引用窗口可能返回原数据库错误，操作不会误删，后续重试即可。

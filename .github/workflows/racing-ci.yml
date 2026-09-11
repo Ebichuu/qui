@@ -67,3 +67,5 @@ jobs:
         run: make smoke-racing-integration
       - name: Verify automation observation crash recovery
         run: make smoke-automation-observation
+      - name: Verify reclaim configuration inheritance and recovery
+        run: make smoke-reclaim-settings
