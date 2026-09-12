@@ -15,6 +15,14 @@ import (
 )
 
 type automaticDeleteKey struct{}
+type AutomaticDeleteGuard interface {
+	GuardAutomaticDelete(context.Context, int, []models.DeleteIdentity) error
+}
+
+func (sm *SyncManager) SetAutomaticDeleteGuard(guard AutomaticDeleteGuard) {
+	sm.automaticDeleteGuard.Store(guard)
+}
+
 type automaticDeleteRequest struct {
 	owner      string
 	candidates []models.DeleteIdentity
@@ -63,6 +71,21 @@ func (sm *SyncManager) beginAutomaticDelete(ctx context.Context, instanceID int,
 	}
 	if len(identities) != len(hashes) {
 		return "", errors.New("automatic delete batch changed")
+	}
+	if guard, ok := sm.automaticDeleteGuard.Load().(AutomaticDeleteGuard); ok {
+		if err := guard.GuardAutomaticDelete(ctx, instanceID, identities); err != nil {
+			return "", err
+		}
+		if !sm.HasFreshTorrentCache(ctx, instanceID) {
+			return "", errors.New("automatic delete state expired during protection check")
+		}
+		latest := syncManager.GetTorrentMap(qbt.TorrentFilterOptions{})
+		for _, expected := range identities {
+			torrent, found := resolveTorrentByVariantHash(latest, expected.Hash)
+			if !found || torrent.AddedOn != expected.AddedOn {
+				return "", errors.New("automatic delete identity changed during protection check")
+			}
+		}
 	}
 	operation := rand.Text()
 	if err := store.BeginAutomaticDelete(ctx, instanceID, operation, request.owner, action, identities); err != nil {

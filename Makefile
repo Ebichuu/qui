@@ -308,3 +308,7 @@ smoke-reannounce-result:
 .PHONY: smoke-reannounce-shared
 smoke-reannounce-shared:
 	python3 scripts/smoke-reannounce-shared.py
+
+.PHONY: smoke-reannounce-policies
+smoke-reannounce-policies:
+	python3 scripts/smoke-reannounce-policies.py

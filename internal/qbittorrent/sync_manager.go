@@ -376,6 +376,7 @@ type TrackerCustomizationLister interface {
 }
 
 type SyncManager struct {
+	automaticDeleteGuard atomic.Value // AutomaticDeleteGuard
 	reannounceDispatcher atomic.Value // ReannounceDispatcher
 	automaticDeleteStore atomic.Pointer[models.RacingStore]
 	clientPool           *ClientPool

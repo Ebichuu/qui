@@ -5,10 +5,20 @@ package models
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 	"time"
 )
+
+func (s *InstanceReannounceStore) ReannounceTiming(ctx context.Context, instanceID int, hash string) (int64, int64, error) {
+	var started, deadline int64
+	err := s.db.QueryRowContext(ctx, `SELECT started_ns,not_before_ns FROM reannounce_attempts WHERE instance_id=? AND torrent_hash=?`, instanceID, strings.ToLower(hash)).Scan(&started, &deadline)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, 0, nil
+	}
+	return started, deadline, err
+}
 
 // BeginReannounce persists the next permitted send before network I/O. Both
 // the original and current intervals apply, even after restart or a settings edit.

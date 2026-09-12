@@ -33,6 +33,7 @@ type Status struct {
 
 type Service struct {
 	reclaimReader       ReclaimCandidateReader
+	reclaimProtection   ReclaimProtectionReader
 	executor            *executionRunner
 	executionReader     ExecutionReader
 	executionClient     ExecutionClient

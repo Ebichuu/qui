@@ -730,6 +730,7 @@ func (app *Application) runServer() {
 	reannounceService := reannounce.NewService(reannounce.DefaultConfig(), instanceStore, instanceReannounceStore, reannounceSettingsCache, clientPool, syncManager)
 	reannounceService.SetActivityPublisher(activityHub)
 	syncManager.SetReannounceDispatcher(reannounceService)
+	syncManager.SetAutomaticDeleteGuard(reannounceService)
 
 	backendPool := fsops.NewPool(instanceStore, localbackend.NewBackend())
 	crossSeedService.SetBackendPool(backendPool)
@@ -746,6 +747,7 @@ func (app *Application) runServer() {
 	automationService.SetReclaimStore(racingStore)
 	racingService := racing.NewService(racingStore)
 	racingService.SetReclaimCandidateReader(automationService)
+	racingService.SetReclaimProtectionReader(reannounceService)
 	racingCtx, racingCancel := context.WithCancel(context.Background())
 	defer racingCancel()
 	if err := racingService.Start(racingCtx); err != nil {

@@ -79,5 +79,7 @@ jobs:
         run: make smoke-reclaim-assessment
       - name: Verify tracker retry outcomes
         run: make smoke-reannounce-result
+      - name: Verify tracker account constraints
+        run: make smoke-reannounce-policies
       - name: Verify shared reannounce entry points
         run: make smoke-reannounce-shared

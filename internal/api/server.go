@@ -619,6 +619,9 @@ func (s *Server) Handler() (*chi.Mux, error) {
 					r.Get("/daily-transfer", dailyTransferHandler.GetCurrent)
 					r.Get("/reannounce/activity", instancesHandler.GetReannounceActivity)
 					r.Get("/reannounce/observations", instancesHandler.GetReannounceObservations)
+					r.Get("/reannounce/tracker-policies", instancesHandler.TrackerPolicies)
+					r.Put("/reannounce/tracker-policies", instancesHandler.TrackerPolicies)
+					r.Get("/reannounce/deletion-check", instancesHandler.TrackerDeletionCheck)
 					r.Get("/reannounce/candidates", instancesHandler.GetReannounceCandidates)
 
 					// Torrent creator

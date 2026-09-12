@@ -25,18 +25,17 @@ type observedReannounceClient struct {
 	addedOn      int64
 	lastTrackers []qbt.TorrentTracker
 	lastUploaded int64
+	policyOnly   bool
+	fresh        bool
 }
 
 func (c *observedReannounceClient) ReAnnounceTorrentsCtx(ctx context.Context, hashes []string) error {
 	if len(hashes) != 1 {
 		return errors.New("tracker job requires one task")
 	}
-	settings, err := c.service.settingsStore.Get(ctx, c.instanceID)
-	if err != nil {
+	c.fresh = true
+	if _, err := c.GetTorrentTrackersCtx(ctx, hashes[0]); err != nil {
 		return err
-	}
-	if !settings.CanMatchTorrents() {
-		return errReannounceDeferred
 	}
 	torrent, _, err := c.torrent(ctx, hashes[0])
 	if err != nil {
@@ -45,12 +44,34 @@ func (c *observedReannounceClient) ReAnnounceTorrentsCtx(ctx context.Context, ha
 	if torrent.AddedOn != c.addedOn || torrent.Uploaded < c.lastUploaded {
 		return errTrackerChanged
 	}
-	// Refresh filters as well as timing after a setting edit during a job.
-	torrent.Trackers = c.lastTrackers
-	if !c.service.torrentMeetsCriteria(torrent, settings) || c.service.hasHealthyTracker(c.lastTrackers) || trackersAwaitingResponse(c.lastTrackers) {
+	settings, err := c.service.settingsStore.Get(ctx, c.instanceID)
+	if err != nil {
+		return err
+	}
+	if !c.policyOnly && !settings.CanMatchTorrents() {
 		return errReannounceDeferred
 	}
-	allowed, err := c.service.settingsStore.BeginReannounce(ctx, c.instanceID, hashes[0], time.Now(), time.Duration(settings.ReannounceIntervalSeconds)*time.Second)
+	// Refresh filters as well as timing after a setting edit during a job.
+	torrent.Trackers = c.lastTrackers
+	if !c.policyOnly && (!c.service.torrentMeetsCriteria(torrent, settings) || c.service.hasHealthyTracker(c.lastTrackers) || trackersAwaitingResponse(c.lastTrackers)) {
+		return errReannounceDeferred
+	}
+	policies, err := c.service.settingsStore.TrackerPolicies(ctx, c.instanceID)
+	if err != nil {
+		return err
+	}
+	constraint, err := c.service.trackerConstraints(ctx, c.instanceID, torrent, c.lastTrackers, policies, false)
+	if err != nil {
+		return err
+	}
+	if (c.policyOnly && !constraint.Managed) || (constraint.Managed && !constraint.ReannounceAllowed) {
+		return errReannounceDeferred
+	}
+	interval := constraint.IntervalSeconds
+	if !c.policyOnly {
+		interval = max(settings.ReannounceIntervalSeconds, interval)
+	}
+	allowed, err := c.service.settingsStore.BeginReannounce(ctx, c.instanceID, hashes[0], time.Now(), time.Duration(interval)*time.Second)
 	if err != nil {
 		return err
 	}
@@ -132,7 +153,7 @@ func (c *observedReannounceClient) GetTorrentTrackersCtx(ctx context.Context, ha
 
 func (c *observedReannounceClient) torrent(ctx context.Context, hash string) (qbt.Torrent, time.Time, error) {
 	rows, at, err := c.service.syncManager.GetObservedTorrents(ctx, c.instanceID)
-	if err != nil {
+	if err != nil || c.fresh {
 		// A monitoring-only instance may not have a fast MainData consumer.
 		// Read this one task on demand; do not start another full-cache poller.
 		rows, err = c.GetTorrentsCtx(ctx, qbt.TorrentFilterOptions{Hashes: []string{hash}})

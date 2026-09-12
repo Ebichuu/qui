@@ -11,11 +11,22 @@ import (
 
 	"github.com/autobrr/qui/internal/models"
 	"github.com/autobrr/qui/internal/services/automations"
+	"github.com/autobrr/qui/internal/services/reannounce"
 )
 
 type ReclaimCandidateReader interface {
 	ObserveReclaimCandidates(context.Context, int) (*automations.ReclaimCandidates, error)
 	ReclaimPhysicalBytes(context.Context, int, automations.ReclaimCandidate, []int) (*int64, error)
+}
+
+type ReclaimProtectionReader interface {
+	CheckTrackerDeletion(context.Context, int, string, int64, bool) (reannounce.TrackerConstraintResult, error)
+}
+
+func (s *Service) SetReclaimProtectionReader(reader ReclaimProtectionReader) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.reclaimProtection = reader
 }
 
 func (s *Service) SetReclaimCandidateReader(reader ReclaimCandidateReader) {
@@ -102,7 +113,16 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 					continue
 				}
 				// Logical size is never promoted into physical release evidence.
-				entry := ReclaimEvidence{Hash: item.Hash, AddedOn: item.AddedOn, InstanceID: target.instance.InstanceID, PoolID: pool, ObservedAt: item.ObservedAt, LowEfficiencyDuration: time.Duration(item.LowEfficiencySeconds) * time.Second}
+				entry := ReclaimEvidence{Hash: item.Hash, AddedOn: item.AddedOn, InstanceID: target.instance.InstanceID, PoolID: pool, ObservedAt: item.ObservedAt, LowEfficiencyDuration: time.Duration(item.LowEfficiencySeconds) * time.Second,
+					Protected: true}
+				e.service.mu.RLock()
+				protection := e.service.reclaimProtection
+				e.service.mu.RUnlock()
+				if protection != nil {
+					if result, err := protection.CheckTrackerDeletion(ctx, target.instance.InstanceID, item.Hash, item.AddedOn, true); err == nil {
+						entry.Protected = !result.DeleteAllowed
+					}
+				}
 				if item.RecentUploadBytes != nil && item.UploadWindowSeconds == policy.RecentUploadWindowSeconds {
 					entry.UploadWindowCovered = true
 					entry.RecentUploadBytes = *item.RecentUploadBytes
@@ -121,7 +141,7 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 			}
 			result := assessReclaim(target.instance.InstanceID, target.pools[0], candidate.VerifiedMetadata.SizeBytes, target.available, *policy, *policy, ReclaimSpent{}, evidence, now)
 			if result.State == "assessed" {
-				result.State = "awaiting_site_protection"
+				result.State = "awaiting_execution_plan"
 			}
 			raw, err := json.Marshal(result)
 			if err != nil {

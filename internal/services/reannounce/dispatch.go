@@ -25,11 +25,15 @@ func (s *Service) DispatchReannounce(ctx context.Context, instanceID int, hashes
 	if err != nil {
 		return err
 	}
+	policies, err := s.settingsStore.TrackerPolicies(ctx, instanceID)
+	if err != nil {
+		return err
+	}
 	client, err := s.clientPool.GetClient(ctx, instanceID)
 	if err != nil {
 		return err
 	}
-	if !settings.CanMatchTorrents() {
+	if !settings.CanMatchTorrents() && len(policies) == 0 {
 		return client.ReAnnounceTorrentsCtx(ctx, hashes)
 	}
 	options := qbt.TorrentFilterOptions{Hashes: hashes, IncludeTrackers: client.SupportsTrackerHealth()}
@@ -42,13 +46,27 @@ func (s *Service) DispatchReannounce(ctx context.Context, instanceID int, hashes
 	}
 	direct := []string{}
 	for _, torrent := range torrents {
-		if !client.SupportsTrackerHealth() || (len(settings.Trackers) > 0 && len(torrent.Trackers) == 0) {
+		if len(policies) > 0 || !client.SupportsTrackerHealth() || (len(settings.Trackers) > 0 && len(torrent.Trackers) == 0) {
 			torrent.Trackers, err = client.GetTorrentTrackersCtx(ctx, torrent.Hash)
 			if err != nil {
 				return err
 			}
 		}
+		constraint, err := s.trackerConstraints(ctx, instanceID, torrent, torrent.Trackers, policies, false)
+		if err != nil {
+			return err
+		}
+		if constraint.Managed && !constraint.ReannounceAllowed {
+			continue
+		}
 		if !s.torrentMatchesFilters(torrent, settings) {
+			if constraint.Managed {
+				observed := &observedReannounceClient{Client: client, service: s, instanceID: instanceID, addedOn: torrent.AddedOn, lastUploaded: torrent.Uploaded, policyOnly: true}
+				if err := observed.ReAnnounceTorrentsCtx(ctx, []string{torrent.Hash}); err != nil && !errors.Is(err, errReannounceDeferred) {
+					return err
+				}
+				continue
+			}
 			direct = append(direct, torrent.Hash)
 			continue
 		}

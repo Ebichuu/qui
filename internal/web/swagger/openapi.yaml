@@ -2110,6 +2110,91 @@ paths:
         '500':
           description: Failed to get directory contents
 
+  /api/instances/{instanceID}/reannounce/tracker-policies:
+    get:
+      tags: [Instances]
+      summary: List exact tracker account policies
+      parameters:
+        - $ref: '#/components/parameters/instanceID'
+      responses:
+        '200':
+          description: Configured policies; a disabled site or changed host binding makes the configuration unavailable.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReannounceTrackerPolicy'
+        '400':
+          description: Invalid instance ID
+        '500':
+          description: Policy configuration unavailable
+    put:
+      tags: [Instances]
+      summary: Set an exact tracker account policy
+      description: Upserts by instance and full Tracker URL SHA-256 digest. The host must belong to an enabled configured site. Unknown accounts on a configured host are blocked. Shortening settings does not cancel existing waits. There is no automatic site-accounting confirmation.
+      parameters:
+        - $ref: '#/components/parameters/instanceID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReannounceTrackerPolicy'
+      responses:
+        '204':
+          description: Policy saved
+        '400':
+          description: Invalid policy or site binding
+        '500':
+          description: Policy could not be saved
+
+  /api/instances/{instanceID}/reannounce/deletion-check:
+    get:
+      tags: [Instances]
+      summary: Observe tracker deletion constraints
+      description: Queries the task and its trackers, persists known waits and checks complete account coverage. This result is an observation, not a reservation or permission to delete later. Automatic deletion checks again at its own boundary.
+      parameters:
+        - $ref: '#/components/parameters/instanceID'
+        - in: query
+          name: hash
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: addedOn
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Current observed constraints
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [managed, reannounceAllowed, deleteAllowed, intervalSeconds, notBefore, reason]
+                properties:
+                  managed:
+                    type: boolean
+                  reannounceAllowed:
+                    type: boolean
+                  deleteAllowed:
+                    type: boolean
+                  intervalSeconds:
+                    type: integer
+                  notBefore:
+                    type: string
+                    format: date-time
+                  reason:
+                    type: string
+        '400':
+          description: Invalid instance or task generation
+        '503':
+          description: Tracker protection evidence unavailable
+
   /api/instances/{instanceID}/reannounce/observations:
     get:
       tags: [Instances]
@@ -7019,6 +7104,35 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
 
   schemas:
+    ReannounceTrackerPolicy:
+      type: object
+      required: [trackerKey, siteId, trackerHost, intervalSeconds, waitMessageDigest, waitSeconds, deleteProtection]
+      properties:
+        trackerKey:
+          type: string
+          pattern: '^[0-9a-fA-F]{64}$'
+          description: SHA-256 of the exact full Tracker URL, including account parameters.
+        siteId:
+          type: integer
+          minimum: 1
+        trackerHost:
+          type: string
+        intervalSeconds:
+          type: integer
+          minimum: 1
+          maximum: 2592000
+        waitMessageDigest:
+          type: string
+          description: SHA-256 of an explicitly recognized complete message; empty when waitSeconds is zero.
+        waitSeconds:
+          type: integer
+          minimum: 0
+          maximum: 2592000
+        deleteProtection:
+          type: string
+          enum: [blocked, reported_working, accounted]
+          description: blocked and accounted retain protection. reported_working explicitly accepts current qB working state, which does not prove site accounting.
+
     ErrorResponse:
       type: object
       required:
