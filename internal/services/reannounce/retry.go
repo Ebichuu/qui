@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	errReannounceDeferred = errors.New("reannounce waiting for shared interval or monitoring conditions")
 	errTrackerUnconfirmed = errors.New("target tracker acceptance remains unconfirmed")
 	errTrackerChanged     = errors.New("target tracker inventory changed or is unavailable")
 	errTrackerPartial     = errors.New("partial tracker acceptance; torrent-wide retry deferred")

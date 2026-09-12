@@ -20,9 +20,44 @@ import (
 
 type observedReannounceClient struct {
 	*qbittorrent.Client
-	service    *Service
-	instanceID int
-	addedOn    int64
+	service      *Service
+	instanceID   int
+	addedOn      int64
+	lastTrackers []qbt.TorrentTracker
+	lastUploaded int64
+}
+
+func (c *observedReannounceClient) ReAnnounceTorrentsCtx(ctx context.Context, hashes []string) error {
+	if len(hashes) != 1 {
+		return errors.New("tracker job requires one task")
+	}
+	settings, err := c.service.settingsStore.Get(ctx, c.instanceID)
+	if err != nil {
+		return err
+	}
+	if !settings.CanMatchTorrents() {
+		return errReannounceDeferred
+	}
+	torrent, _, err := c.torrent(ctx, hashes[0])
+	if err != nil {
+		return err
+	}
+	if torrent.AddedOn != c.addedOn || torrent.Uploaded < c.lastUploaded {
+		return errTrackerChanged
+	}
+	// Refresh filters as well as timing after a setting edit during a job.
+	torrent.Trackers = c.lastTrackers
+	if !c.service.torrentMeetsCriteria(torrent, settings) || c.service.hasHealthyTracker(c.lastTrackers) || trackersAwaitingResponse(c.lastTrackers) {
+		return errReannounceDeferred
+	}
+	allowed, err := c.service.settingsStore.BeginReannounce(ctx, c.instanceID, hashes[0], time.Now(), time.Duration(settings.ReannounceIntervalSeconds)*time.Second)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return errReannounceDeferred
+	}
+	return c.ReannounceOnce(ctx, hashes)
 }
 
 func trackerObservations(trackers []qbt.TorrentTracker) []models.TrackerObservation {
@@ -71,7 +106,7 @@ func (c *observedReannounceClient) GetTorrentTrackersCtx(ctx context.Context, ha
 	if err != nil {
 		return nil, err
 	}
-	if c.addedOn != 0 && c.addedOn != before.AddedOn {
+	if c.addedOn != 0 && (c.addedOn != before.AddedOn || before.Uploaded < c.lastUploaded) {
 		return nil, errTrackerChanged
 	}
 	c.addedOn = before.AddedOn
@@ -90,6 +125,8 @@ func (c *observedReannounceClient) GetTorrentTrackersCtx(ctx context.Context, ha
 	if err := c.service.settingsStore.SaveObservation(ctx, models.ReannounceObservation{InstanceID: c.instanceID, Hash: hash, AddedOn: after.AddedOn, ObservedAt: observed, LocalObservedAt: at, LocalUploaded: after.Uploaded, Trackers: trackerObservations(trackers)}); err != nil {
 		return nil, err
 	}
+	c.lastTrackers = trackers
+	c.lastUploaded = after.Uploaded
 	return trackers, nil
 }
 

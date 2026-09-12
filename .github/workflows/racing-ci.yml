@@ -54,6 +54,8 @@ jobs:
         env:
           QUI_TEST_POSTGRES_DSN: postgres://postgres:postgres@localhost:5432/qui_test?sslmode=disable
         run: go test -race -count=1 -timeout 20m ./...
+      - name: Report native Linux allocation evidence
+        run: go test -race -count=1 -v ./pkg/fileallocation
       - name: Run frontend tests
         working-directory: web
         run: pnpm test
@@ -77,3 +79,5 @@ jobs:
         run: make smoke-reclaim-assessment
       - name: Verify tracker retry outcomes
         run: make smoke-reannounce-result
+      - name: Verify shared reannounce entry points
+        run: make smoke-reannounce-shared

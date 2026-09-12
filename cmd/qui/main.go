@@ -729,6 +729,7 @@ func (app *Application) runServer() {
 	crossSeedService.SetMediaIDCacheStore(models.NewMediaIDCacheStore(db))
 	reannounceService := reannounce.NewService(reannounce.DefaultConfig(), instanceStore, instanceReannounceStore, reannounceSettingsCache, clientPool, syncManager)
 	reannounceService.SetActivityPublisher(activityHub)
+	syncManager.SetReannounceDispatcher(reannounceService)
 
 	backendPool := fsops.NewPool(instanceStore, localbackend.NewBackend())
 	crossSeedService.SetBackendPool(backendPool)

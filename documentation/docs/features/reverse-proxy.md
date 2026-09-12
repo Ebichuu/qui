@@ -117,7 +117,7 @@ These endpoints proxy to qBittorrent and update qui's local state:
 | Endpoint | Behavior |
 |----------|----------|
 | `/api/v2/auth/login` | If the instance is healthy, returns success as a no-op |
-| `/api/v2/torrents/reannounce` | If tracker monitoring is enabled, routes to qui's reannounce service |
+| `/api/v2/torrents/reannounce` | Uses the same monitoring scope, waits, and job queue as bulk and automation requests; dispatch failures do not fall back to direct forwarding |
 | `/api/v2/torrents/setLocation` | Forwards to qBittorrent, invalidates the file cache |
 | `/api/v2/torrents/renameFile` | Forwards to qBittorrent, invalidates the file cache |
 | `/api/v2/torrents/renameFolder` | Forwards to qBittorrent, invalidates the file cache |

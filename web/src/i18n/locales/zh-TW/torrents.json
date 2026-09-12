@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "重新通報 {{count}} 個種子？",
-    "description": "這將強制所選種子向所有 Tracker 重新通報。當 Tracker 無回應或您想重新整理連線時，此操作非常有用。",
+    "description": "這將請求所選種子重新通報。受執行個體監控的種子將遵守設定的等待和冷卻時間。",
     "cancel": "取消",
     "confirm": "重新通報"
   },
@@ -192,7 +192,7 @@
       "delete_other": "已刪除 {{count}} 個種子",
       "deleteWithFiles_other": "已刪除 {{count}} 個種子及檔案",
       "recheck_other": "已開始重新檢查 {{count}} 個種子",
-      "reannounce_other": "已重新通報 {{count}} 個種子",
+      "reannounce_other": "已處理 {{count}} 個種子的重新通報請求",
       "increasePriority_other": "已提高 {{count}} 個種子的優先順序",
       "decreasePriority_other": "已降低 {{count}} 個種子的優先順序",
       "topPriority_other": "已將 {{count}} 個種子設為最高優先順序",

@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "Opětovné ohlášení {{count}} torrent(y)?",
-    "description": "Vynutí vybrané torrenty opětovně ohlásit se na všechny své trackery. Toto je užitečné, když trackery nereagují nebo chcete obnovit vaše připojení.",
+    "description": "Tím se vyžádá opětovné ohlášení vybraných torrentů. Torrenty monitorované instancí dodrží nastavené čekací a ochlazovací intervaly.",
     "cancel": "Zrušit",
     "confirm": "Opětovné ohlášení"
   },
@@ -200,8 +200,8 @@
       "deleteWithFiles_other": "Smazány {{count}} torrenty a soubory",
       "recheck_one": "Znovu ověřen {{count}} torrent",
       "recheck_other": "Znovu ověřeny {{count}} torrenty",
-      "reannounce_one": "Opětovně ohlášen {{count}} torrent",
-      "reannounce_other": "Opětovně ohlášeny {{count}} torrenty",
+      "reannounce_one": "Zpracován požadavek na opětovné ohlášení {{count}} torrentu",
+      "reannounce_other": "Zpracován požadavek na opětovné ohlášení {{count}} torrentů",
       "increasePriority_one": "Zvýšena priorita pro {{count}} torrent",
       "increasePriority_other": "Zvýšena priorita pro {{count}} torrenty",
       "decreasePriority_one": "Snížena priorita pro {{count}} torrent",

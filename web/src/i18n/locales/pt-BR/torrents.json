@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "Anunciar Novamente {{count}} torrent(s)?",
-    "description": "Isso forçará os torrents selecionados a se anunciarem para todos os seus trackers novamente. Útil quando os trackers não estão respondendo.",
+    "description": "Isso solicitará um novo anúncio para os torrents selecionados. Torrents monitorados pela instância seguirão os períodos configurados de espera e resfriamento.",
     "cancel": "Cancelar",
     "confirm": "Anunciar Novamente"
   },
@@ -200,8 +200,8 @@
       "deleteWithFiles_other": "Excluiu {{count}} torrents e arquivos",
       "recheck_one": "Iniciou verificação para {{count}} torrent",
       "recheck_other": "Iniciou verificação para {{count}} torrents",
-      "reannounce_one": "Anunciou novamente {{count}} torrent",
-      "reannounce_other": "Anunciou novamente {{count}} torrents",
+      "reannounce_one": "Solicitação de novo anúncio processada para {{count}} torrent",
+      "reannounce_other": "Solicitação de novo anúncio processada para {{count}} torrents",
       "increasePriority_one": "Aumentou prioridade de {{count}} torrent",
       "increasePriority_other": "Aumentou prioridade de {{count}} torrents",
       "decreasePriority_one": "Diminuiu prioridade de {{count}} torrent",

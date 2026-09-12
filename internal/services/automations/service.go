@@ -3222,7 +3222,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 			if err := s.syncManager.BulkAction(ctx, instanceID, batch, "reannounce"); err != nil {
 				log.Warn().Err(err).Int("instanceID", instanceID).Int("count", len(batch)).Msg("automations: reannounce action failed")
 			} else {
-				log.Info().Int("instanceID", instanceID).Int("count", len(batch)).Msg("automations: reannounced torrents")
+				log.Info().Int("instanceID", instanceID).Int("count", len(batch)).Msg("automations: processed reannounce requests")
 				reannouncedCount += len(batch)
 				reannouncedHashesSuccess = append(reannouncedHashesSuccess, batch...)
 			}
@@ -3231,7 +3231,7 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 
 	// Record aggregated reannounce activity
 	if reannouncedCount > 0 {
-		detailsJSON, _ := json.Marshal(map[string]any{"count": reannouncedCount})
+		detailsJSON, _ := json.Marshal(map[string]any{"count": reannouncedCount, "phase": "request_processed"})
 		activity := &models.AutomationActivity{
 			InstanceID: instanceID,
 			Hash:       "",

@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "{{count}} Torrent(s) neu ankündigen?",
-    "description": "Dadurch werden die ausgewählten Torrents gezwungen, sich bei all ihren Trackern neu anzukündigen. Das ist nützlich, wenn Tracker nicht antworten oder du deine Verbindung auffrischen möchtest.",
+    "description": "Damit wird eine erneute Ankündigung für die ausgewählten Torrents angefordert. Von der Instanz überwachte Torrents halten die konfigurierten Warte- und Abkühlzeiten ein.",
     "cancel": "Abbrechen",
     "confirm": "Neu ankündigen"
   },
@@ -200,8 +200,8 @@
       "deleteWithFiles_other": "{{count}} Torrents samt Dateien gelöscht",
       "recheck_one": "Neuprüfung für {{count}} Torrent gestartet",
       "recheck_other": "Neuprüfung für {{count}} Torrents gestartet",
-      "reannounce_one": "{{count}} Torrent neu angekündigt",
-      "reannounce_other": "{{count}} Torrents neu angekündigt",
+      "reannounce_one": "Anfrage zur erneuten Ankündigung für {{count}} Torrent verarbeitet",
+      "reannounce_other": "Anfrage zur erneuten Ankündigung für {{count}} Torrents verarbeitet",
       "increasePriority_one": "Priorität für {{count}} Torrent erhöht",
       "increasePriority_other": "Priorität für {{count}} Torrents erhöht",
       "decreasePriority_one": "Priorität für {{count}} Torrent verringert",

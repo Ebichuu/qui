@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "重新汇报 {{count}} 个种子？",
-    "description": "这将强制所选种子向所有 Tracker 重新汇报。当 Tracker 无响应或您想刷新连接时，此操作非常有用。",
+    "description": "这将请求所选种子重新汇报。受实例监控的种子将遵守配置的等待和冷却时间。",
     "cancel": "取消",
     "confirm": "重新汇报"
   },
@@ -192,7 +192,7 @@
       "delete_other": "已删除 {{count}} 个种子",
       "deleteWithFiles_other": "已删除 {{count}} 个种子及文件",
       "recheck_other": "已开始重新校验 {{count}} 个种子",
-      "reannounce_other": "已重新汇报 {{count}} 个种子",
+      "reannounce_other": "已处理 {{count}} 个种子的重新汇报请求",
       "increasePriority_other": "已提高 {{count}} 个种子的优先级",
       "decreasePriority_other": "已降低 {{count}} 个种子的优先级",
       "topPriority_other": "已将 {{count}} 个种子设为最高优先级",

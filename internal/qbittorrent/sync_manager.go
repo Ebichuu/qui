@@ -376,6 +376,7 @@ type TrackerCustomizationLister interface {
 }
 
 type SyncManager struct {
+	reannounceDispatcher atomic.Value // ReannounceDispatcher
 	automaticDeleteStore atomic.Pointer[models.RacingStore]
 	clientPool           *ClientPool
 	exprCache            *ttlcache.Cache[string, *vm.Program]
@@ -2582,7 +2583,7 @@ func (sm *SyncManager) BulkAction(ctx context.Context, instanceID int, hashes []
 		err = client.RecheckCtx(recheckCtx, canonicalHashes)
 	case "reannounce":
 		// No cache update needed - no visible state change
-		err = client.ReAnnounceTorrentsCtx(ctx, canonicalHashes)
+		err = sm.Reannounce(ctx, instanceID, canonicalHashes)
 	case "increasePriority":
 		err = client.IncreasePriorityCtx(ctx, canonicalHashes)
 	case "decreasePriority":

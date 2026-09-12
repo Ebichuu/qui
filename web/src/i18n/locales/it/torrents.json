@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "Riannunciare {{count}} torrent?",
-    "description": "Questo forzerà i torrent selezionati a riannunciarsi a tutti i loro tracker. È utile quando i tracker non rispondono o quando vuoi aggiornare la connessione.",
+    "description": "Verrà richiesto un nuovo annuncio per i torrent selezionati. I torrent monitorati dall’istanza rispetteranno i periodi di attesa e raffreddamento configurati.",
     "cancel": "Annulla",
     "confirm": "Riannuncia"
   },
@@ -200,8 +200,8 @@
       "deleteWithFiles_other": "{{count}} torrent e file eliminati",
       "recheck_one": "Riverifica avviata per {{count}} torrent",
       "recheck_other": "Riverifica avviata per {{count}} torrent",
-      "reannounce_one": "{{count}} torrent riannunciato",
-      "reannounce_other": "{{count}} torrent riannunciati",
+      "reannounce_one": "Richiesta di nuovo annuncio elaborata per {{count}} torrent",
+      "reannounce_other": "Richiesta di nuovo annuncio elaborata per {{count}} torrent",
       "increasePriority_one": "Priorità aumentata per {{count}} torrent",
       "increasePriority_other": "Priorità aumentata per {{count}} torrent",
       "decreasePriority_one": "Priorità ridotta per {{count}} torrent",

@@ -156,7 +156,7 @@
   },
   "reannounceDialog": {
     "title": "토렌트 {{count}}개를 재요청하시겠습니까?",
-    "description": "선택한 토렌트가 모든 트래커에 강제로 재요청됩니다. 트래커가 응답하지 않거나 연결을 새로 고치려는 경우 유용합니다.",
+    "description": "선택한 토렌트에 재요청을 보냅니다. 인스턴스에서 모니터링하는 토렌트는 설정된 대기 및 쿨다운 시간을 따릅니다.",
     "cancel": "취소",
     "confirm": "재요청"
   },
@@ -192,7 +192,7 @@
       "delete_other": "토렌트 {{count}}개를 삭제했습니다",
       "deleteWithFiles_other": "토렌트 {{count}}개와 파일을 삭제했습니다",
       "recheck_other": "토렌트 {{count}}개의 재확인을 시작했습니다",
-      "reannounce_other": "토렌트 {{count}}개를 재요청했습니다",
+      "reannounce_other": "토렌트 {{count}}개의 재요청을 처리했습니다",
       "increasePriority_other": "토렌트 {{count}}개의 우선순위를 높였습니다",
       "decreasePriority_other": "토렌트 {{count}}개의 우선순위를 낮췄습니다",
       "topPriority_other": "토렌트 {{count}}개를 최상위 우선순위로 설정했습니다",

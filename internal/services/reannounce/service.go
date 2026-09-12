@@ -170,33 +170,6 @@ func (s *Service) Start(ctx context.Context) {
 	}()
 }
 
-// RequestReannounce schedules reannounce attempts for monitored torrents and returns handled hashes.
-func (s *Service) RequestReannounce(ctx context.Context, instanceID int, hashes []string) []string {
-	if s == nil || len(hashes) == 0 {
-		return nil
-	}
-	settings := s.getSettings(ctx, instanceID)
-	if !settings.CanMatchTorrents() {
-		return nil
-	}
-	upperHashes := normalizeHashes(hashes)
-	torrents := s.lookupTorrents(ctx, instanceID, upperHashes)
-	var handled []string
-	for hash, torrent := range torrents {
-		if !s.torrentMeetsCriteria(torrent, settings) {
-			continue
-		}
-		if s.hasHealthyTracker(torrent.Trackers) {
-			continue
-		}
-		trackers := s.getProblematicTrackers(torrent.Trackers)
-		if s.enqueue(instanceID, hash, torrent.Name, trackers) {
-			handled = append(handled, hash)
-		}
-	}
-	return handled
-}
-
 func (s *Service) loop(ctx context.Context) {
 	ticker := time.NewTicker(s.cfg.ScanInterval)
 	defer ticker.Stop()
@@ -461,7 +434,7 @@ func (s *Service) executeJob(parentCtx context.Context, instanceID int, hash str
 	s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeStarted, fmt.Sprintf("reannounce job started (max %d retries)", settings.MaxRetries))
 
 	if err := retryReannounce(ctx, observedClient, hash, trackerList, time.Duration(settings.ReannounceIntervalSeconds)*time.Second, settings.MaxRetries); err != nil {
-		if errors.Is(err, errTrackerPartial) {
+		if errors.Is(err, errTrackerPartial) || errors.Is(err, errReannounceDeferred) {
 			s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeSkipped, err.Error())
 			return
 		}
@@ -505,25 +478,6 @@ func (s *Service) baseContext() context.Context {
 	s.ctxMu.RLock()
 	defer s.ctxMu.RUnlock()
 	return s.baseCtx
-}
-
-func (s *Service) lookupTorrents(ctx context.Context, instanceID int, hashes []string) map[string]qbt.Torrent {
-	result := make(map[string]qbt.Torrent)
-	if len(hashes) == 0 {
-		return result
-	}
-	if s.syncManager == nil {
-		return result
-	}
-	sync, err := s.syncManager.GetQBittorrentSyncManager(ctx, instanceID)
-	if err != nil || sync == nil {
-		return result
-	}
-	filter := qbt.TorrentFilterOptions{Hashes: hashes}
-	for hash, torrent := range sync.GetTorrentMap(filter) {
-		result[strings.ToUpper(hash)] = torrent
-	}
-	return result
 }
 
 func (s *Service) getSettings(ctx context.Context, instanceID int) *models.InstanceReannounceSettings {

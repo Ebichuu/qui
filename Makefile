@@ -304,3 +304,7 @@ smoke-reclaim-assessment:
 .PHONY: smoke-reannounce-result
 smoke-reannounce-result:
 	python3 scripts/smoke-reannounce-result.py
+
+.PHONY: smoke-reannounce-shared
+smoke-reannounce-shared:
+	python3 scripts/smoke-reannounce-shared.py

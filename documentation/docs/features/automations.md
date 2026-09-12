@@ -518,7 +518,7 @@ Force recheck matching torrents.
 
 Force reannounce matching torrents.
 
-- Triggers an immediate tracker reannounce for matched torrents.
+- Requests a tracker reannounce for matched torrents. Torrents covered by instance tracker monitoring use its shared waits and job queue. A successful automation activity means the request was processed, not that the Tracker accepted an announce.
 - You can combine this action with other actions.
 - Supports an optional condition override, as other actions do.
 

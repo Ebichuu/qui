@@ -76,3 +76,5 @@ Reclaim observations use a real successful qB snapshot, excluding optimistic UI 
 ### Tracker observations
 
 Reannounce jobs persist their latest queried Tracker snapshot per task, with the observed task generation and separate local-counter sample time. Exact URL and message digests preserve identity without storing private announce credentials. Older snapshots cannot replace newer rows. These records describe qB reports, not announce receipts or site-accounting confirmation. Read-only history survives restart but grants no deletion or reannounce authority; the shared site constraints remain separate pending work.
+
+Bulk actions and the qB proxy dispatch through the same reannounce service. The existing instance monitoring scope determines which tasks join its queue; matching tasks never fall back to direct forwarding on waits or errors. Before a monitoring job sends, it rechecks current settings and task generation and claims a persistent per-instance/hash interval. The single-attempt client sends once after that claim; failures retain the interval. This coordinates current monitoring rules, not yet site/account-specific protection or ownership transfer.
