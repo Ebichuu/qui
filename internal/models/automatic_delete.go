@@ -6,6 +6,7 @@ package models
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/autobrr/qui/internal/dbinterface"
@@ -32,7 +33,7 @@ type AutomaticDeleteIntent struct {
 // Unresolved older generations also block, since a delayed qB request addresses
 // a hash, not an added-on generation. Confirmed generations remain tombstones.
 func (s *RacingStore) BeginAutomaticDelete(ctx context.Context, instanceID int, operationID, owner, action string, candidates []DeleteIdentity) error {
-	if instanceID <= 0 || operationID == "" || owner == "" || len(candidates) == 0 || (action != DeleteModeKeepFiles && action != DeleteModeWithFiles) {
+	if instanceID <= 0 || operationID == "" || owner == "" || owner == "official-reclaim" || len(candidates) == 0 || (action != DeleteModeKeepFiles && action != DeleteModeWithFiles) {
 		return racingInvalid("automatic delete intent")
 	}
 	seen := map[string]struct{}{}
@@ -40,33 +41,44 @@ func (s *RacingStore) BeginAutomaticDelete(ctx context.Context, instanceID int, 
 		if item.Hash == "" || item.AddedOn <= 0 {
 			return racingInvalid("known delete identity required")
 		}
-		if _, ok := seen[item.Hash]; ok {
+		if _, ok := seen[strings.ToLower(item.Hash)]; ok {
 			return racingInvalid("duplicate delete hash")
 		}
-		seen[item.Hash] = struct{}{}
+		seen[strings.ToLower(item.Hash)] = struct{}{}
 	}
 	_, err := s.write(ctx, func(tx dbinterface.TxQuerier) (int, error) {
 		if err := s.lockExecution(ctx, tx, nil); err != nil {
 			return 0, err
 		}
-		for _, item := range candidates {
-			var blocked bool
-			if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM automatic_delete_intents WHERE instance_id=? AND torrent_hash=? AND (state<>'confirmed' OR added_on=?))`, instanceID, item.Hash, item.AddedOn).Scan(&blocked); err != nil {
-				return 0, err
-			}
-			if blocked {
-				return 0, ErrDeleteOwned
-			}
-		}
-		now := time.Now().UTC().Format(time.RFC3339Nano)
-		for _, item := range candidates {
-			if _, err := tx.ExecContext(ctx, `INSERT INTO automatic_delete_intents(instance_id,torrent_hash,added_on,operation_id,owner,action,state,submitted_at,updated_at) VALUES(?,?,?,?,?,?,'submitted',?,?)`, instanceID, item.Hash, item.AddedOn, operationID, owner, action, now, now); err != nil {
-				return 0, err
-			}
-		}
-		return 0, nil
+		return 0, s.claimAutomaticDelete(ctx, tx, instanceID, operationID, owner, action, candidates)
 	})
 	return err
+}
+
+// Caller holds the shared execution lock; used by daily and budgeted reclaim claims.
+func (s *RacingStore) claimAutomaticDelete(ctx context.Context, tx dbinterface.TxQuerier, instanceID int, operationID, owner, action string, candidates []DeleteIdentity) error {
+	for _, item := range candidates {
+		var blocked bool
+		if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM automatic_delete_intents WHERE instance_id=? AND LOWER(torrent_hash)=? AND (state<>'confirmed' OR added_on=?))`, instanceID, strings.ToLower(item.Hash), item.AddedOn).Scan(&blocked); err != nil {
+			return err
+		}
+		if blocked {
+			return ErrDeleteOwned
+		}
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	for _, item := range candidates {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO automatic_delete_intents(instance_id,torrent_hash,added_on,operation_id,owner,action,state,submitted_at,updated_at) VALUES(?,?,?,?,?,?,'submitted',?,?)`, instanceID, item.Hash, item.AddedOn, operationID, owner, action, now, now); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *RacingStore) AutomaticDeleteOwned(ctx context.Context, instanceID int, item DeleteIdentity) (bool, error) {
+	var owned bool
+	err := s.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM automatic_delete_intents WHERE instance_id=? AND LOWER(torrent_hash)=? AND (state<>'confirmed' OR added_on=?))`, instanceID, strings.ToLower(item.Hash), item.AddedOn).Scan(&owned)
+	return owned, err
 }
 
 func (s *RacingStore) RecordAutomaticDeleteResult(ctx context.Context, operationID string, accepted bool) error {

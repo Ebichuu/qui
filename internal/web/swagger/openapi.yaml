@@ -211,6 +211,84 @@ paths:
           description: Invalid policy or instance mismatch
         '503':
           description: Reception configuration unavailable
+  /api/racing/reclaim-plans:
+    get:
+      tags: [Racing]
+      summary: Read the latest 100 prepared reclaim plans
+      description: Persistent plan history with frozen budget ceilings and conservative charges at the deletion claim boundary. Plans do not grant operation authority or prove released space. No network reclaim executor is enabled.
+      responses:
+        '200':
+          description: Newest plans first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [candidateKey, candidateUpdatedAt, instanceId, poolId, configurationRevision, deadline, observedAt, frozen, spent, deficitBytes, items, state]
+                  properties:
+                    candidateKey:
+                      type: string
+                    candidateUpdatedAt:
+                      type: string
+                      format: date-time
+                    instanceId:
+                      type: integer
+                    poolId:
+                      type: integer
+                    configurationRevision:
+                      type: integer
+                      format: int64
+                    deadline:
+                      type: string
+                      format: date-time
+                    observedAt:
+                      type: string
+                      format: date-time
+                    frozen:
+                      type: object
+                      description: The initial effective reclaim policy; later increases do not raise its ceilings.
+                    spent:
+                      type: object
+                      required: [deletes, capacityBytes, recentUploadBytes, overshootBytes]
+                      properties:
+                        deletes:
+                          type: integer
+                        capacityBytes:
+                          type: integer
+                          format: int64
+                        recentUploadBytes:
+                          type: integer
+                          format: int64
+                        overshootBytes:
+                          type: integer
+                          format: int64
+                    deficitBytes:
+                      type: integer
+                      format: int64
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        required: [hash, addedOn, capacityBytes, recentUploadBytes]
+                        properties:
+                          hash:
+                            type: string
+                          addedOn:
+                            type: integer
+                            format: int64
+                          capacityBytes:
+                            type: integer
+                            format: int64
+                          recentUploadBytes:
+                            type: integer
+                            format: int64
+                    state:
+                      type: string
+                      enum: [awaiting_executor, awaiting_release]
+        '503':
+          description: Plan history unavailable
+
   /api/racing/reclaim-assessments:
     get:
       tags: [Racing]

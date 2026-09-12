@@ -32,3 +32,15 @@
 - macOS、Windows 及不支持的平台返回未知，不回退到逻辑大小。Linux 包已交叉编译，本机不能运行 Linux 专用检查；Linux 实跑待 Actions 验证。
 - 即使容量组合可行，历史评估状态仍为等待站点保护，不发送删除，也不声称物理空间已经释放。
 - 本批 `make precommit`、完整构建、OpenAPI、相关包竞态测试、双数据库窗口测试及合成进程检查通过。Linux 专用静态检查与交叉编译通过；本机为 macOS，不能以此代替 Linux 文件系统实跑。
+
+
+## 第四批：持久计划与原子扣减边界
+
+- SQLite 109／PostgreSQL 110 保存准备好的计划和不可撤销的扣减记录。首个计划冻结预算与截止时间，后续提高设置不能抬升旧计划上限；降低设置继续约束剩余额度。目标实例与物理池保持不变，未决步骤禁止重规划覆盖。
+- 官种评估只有组合完整补足缺口、证据及站点保护齐备时才准备计划。已有日常删除占用会排除候选。`GET /api/racing/reclaim-plans` 返回最近 100 条历史，不授予删除权。
+- 存储层 BeginReclaimDelete 将单项删除占用、预算扣减和审计记录放在同一事务中；与日常入口竞争时只能一方成功。扣减是发送边界的保守容量估计与上传贡献代价，不是实际释放证明；超时、重启、任务消失均不清账。
+- 查询、冻结和提交核验配置 revision、候选版本、未评估发现、元数据时间及最长 5 秒的候选证据。账号保护和实际容量仍需未来执行器在网络边界重新核实。
+- 当前运行路径止于 awaiting_executor。BeginReclaimDelete 尚无网络执行器调用，测试中的 awaiting_release 只表示存储占用已建立；逐项发送、释放核实及后续继续／停止仍待接入，不能称 C11 完成。
+- 验证：SQLite/PostgreSQL 覆盖冻结预算、上调不扩额、截止时间不延长、过期证据与目标／候选变化拒绝、大小写 hash 竞争、原子扣账、unknown／任务消失后不清账。OpenAPI、`make precommit`、完整构建通过，既有前端 58 条 warning、0 error。
+- 实跑：最终构建执行 `make smoke-reclaim-assessment smoke-automatic-delete` 全部输出 PASS，覆盖无事件／证据不足不建计划、正常容量恢复接种、accepted 与断连后的删除不重放。macOS 无原生 Linux FIEMAP 证据，本机无法通过真实文件释放准备正向回收计划；正向计划与扣账由两引擎模型测试验证，未冒充实际物理删除验收。
+- 完整 `make test`（`-race -count=1`、PostgreSQL 启用、macOS 临时目录使用真实路径）全部通过；最终入口限制另跑双引擎定向测试通过。已核对 [45a73ed1 的 Actions](https://github.com/Ebichuu/qui/actions/runs/34709571207)，Linux 的 TestFiemapLayout 与 TestExclusiveFileEvidence 均实际 PASS、未跳过。该证据支持估计器，不代表真实任务删除释放已验收。

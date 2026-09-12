@@ -22,12 +22,14 @@ def main():
         workflow = app.request(f"/api/instances/{instance}/automations", dict(name="Synthetic official condition", trackerPattern="*", enabled=True, dryRun=False, conditions={"schemaVersion":"1","delete":{"usage":"official","enabled":True,"mode":"deleteWithFiles","conditionMatchDurationSeconds":60,"condition":{"field":"UP_SPEED","operator":"LESS_THAN","value":"10"}}}), expected=201)
         policy = dict(enabled=True, ruleIds=[workflow["id"]], maxDeletes=2, maxReclaimBytes=100*fixture["MIB"], maxRecentUploadBytes=0, recentUploadWindowSeconds=3600, maxOvershootBytes=20*fixture["MIB"])
         app.request(f"/api/racing/reclaim-settings/instances/{instance}", policy, method="PUT", expected=204)
+        assert app.request("/api/racing/reclaim-plans") == [], "plan without a concrete event"
         assert app.request("/api/racing/reclaim-assessments") == [], "assessment without a concrete event"
         mock.publish("/rss", item)
         rows = until(lambda: app.request("/api/racing/reclaim-assessments"), "official deficit was not assessed", 60)
         result = rows[0]["assessment"]
         assert result["deficitBytes"] == 9*fixture["MIB"], result
         assert result["state"] == "insufficient_evidence_or_budget" and not result["selected"], result
+        assert app.request("/api/racing/reclaim-plans") == [], "insufficient evidence created a plan"
         assert not app.rows("SELECT * FROM automatic_delete_intents") and not mock.adds and not mock.errors
         app.restart(crash=True)
         recovered = app.request("/api/racing/reclaim-assessments")

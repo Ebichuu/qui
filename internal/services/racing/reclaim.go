@@ -31,13 +31,6 @@ type ReclaimEvidence struct {
 	Owned                 bool          `json:"owned"`
 }
 
-type ReclaimSpent struct {
-	Deletes           int
-	CapacityBytes     int64
-	RecentUploadBytes int64
-	OvershootBytes    int64
-}
-
 type ReclaimAssessment struct {
 	State                     string            `json:"state"`
 	DeficitBytes              int64             `json:"deficitBytes"`
@@ -68,7 +61,7 @@ func reclaimDeficit(required, available int64) (int64, bool) {
 // assessReclaim never claims candidates or sends actions. The first plan's
 // ceilings remain binding even if current settings are raised; lower settings
 // constrain every unsubmitted step, including after previous partial execution.
-func assessReclaim(instanceID, poolID int, required, available int64, frozen, current models.RacingReclaimPolicy, spent ReclaimSpent, evidence []ReclaimEvidence, now time.Time) ReclaimAssessment {
+func assessReclaim(instanceID, poolID int, required, available int64, frozen, current models.RacingReclaimPolicy, spent models.RacingReclaimSpent, evidence []ReclaimEvidence, now time.Time) ReclaimAssessment {
 	result := ReclaimAssessment{State: "unavailable", Selected: []ReclaimEvidence{}, ObservedCandidates: len(evidence)}
 	for _, item := range evidence {
 		if !item.CapacityKnown {

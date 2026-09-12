@@ -21,13 +21,13 @@ func TestReclaimCompleteCombinationBeforeAnyAction(t *testing.T) {
 		{Hash: "b", AddedOn: 1, InstanceID: 1, PoolID: 2, PhysicalBytes: 270, RecentUploadBytes: 2, LowEfficiencyDuration: time.Hour, ObservedAt: now, CapacityKnown: true, UploadWindowCovered: true},
 		{Hash: "c", AddedOn: 1, InstanceID: 1, PoolID: 2, PhysicalBytes: 100, RecentUploadBytes: 20, LowEfficiencyDuration: time.Hour, ObservedAt: now, CapacityKnown: true, UploadWindowCovered: true},
 	}
-	result := assessReclaim(1, 2, 691, 300, policy, policy, ReclaimSpent{}, candidates, now)
+	result := assessReclaim(1, 2, 691, 300, policy, policy, models.RacingReclaimSpent{}, candidates, now)
 	require.Equal(t, "assessed", result.State)
 	require.EqualValues(t, 391, result.DeficitBytes)
 	require.EqualValues(t, 420, result.PhysicalBytes)
 	require.Len(t, result.Selected, 2)
 	candidates[1].Protected = true
-	result = assessReclaim(1, 2, 691, 300, policy, policy, ReclaimSpent{}, candidates, now)
+	result = assessReclaim(1, 2, 691, 300, policy, policy, models.RacingReclaimSpent{}, candidates, now)
 	require.Equal(t, "insufficient_evidence_or_budget", result.State)
 	require.Empty(t, result.Selected, "insufficient total never returns a partial deletion list")
 }
@@ -39,16 +39,16 @@ func TestReclaimFrozenAndConsumedBudgets(t *testing.T) {
 	raised := policy
 	raised.MaxDeletes = 10
 	raised.MaxReclaimBytes = 1000
-	result := assessReclaim(1, 2, 90, 0, policy, raised, ReclaimSpent{Deletes: 1, CapacityBytes: 100, RecentUploadBytes: 3}, candidate, now)
+	result := assessReclaim(1, 2, 90, 0, policy, raised, models.RacingReclaimSpent{Deletes: 1, CapacityBytes: 100, RecentUploadBytes: 3}, candidate, now)
 	require.Equal(t, "budget_exhausted", result.State)
 	lowered := policy
 	lowered.MaxRecentUploadBytes = 2
-	result = assessReclaim(1, 2, 90, 0, policy, lowered, ReclaimSpent{}, candidate, now)
+	result = assessReclaim(1, 2, 90, 0, policy, lowered, models.RacingReclaimSpent{}, candidate, now)
 	require.Empty(t, result.Selected)
-	result = assessReclaim(1, 2, 90, 0, policy, policy, ReclaimSpent{OvershootBytes: 1}, candidate, now)
+	result = assessReclaim(1, 2, 90, 0, policy, policy, models.RacingReclaimSpent{OvershootBytes: 1}, candidate, now)
 	require.Empty(t, result.Selected, "old excess remains spent")
 	candidate[0].CapacityKnown = false
-	result = assessReclaim(1, 2, 90, 0, policy, policy, ReclaimSpent{}, candidate, now)
+	result = assessReclaim(1, 2, 90, 0, policy, policy, models.RacingReclaimSpent{}, candidate, now)
 	require.Empty(t, result.Selected)
 	require.Equal(t, 1, result.UnknownCapacityCandidates)
 }

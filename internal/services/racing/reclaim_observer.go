@@ -78,7 +78,14 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 		if err != nil || settings.Revision != config.Revision {
 			return
 		}
+		previous, err := e.store.ReclaimPlan(ctx, record.Key)
+		if err != nil {
+			return
+		}
 		for _, target := range targets {
+			if previous != nil && (previous.InstanceID != target.instance.InstanceID || len(target.pools) != 1 || previous.PoolID != target.pools[0] || previous.State != "awaiting_executor") {
+				continue
+			}
 			if ctx.Err() != nil || target.available >= candidate.VerifiedMetadata.SizeBytes || len(target.pools) != 1 {
 				continue
 			}
@@ -114,7 +121,11 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 				}
 				// Logical size is never promoted into physical release evidence.
 				entry := ReclaimEvidence{Hash: item.Hash, AddedOn: item.AddedOn, InstanceID: target.instance.InstanceID, PoolID: pool, ObservedAt: item.ObservedAt, LowEfficiencyDuration: time.Duration(item.LowEfficiencySeconds) * time.Second,
-					Protected: true}
+					Protected: true,
+					Owned:     true}
+				if owned, err := e.store.AutomaticDeleteOwned(ctx, target.instance.InstanceID, models.DeleteIdentity{Hash: item.Hash, AddedOn: item.AddedOn}); err == nil {
+					entry.Owned = owned
+				}
 				e.service.mu.RLock()
 				protection := e.service.reclaimProtection
 				e.service.mu.RUnlock()
@@ -139,9 +150,28 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 			if !now.Before(*selection.Deadline) {
 				return
 			}
-			result := assessReclaim(target.instance.InstanceID, target.pools[0], candidate.VerifiedMetadata.SizeBytes, target.available, *policy, *policy, ReclaimSpent{}, evidence, now)
+			frozen, spent := *policy, models.RacingReclaimSpent{}
+			if previous != nil {
+				frozen, spent = previous.Frozen, previous.Spent
+			}
+			result := assessReclaim(target.instance.InstanceID, target.pools[0], candidate.VerifiedMetadata.SizeBytes, target.available, frozen, *policy, spent, evidence, now)
 			if result.State == "assessed" {
-				result.State = "awaiting_execution_plan"
+				plan := models.RacingReclaimPlan{CandidateKey: record.Key, CandidateUpdatedAt: record.UpdatedAt, InstanceID: target.instance.InstanceID, PoolID: target.pools[0], ConfigurationRevision: settings.Revision, Deadline: *selection.Deadline, ObservedAt: now, DeficitBytes: result.DeficitBytes}
+				for _, item := range result.Selected {
+					if item.ObservedAt.Before(plan.ObservedAt) {
+						plan.ObservedAt = item.ObservedAt
+					}
+					plan.Items = append(plan.Items, models.RacingReclaimItem{Hash: item.Hash, AddedOn: item.AddedOn, CapacityBytes: item.PhysicalBytes + item.FutureWriteBytes, RecentUploadBytes: item.RecentUploadBytes})
+				}
+				if err := e.store.SaveReclaimPlan(ctx, plan); err != nil {
+					result.State = "plan_changed"
+				} else {
+					result.State = "awaiting_executor"
+					previous, err = e.store.ReclaimPlan(ctx, record.Key)
+					if err != nil {
+						return
+					}
+				}
 			}
 			raw, err := json.Marshal(result)
 			if err != nil {

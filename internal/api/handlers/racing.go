@@ -39,6 +39,7 @@ func (h *RacingHandler) Register(r chi.Router) {
 	r.Get("/add-intents", h.addIntents)
 	r.Get("/reclaim-settings", h.reclaimConfiguration)
 	r.Get("/reclaim-assessments", h.reclaimAssessments)
+	r.Get("/reclaim-plans", h.reclaimPlans)
 	r.Put("/reclaim-settings/{scope}/{id}", h.writeReclaimSetting)
 	r.Delete("/reclaim-settings/{scope}/{id}", h.writeReclaimSetting)
 	r.Put("/rules/order", h.reorderRules)

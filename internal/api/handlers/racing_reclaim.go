@@ -61,3 +61,12 @@ func (h *RacingHandler) reclaimAssessments(w http.ResponseWriter, r *http.Reques
 	}
 	RespondJSON(w, http.StatusOK, items)
 }
+
+func (h *RacingHandler) reclaimPlans(w http.ResponseWriter, r *http.Request) {
+	items, err := h.store.ReclaimPlans(r.Context())
+	if err != nil {
+		RespondError(w, http.StatusServiceUnavailable, "Reclaim plans unavailable")
+		return
+	}
+	RespondJSON(w, http.StatusOK, items)
+}
