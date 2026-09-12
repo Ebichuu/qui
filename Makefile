@@ -300,3 +300,7 @@ smoke-reclaim-candidates:
 
 smoke-reclaim-assessment:
 	python3 scripts/smoke-reclaim-assessment.py
+
+.PHONY: smoke-reannounce-result
+smoke-reannounce-result:
+	python3 scripts/smoke-reannounce-result.py

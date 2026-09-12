@@ -5,6 +5,7 @@ package reannounce
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -456,15 +457,13 @@ func (s *Service) executeJob(parentCtx context.Context, instanceID int, hash str
 	if freshTrackers == "" {
 		freshTrackers = initialTrackers
 	}
-	opts := &qbt.ReannounceOptions{
-		Interval:        settings.ReannounceIntervalSeconds,
-		MaxAttempts:     settings.MaxRetries,
-		DeleteOnFailure: false,
-	}
+	s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeStarted, fmt.Sprintf("reannounce job started (max %d retries)", settings.MaxRetries))
 
-	s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeStarted, fmt.Sprintf("reannounce job started (max %d retries)", opts.MaxAttempts))
-
-	if err := client.ReannounceTorrentWithRetry(ctx, hash, opts); err != nil {
+	if err := retryReannounce(ctx, client, hash, trackerList, time.Duration(settings.ReannounceIntervalSeconds)*time.Second, settings.MaxRetries); err != nil {
+		if errors.Is(err, errTrackerPartial) {
+			s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeSkipped, err.Error())
+			return
+		}
 		log.Debug().Err(err).Int("instanceID", instanceID).Str("hash", hash).Msg("reannounce: retry failed")
 		s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeFailed, fmt.Sprintf("reannounce failed: %v", err))
 		return
