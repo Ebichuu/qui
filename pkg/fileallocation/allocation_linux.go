@@ -49,6 +49,10 @@ func ExclusiveBytes(ctx context.Context, rootPath, relative string) (int64, erro
 		return 0, err
 	}
 	defer root.Close()
+	return exclusiveBytes(ctx, root, relative)
+}
+
+func exclusiveBytes(ctx context.Context, root *os.Root, relative string) (int64, error) {
 	file, err := root.OpenFile(relative, os.O_RDONLY|unix.O_NOFOLLOW|unix.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, err

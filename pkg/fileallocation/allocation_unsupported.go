@@ -5,11 +5,21 @@
 
 package fileallocation
 
-import "context"
+import (
+	"context"
+	"os"
+)
 
 const Supported = false
 
 func ExclusiveBytes(ctx context.Context, _, _ string) (int64, error) {
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
+	return 0, ErrUnknown
+}
+
+func exclusiveBytes(ctx context.Context, _ *os.Root, _ string) (int64, error) {
 	if err := ctx.Err(); err != nil {
 		return 0, err
 	}

@@ -44,3 +44,13 @@
 - 验证：SQLite/PostgreSQL 覆盖冻结预算、上调不扩额、截止时间不延长、过期证据与目标／候选变化拒绝、大小写 hash 竞争、原子扣账、unknown／任务消失后不清账。OpenAPI、`make precommit`、完整构建通过，既有前端 58 条 warning、0 error。
 - 实跑：最终构建执行 `make smoke-reclaim-assessment smoke-automatic-delete` 全部输出 PASS，覆盖无事件／证据不足不建计划、正常容量恢复接种、accepted 与断连后的删除不重放。macOS 无原生 Linux FIEMAP 证据，本机无法通过真实文件释放准备正向回收计划；正向计划与扣账由两引擎模型测试验证，未冒充实际物理删除验收。
 - 完整 `make test`（`-race -count=1`、PostgreSQL 启用、macOS 临时目录使用真实路径）全部通过；最终入口限制另跑双引擎定向测试通过。已核对 [45a73ed1 的 Actions](https://github.com/Ebichuu/qui/actions/runs/34709571207)，Linux 的 TestFiemapLayout 与 TestExclusiveFileEvidence 均实际 PASS、未跳过。该证据支持估计器，不代表真实任务删除释放已验收。
+
+
+## 第五批：净容量核实组件
+
+- 捕获删除前的独占区段估计、相对文件清单和根目录设备／inode 身份；文件扫描与容量观测使用同一个打开的安全根，结束时再次核对路径仍指向原根。
+- 后续只读核实要求原根身份一致、记录的文件路径全部缺失，且原文件系统的可用容量净增长达到估计门槛。文件仍存在、根被替换、容量不足或证据未知均不能推进。并发写入可使核实继续等待。
+- 此证据不能把空间增长归因于特定删除：其他删除也可能贡献空闲容量，文件改名也可造成原路径消失。未来执行器必须结合任务代次／操作核实及同盘共享账本使用，不能把返回值当作删除成功或独占释放收据。
+- 组件尚未接入生产执行器，未增加删除权限，C11 仍未完成。没有新增用户界面或 API；本批仅更新开发记录，不需要修改 Docusaurus 使用说明。
+- 验证：`make precommit`、`make build` 通过（既有前端 58 条 warning、0 error）；fileallocation、automations、racing 定向 `go test -race -count=1` 通过，Linux 专项静态检查及 amd64/arm64 交叉编译通过。未改数据库或 API，未重复全量 Go／OpenAPI 检查。
+- 实跑：`make smoke-reclaim-assessment smoke-automatic-delete` 输出 PASS，覆盖容量恢复接种与删除断连／重启不重放。macOS 不能运行本批 Linux 原生容量核实，最近似本地检查为交叉编译及不支持平台的拒绝路径；原生测试随开发分支推送交由 Actions，不能将模拟余额测试当作真实释放验收。
