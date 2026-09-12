@@ -119,6 +119,21 @@ func (h *AutomationHandler) List(w http.ResponseWriter, r *http.Request) {
 	RespondJSON(w, http.StatusOK, automations)
 }
 
+// ReclaimCandidates refreshes observations without sending downloader actions.
+func (h *AutomationHandler) ReclaimCandidates(w http.ResponseWriter, r *http.Request) {
+	instanceID, err := parseInstanceID(w, r)
+	if err != nil {
+		return
+	}
+	result, err := h.service.ObserveReclaimCandidates(r.Context(), instanceID)
+	if err != nil {
+		log.Error().Err(err).Int("instanceID", instanceID).Msg("failed to observe reclaim candidates")
+		RespondError(w, http.StatusServiceUnavailable, "Reclaim observations unavailable")
+		return
+	}
+	RespondJSON(w, http.StatusOK, result)
+}
+
 func (h *AutomationHandler) Create(w http.ResponseWriter, r *http.Request) {
 	instanceID, err := parseInstanceID(w, r)
 	if err != nil {
@@ -563,6 +578,11 @@ func deleteUsesKeepFilesWithFreeSpace(conditions *models.ActionConditions) bool 
 func validateDeleteConditionDuration(conditions *models.ActionConditions) (string, error) {
 	if conditions == nil || conditions.Delete == nil || !conditions.Delete.Enabled {
 		return "", nil
+	}
+	switch conditions.Delete.Usage {
+	case "", "daily", "official", "both":
+	default:
+		return "Delete usage must be daily, official or both", errors.New("invalid delete usage")
 	}
 	duration := conditions.Delete.ConditionMatchDurationSeconds
 	if duration == 0 || (duration >= 60 && int64(duration) <= int64((1<<63-1)/time.Second)) {

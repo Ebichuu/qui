@@ -158,6 +158,35 @@
     "title": "檢測到密碼問題",
     "description": "部分實例無法解密其儲存的密碼，可能是由於配置變更所致。請檢查下方受影響的實例以解決此問題。"
   },
+  "reclaim": {
+    "title": "官種回收設定",
+    "intro": "設定目前僅用於候選觀察，預算執行與站點保護尚未接通。",
+    "loadError": "設定載入失敗",
+    "edit": "編輯",
+    "editTitle": "回收設定：{{name}}",
+    "scopes": { "instances": "下載器", "groups": "群組" },
+    "states": {
+      "unconfigured": "未配置",
+      "explicit": "單獨配置",
+      "inherited": "繼承群組",
+      "disabled": "已關閉",
+      "conflict": "群組配置衝突",
+      "unavailable": "狀態不可用"
+    },
+    "enabled": "允許官種回收候選觀察",
+    "rules": "引用的工作流",
+    "rulesHelp": "請選擇明確標記為官種或兩者、持續至少 60 秒的刪除規則；混合空間條件及擴展刪除暫不支援。",
+    "maxDeletes": "單次最多刪除數量",
+    "maxReclaimBytes": "單次最大回收位元組",
+    "maxRecentUploadBytes": "近期上傳損失上限（位元組）",
+    "recentUploadWindowSeconds": "近期上傳窗口（秒）",
+    "maxOvershootBytes": "最大超額回收（位元組）",
+    "saveError": "儲存失敗",
+    "inherit": "恢復群組繼承",
+    "clearDefault": "清除群組預設",
+    "cancel": "取消",
+    "save": "儲存"
+  },
   "preferences": {
     "dialog": {
       "title": "實例設定",
@@ -1396,6 +1425,12 @@
       },
       "delete": {
         "mode": "模式",
+        "usage": "用途",
+        "usageOptions": {
+          "daily": "日常清理",
+          "official": "官方種子回收",
+          "both": "兩者"
+        },
         "conditionDuration": "條件持續時間",
         "dailyTrigger": "日常觸發條件（選填）",
         "dailyTriggerHelp": "日常刪除需要此觸發條件和主要條件同時符合。持續觀察只累計主要條件的符合時間。留空保留現有行為。",

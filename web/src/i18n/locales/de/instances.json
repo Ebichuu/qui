@@ -158,6 +158,35 @@
     "title": "Passwort-Probleme erkannt",
     "description": "Einige Instanzen können ihre gespeicherten Passwörter nicht entschlüsseln, vermutlich aufgrund einer Konfigurationsänderung. Prüfe die betroffenen Instanzen unten, um dieses Problem zu beheben."
   },
+  "reclaim": {
+    "title": "Einstellungen für die Rückgewinnung offizieller Torrents",
+    "intro": "Die Einstellungen aktivieren derzeit die Beobachtung möglicher Kandidaten. Budgetierte Ausführung und Schutz der Websites sind noch nicht angebunden.",
+    "loadError": "Einstellungen konnten nicht geladen werden",
+    "edit": "Bearbeiten",
+    "editTitle": "Rückgewinnungseinstellungen: {{name}}",
+    "scopes": { "instances": "Downloader", "groups": "Gruppe" },
+    "states": {
+      "unconfigured": "Nicht konfiguriert",
+      "explicit": "Separat konfiguriert",
+      "inherited": "Von der Gruppe geerbt",
+      "disabled": "Deaktiviert",
+      "conflict": "Konfigurationskonflikt der Gruppe",
+      "unavailable": "Status nicht verfügbar"
+    },
+    "enabled": "Beobachtung möglicher Kandidaten für die Rückgewinnung offizieller Torrents erlauben",
+    "rules": "Verwendete Workflows",
+    "rulesHelp": "Wähle Löschregeln aus, die ausdrücklich als Offiziell oder Beides gekennzeichnet sind und mindestens 60 Sekunden lang erfüllt bleiben. Gemischte Speicherplatzbedingungen und erweitertes Löschen werden derzeit nicht unterstützt.",
+    "maxDeletes": "Maximale Löschungen pro Ausführung",
+    "maxReclaimBytes": "Maximal zurückgewonnene Bytes pro Ausführung",
+    "maxRecentUploadBytes": "Grenze für kürzlichen Uploadverlust (Bytes)",
+    "recentUploadWindowSeconds": "Fenster für kürzliche Uploads (Sekunden)",
+    "maxOvershootBytes": "Maximale Überschreitung der Rückgewinnung (Bytes)",
+    "saveError": "Speichern fehlgeschlagen",
+    "inherit": "Gruppenvererbung wiederherstellen",
+    "clearDefault": "Gruppenstandard löschen",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
   "preferences": {
     "dialog": {
       "title": "Instanz-Einstellungen",
@@ -1415,6 +1444,12 @@
       },
       "delete": {
         "mode": "Modus",
+        "usage": "Verwendung",
+        "usageOptions": {
+          "daily": "Tägliche Bereinigung",
+          "official": "Rückgewinnung offizieller Torrents",
+          "both": "Beides"
+        },
         "conditionDuration": "Dauer der Bedingungserfüllung",
         "dailyTrigger": "Täglicher Auslöser (optional)",
         "dailyTriggerHelp": "Die tägliche Löschung erfordert diesen Auslöser und die Hauptbedingungen. Die Beobachtungsdauer zählt nur die Hauptbedingungen. Leer lassen behält das bisherige Verhalten bei.",

@@ -71,3 +71,5 @@ jobs:
         run: make smoke-reclaim-settings
       - name: Verify automatic delete ownership and restart recovery
         run: make smoke-automatic-delete
+      - name: Verify official candidate observation and isolation
+        run: make smoke-reclaim-candidates

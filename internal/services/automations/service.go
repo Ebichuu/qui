@@ -536,6 +536,11 @@ type CrossMatcher interface {
 
 // Service periodically applies automation rules to torrents for all active instances.
 type Service struct {
+	reclaimStore       *models.RacingStore
+	reclaimObservers   sync.Map
+	reclaimObservation bool
+	candidateCollector func(map[string]*torrentDesiredState, []qbt.Torrent)
+
 	cfg                       Config
 	instanceStore             *models.InstanceStore
 	ruleStore                 *models.AutomationStore
@@ -718,6 +723,11 @@ func (s *Service) applyAll(ctx context.Context) {
 		}
 		if err := s.applyForInstance(ctx, instance.ID, false); err != nil {
 			log.Error().Err(err).Int("instanceID", instance.ID).Msg("automations: apply failed")
+		}
+		if s.reclaimStore != nil {
+			if _, err := s.ObserveReclaimCandidates(ctx, instance.ID); err != nil {
+				log.Warn().Err(err).Int("instanceID", instance.ID).Msg("automations: reclaim observation unavailable")
+			}
 		}
 	}
 }
@@ -2274,6 +2284,9 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 		deleteRuleVersions[rule.ID] = deleteConditionRuleVersion(rule)
 	}
 	evalCtx.DeleteConditionGate = func(rule *models.Automation, torrent qbt.Torrent, matched bool) bool {
+		if s.reclaimObservation && (torrent.AddedOn <= 0 || torrent.Size <= 0 || torrent.Completed < torrent.Size || torrent.AmountLeft != 0 || (torrent.State != "uploading" && torrent.State != "stalledUP" && torrent.State != "pausedUP" && torrent.State != "stoppedUP" && torrent.State != "queuedUP")) {
+			matched = false
+		}
 		if deleteConditionDuration(rule) > 0 && !syncFresh {
 			matched = false
 		}
@@ -2312,6 +2325,10 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 	// Group rules into batches based on sorting config equality
 	s.buildAndExecuteBatches(instanceID, eligibleRules, torrents, evalCtx, skipCheck, ruleStats, states)
 	s.pruneDeleteConditionMatches(instanceID, eligibleRules, dryRun, deleteDurationSeen)
+	if s.candidateCollector != nil {
+		s.candidateCollector(states, torrents)
+		return nil, nil
+	}
 	if !dryRun {
 		if err := s.checkpointConditionObservations(ctx, instanceID); err != nil {
 			return nil, err

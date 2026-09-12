@@ -726,6 +726,25 @@ paths:
         '400':
           description: Invalid rule or duration
 
+  /api/instances/{instanceID}/automations/reclaim-candidates:
+    parameters:
+      - name: instanceID
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Automations]
+      summary: Observe eligible official reclaim candidates without deleting
+      responses:
+        '200':
+          description: Current measured candidates; logical size does not prove physical reclaim yield
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReclaimCandidates'
+        '503':
+          description: Observations unavailable
   /api/instances/{instanceID}/automations/{ruleID}:
     parameters:
       - name: instanceID
@@ -8460,9 +8479,55 @@ components:
             updatedAt:
               type: string
               format: date-time
+    ReclaimCandidates:
+      type: object
+      required: [instanceId, revision, state, candidates, unavailableRuleIds]
+      properties:
+        instanceId:
+          type: integer
+        revision:
+          type: integer
+          format: int64
+        state:
+          type: string
+        unavailableRuleIds:
+          type: array
+          items:
+            type: integer
+        candidates:
+          type: array
+          items:
+            type: object
+            required: [hash, addedOn, savePath, sizeBytes, uploadedBytes, ruleId, observedAt]
+            properties:
+              hash:
+                type: string
+              addedOn:
+                type: integer
+                format: int64
+              savePath:
+                type: string
+              sizeBytes:
+                type: integer
+                format: int64
+                description: Logical size, never a physical free-space guarantee
+              uploadedBytes:
+                type: integer
+                format: int64
+                description: Lifetime upload counter, not recent-window upload
+              ruleId:
+                type: integer
+              observedAt:
+                type: string
+                format: date-time
     AutomationDeleteAction:
       type: object
       properties:
+        usage:
+          type: string
+          enum: [daily, official, both]
+          default: daily
+          description: Daily is the legacy default. Official permits candidate observation without daily deletion. Both permits both uses; reclaim settings and protections remain required.
         enabled:
           type: boolean
         mode:

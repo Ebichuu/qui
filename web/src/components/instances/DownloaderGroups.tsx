@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import type { InstanceResponse } from "@/types"
 import type { RacingConfiguration, RacingResource, RacingResourceInput } from "@/types/racing"
+import { DownloaderReclaim } from "./DownloaderReclaim"
 import { DownloaderReception, ReceptionStatus } from "./DownloaderReception"
 import { formatBytes } from "@/lib/utils"
 
@@ -56,6 +57,7 @@ export function DownloaderGroups({ instances }: { instances: InstanceResponse[] 
   return <section className="space-y-4">
     <ReceptionStatus />
     <DownloaderReception instances={instances} />
+    <DownloaderReclaim instances={instances} groups={data.groups} />
     {(["groups", "storage-pools", "path-mappings"] as const).map(resource => <div key={resource} className="rounded-lg border p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-medium flex items-center gap-2">{t(`racingGroups.${titles[resource]}`)}

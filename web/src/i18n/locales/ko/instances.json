@@ -158,6 +158,35 @@
     "title": "비밀번호 문제 감지됨",
     "description": "일부 인스턴스가 구성 변경으로 인해 저장된 비밀번호를 해독할 수 없습니다. 이 문제를 해결하려면 아래의 영향받는 인스턴스를 확인하세요."
   },
+  "reclaim": {
+    "title": "공식 토렌트 회수 설정",
+    "intro": "현재 설정은 후보 관찰만 활성화합니다. 예산 실행과 사이트 보호는 아직 연결되지 않았습니다.",
+    "loadError": "설정을 불러오지 못했습니다",
+    "edit": "편집",
+    "editTitle": "회수 설정: {{name}}",
+    "scopes": { "instances": "다운로더", "groups": "그룹" },
+    "states": {
+      "unconfigured": "구성되지 않음",
+      "explicit": "개별 구성",
+      "inherited": "그룹에서 상속됨",
+      "disabled": "비활성화됨",
+      "conflict": "그룹 구성 충돌",
+      "unavailable": "상태를 사용할 수 없음"
+    },
+    "enabled": "공식 토렌트 회수 후보 관찰 허용",
+    "rules": "참조된 워크플로",
+    "rulesHelp": "공식 또는 둘 다로 명확히 표시되고 60초 이상 지속된 삭제 규칙을 선택하세요. 혼합 공간 조건과 확장 삭제는 아직 지원되지 않습니다.",
+    "maxDeletes": "실행당 최대 삭제 수",
+    "maxReclaimBytes": "실행당 최대 회수 바이트",
+    "maxRecentUploadBytes": "최근 업로드 손실 한도(바이트)",
+    "recentUploadWindowSeconds": "최근 업로드 기간(초)",
+    "maxOvershootBytes": "최대 초과 회수(바이트)",
+    "saveError": "저장하지 못했습니다",
+    "inherit": "그룹 상속 복원",
+    "clearDefault": "그룹 기본값 삭제",
+    "cancel": "취소",
+    "save": "저장"
+  },
   "preferences": {
     "dialog": {
       "title": "인스턴스 설정",
@@ -1396,6 +1425,12 @@
       },
       "delete": {
         "mode": "모드",
+        "usage": "용도",
+        "usageOptions": {
+          "daily": "일상 정리",
+          "official": "공식 토렌트 회수",
+          "both": "둘 다"
+        },
         "conditionDuration": "조건 일치 지속 시간",
         "dailyTrigger": "일상 실행 조건 (선택 사항)",
         "dailyTriggerHelp": "일상 삭제에는 이 조건과 기본 조건이 모두 충족되어야 합니다. 지속 관찰 시간은 기본 조건만 계산합니다. 비워 두면 기존 동작을 유지합니다.",

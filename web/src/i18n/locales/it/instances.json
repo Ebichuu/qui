@@ -158,6 +158,35 @@
     "title": "Rilevati problemi con le password",
     "description": "Alcune istanze non riescono a decifrare le password salvate, probabilmente a causa di una modifica della configurazione. Controlla le istanze interessate qui sotto per risolvere il problema."
   },
+  "reclaim": {
+    "title": "Impostazioni per il recupero ufficiale",
+    "intro": "Le impostazioni consentono attualmente l’osservazione dei candidati. L’esecuzione con budget e la protezione dei siti non sono ancora collegate.",
+    "loadError": "Impossibile caricare le impostazioni",
+    "edit": "Modifica",
+    "editTitle": "Impostazioni di recupero: {{name}}",
+    "scopes": { "instances": "Downloader", "groups": "Gruppo" },
+    "states": {
+      "unconfigured": "Non configurato",
+      "explicit": "Configurato separatamente",
+      "inherited": "Ereditato dal gruppo",
+      "disabled": "Disabilitato",
+      "conflict": "Conflitto nella configurazione del gruppo",
+      "unavailable": "Stato non disponibile"
+    },
+    "enabled": "Consenti l’osservazione dei candidati al recupero ufficiale",
+    "rules": "Workflow utilizzati",
+    "rulesHelp": "Seleziona regole di eliminazione contrassegnate esplicitamente come Ufficiale o Entrambi e mantenute per almeno 60 secondi. Le condizioni miste sullo spazio e l’eliminazione estesa non sono ancora supportate.",
+    "maxDeletes": "Numero massimo di eliminazioni per esecuzione",
+    "maxReclaimBytes": "Byte massimi recuperati per esecuzione",
+    "maxRecentUploadBytes": "Limite della perdita di upload recente (byte)",
+    "recentUploadWindowSeconds": "Finestra dell’upload recente (secondi)",
+    "maxOvershootBytes": "Massimo recupero oltre il limite (byte)",
+    "saveError": "Salvataggio non riuscito",
+    "inherit": "Ripristina eredità dal gruppo",
+    "clearDefault": "Cancella predefinito del gruppo",
+    "cancel": "Annulla",
+    "save": "Salva"
+  },
   "preferences": {
     "dialog": {
       "title": "Impostazioni istanza",
@@ -1415,6 +1444,12 @@
       },
       "delete": {
         "mode": "Modalità",
+        "usage": "Utilizzo",
+        "usageOptions": {
+          "daily": "Pulizia quotidiana",
+          "official": "Recupero dei torrent ufficiali",
+          "both": "Entrambi"
+        },
         "conditionDuration": "Durata corrispondenza condizioni",
         "dailyTrigger": "Attivazione giornaliera (facoltativa)",
         "dailyTriggerHelp": "La cancellazione giornaliera richiede questa attivazione e le condizioni principali. La durata osservata considera solo le condizioni principali. Lasciare vuoto mantiene il comportamento esistente.",

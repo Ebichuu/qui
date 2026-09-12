@@ -158,6 +158,35 @@
     "title": "Problemas de Senha Detectados",
     "description": "Algumas instâncias não conseguem descriptografar as senhas salvas, provavelmente devido a uma mudança de configuração. Verifique as instâncias afetadas abaixo para resolver isso."
   },
+  "reclaim": {
+    "title": "Configurações de recuperação oficial",
+    "intro": "As configurações atualmente habilitam apenas a observação de candidatos. A execução com orçamento e a proteção de sites ainda não estão conectadas.",
+    "loadError": "Falha ao carregar configurações",
+    "edit": "Editar",
+    "editTitle": "Configurações de recuperação: {{name}}",
+    "scopes": { "instances": "Downloader", "groups": "Grupo" },
+    "states": {
+      "unconfigured": "Não configurado",
+      "explicit": "Configurado separadamente",
+      "inherited": "Herdado do grupo",
+      "disabled": "Desativado",
+      "conflict": "Conflito na configuração do grupo",
+      "unavailable": "Status indisponível"
+    },
+    "enabled": "Permitir observação de candidatos à recuperação oficial",
+    "rules": "Automações referenciadas",
+    "rulesHelp": "Selecione regras de exclusão marcadas explicitamente como Oficial ou Ambos e mantidas por pelo menos 60 segundos. Condições mistas de espaço e exclusão estendida ainda não são compatíveis.",
+    "maxDeletes": "Máximo de exclusões por execução",
+    "maxReclaimBytes": "Máximo de bytes recuperados por execução",
+    "maxRecentUploadBytes": "Limite de perda de upload recente (bytes)",
+    "recentUploadWindowSeconds": "Janela de upload recente (segundos)",
+    "maxOvershootBytes": "Excesso máximo de recuperação (bytes)",
+    "saveError": "Falha ao salvar",
+    "inherit": "Restaurar herança do grupo",
+    "clearDefault": "Limpar padrão do grupo",
+    "cancel": "Cancelar",
+    "save": "Salvar"
+  },
   "preferences": {
     "dialog": {
       "title": "Configurações da Instância",
@@ -1415,6 +1444,12 @@
       },
       "delete": {
         "mode": "Opções de Exclusão",
+        "usage": "Uso",
+        "usageOptions": {
+          "daily": "Limpeza diária",
+          "official": "Recuperação de torrents oficiais",
+          "both": "Ambos"
+        },
         "conditionDuration": "Duração da correspondência das condições",
         "dailyTrigger": "Gatilho diário (opcional)",
         "dailyTriggerHelp": "A exclusão diária exige este gatilho e as condições principais. A duração observada considera apenas as condições principais. Deixar vazio mantém o comportamento existente.",

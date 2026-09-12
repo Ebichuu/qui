@@ -10,6 +10,8 @@ import { DownloaderGroups } from "./DownloaderGroups"
 import type { InstanceResponse } from "@/types"
 
 vi.mock("@/lib/api", () => ({ api: { getRacingConfiguration: vi.fn(), getRacingObservations: vi.fn(), saveRacingResource: vi.fn(), deleteRacingResource: vi.fn() } }))
+vi.mock("./DownloaderReclaim", () => ({ DownloaderReclaim: () => null }))
+
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }))
 const instances = [{ id: 7, name: "Member A", isActive: true }, { id: 9, name: "Member B", isActive: false }] as InstanceResponse[]
 const config = { sites: [], sources: [], rules: [], groups: [{ id: 2, name: "Group A", enabled: true, instanceIds: [7], updatedAt: "" }], storagePools: [], pathMappings: [] }

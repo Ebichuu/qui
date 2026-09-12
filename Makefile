@@ -111,7 +111,7 @@ test:
 	@echo "Running tests..."
 	go test -race -count=1 -v ./...
 
-.PHONY: smoke-baseline smoke-racing smoke-racing-execution smoke-racing-integration smoke-automation-observation smoke-reclaim-settings smoke-automatic-delete
+.PHONY: smoke-baseline smoke-racing smoke-racing-execution smoke-racing-integration smoke-automation-observation smoke-reclaim-settings smoke-automatic-delete smoke-reclaim-candidates
 smoke-baseline:
 	python3 scripts/smoke-baseline.py
 
@@ -294,3 +294,6 @@ help:
 	@echo "  make clean          - Clean build artifacts"
 	@echo "  make deps           - Install dependencies"
 	@echo "  make help           - Show this help message"
+
+smoke-reclaim-candidates:
+	python3 scripts/smoke-reclaim-candidates.py

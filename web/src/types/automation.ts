@@ -197,6 +197,7 @@ export interface GroupingConfig {
 }
 
 export interface DeleteAction {
+  usage?: "daily" | "official" | "both"
   dailyTrigger?: RuleCondition
   enabled: boolean
   mode?: "delete" | "deleteWithFiles" | "deleteWithFilesPreserveCrossSeeds" | "deleteWithFilesIncludeCrossSeeds"

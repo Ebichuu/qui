@@ -513,7 +513,7 @@ func processRuleForTorrent(rule *models.Automation, torrent qbt.Torrent, state *
 	}
 
 	// Delete
-	if conditions.Delete != nil && conditions.Delete.Enabled {
+	if conditions.Delete != nil && conditions.Delete.Enabled && conditions.Delete.Usage != "official" {
 		// Safety: delete must always have an explicit condition.
 		if conditions.Delete.Condition == nil {
 			if stats != nil {

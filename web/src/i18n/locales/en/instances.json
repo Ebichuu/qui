@@ -158,6 +158,35 @@
     "title": "Password Issues Detected",
     "description": "Some instances cannot decrypt their saved passwords, likely due to a configuration change. Check the affected instances below to resolve this issue."
   },
+  "reclaim": {
+    "title": "Official reclaim settings",
+    "intro": "Settings currently enable candidate observation. Budgeted execution and site protection are not connected yet.",
+    "loadError": "Failed to load settings",
+    "edit": "Edit",
+    "editTitle": "Reclaim settings: {{name}}",
+    "scopes": { "instances": "Downloader", "groups": "Group" },
+    "states": {
+      "unconfigured": "Unconfigured",
+      "explicit": "Configured separately",
+      "inherited": "Inherited from group",
+      "disabled": "Disabled",
+      "conflict": "Group configuration conflict",
+      "unavailable": "Status unavailable"
+    },
+    "enabled": "Allow official reclaim candidate observation",
+    "rules": "Referenced workflows",
+    "rulesHelp": "Select deletion rules explicitly marked Official or Both and sustained for at least 60 seconds. Mixed space conditions and extended deletion are not supported yet.",
+    "maxDeletes": "Maximum deletes per run",
+    "maxReclaimBytes": "Maximum reclaimed bytes per run",
+    "maxRecentUploadBytes": "Recent upload loss limit (bytes)",
+    "recentUploadWindowSeconds": "Recent upload window (seconds)",
+    "maxOvershootBytes": "Maximum reclaim overshoot (bytes)",
+    "saveError": "Failed to save",
+    "inherit": "Restore group inheritance",
+    "clearDefault": "Clear group default",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
   "preferences": {
     "dialog": {
       "title": "Instance Settings",
@@ -1415,6 +1444,12 @@
       },
       "delete": {
         "mode": "Mode",
+        "usage": "Usage",
+        "usageOptions": {
+          "daily": "Daily cleanup",
+          "official": "Official torrent reclaim",
+          "both": "Both"
+        },
         "conditionDuration": "Condition match duration",
         "dailyTrigger": "Daily trigger (optional)",
         "dailyTriggerHelp": "Daily deletion requires this trigger and the main conditions. Sustained observation counts only the main conditions. Leaving this empty preserves existing behavior.",

@@ -645,6 +645,7 @@ func (s *Server) Handler() (*chi.Mux, error) {
 					// Automations
 					r.Route("/automations", func(r chi.Router) {
 						r.Get("/", automationsHandler.List)
+						r.Get("/reclaim-candidates", automationsHandler.ReclaimCandidates)
 						r.Post("/", automationsHandler.Create)
 						r.Put("/order", automationsHandler.Reorder)
 						r.Post("/apply", automationsHandler.ApplyNow)

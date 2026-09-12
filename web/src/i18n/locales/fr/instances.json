@@ -158,6 +158,35 @@
     "title": "Problèmes de mot de passe détectés",
     "description": "Certaines instances ne peuvent pas déchiffrer leurs mots de passe, probablement à cause d'un changement de configuration. Vérifiez-les ci-dessous."
   },
+  "reclaim": {
+    "title": "Paramètres de récupération officielle",
+    "intro": "Les paramètres activent actuellement l’observation des candidats. L’exécution budgétée et la protection des sites ne sont pas encore connectées.",
+    "loadError": "Échec du chargement des paramètres",
+    "edit": "Modifier",
+    "editTitle": "Paramètres de récupération : {{name}}",
+    "scopes": { "instances": "Téléchargeur", "groups": "Groupe" },
+    "states": {
+      "unconfigured": "Non configuré",
+      "explicit": "Configuré séparément",
+      "inherited": "Hérité du groupe",
+      "disabled": "Désactivé",
+      "conflict": "Conflit de configuration du groupe",
+      "unavailable": "État indisponible"
+    },
+    "enabled": "Autoriser l’observation des candidats à la récupération officielle",
+    "rules": "Workflows référencés",
+    "rulesHelp": "Sélectionnez des règles de suppression explicitement marquées Officiel ou Les deux et maintenues pendant au moins 60 secondes. Les conditions d’espace mixte et la suppression étendue ne sont pas encore prises en charge.",
+    "maxDeletes": "Nombre maximal de suppressions par exécution",
+    "maxReclaimBytes": "Octets récupérés maximum par exécution",
+    "maxRecentUploadBytes": "Limite de perte d’envoi récente (octets)",
+    "recentUploadWindowSeconds": "Fenêtre d’envoi récente (secondes)",
+    "maxOvershootBytes": "Récupération excédentaire maximale (octets)",
+    "saveError": "Échec de l’enregistrement",
+    "inherit": "Rétablir l’héritage du groupe",
+    "clearDefault": "Effacer la valeur par défaut du groupe",
+    "cancel": "Annuler",
+    "save": "Enregistrer"
+  },
   "preferences": {
     "dialog": {
       "title": "Paramètres de l'instance",
@@ -1409,6 +1438,12 @@
       },
       "delete": {
         "mode": "Mode",
+        "usage": "Utilisation",
+        "usageOptions": {
+          "daily": "Nettoyage quotidien",
+          "official": "Récupération des torrents officiels",
+          "both": "Les deux"
+        },
         "conditionDuration": "Durée de correspondance des conditions",
         "dailyTrigger": "Déclencheur quotidien (facultatif)",
         "dailyTriggerHelp": "La suppression quotidienne exige ce déclencheur et les conditions principales. La durée observée ne concerne que les conditions principales. Laisser vide conserve le comportement existant.",

@@ -81,3 +81,13 @@ export interface RacingAddIntent {
   reservedAt: string; submittedAt?: string; acceptedAt?: string; confirmedAt?: string; runnableAt?: string; transferredAt?: string; observedAt?: string; updatedAt: string
 }
 export interface RacingAddIntents { items: RacingAddIntent[]; nextCursor?: string }
+
+export interface RacingReclaimPolicy {
+  enabled: boolean; ruleIds: number[]; maxDeletes: number; maxReclaimBytes: number
+  maxRecentUploadBytes: number; recentUploadWindowSeconds: number; maxOvershootBytes: number
+}
+export interface RacingReclaimConfiguration {
+  revision: number
+  settings: { scope: "instances" | "groups"; targetId: number; policy: RacingReclaimPolicy }[]
+  effective: { instanceId: number; state: "unconfigured" | "explicit" | "inherited" | "disabled" | "conflict"; groupIds: number[]; policy?: RacingReclaimPolicy }[]
+}

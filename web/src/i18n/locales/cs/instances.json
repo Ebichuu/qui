@@ -158,6 +158,35 @@
     "title": "Detekovány problémy s heslem",
     "description": "Některé instance nemohou dešifrovat svá uložená hesla, pravděpodobně kvůli změně konfigurace. Zkontrolujte postižené instance níže a vyřešte tento problém."
   },
+  "reclaim": {
+    "title": "Nastavení recyklace oficiálních torrentů",
+    "intro": "Nastavení nyní umožňují pozorování kandidátů. Spuštění s rozpočtem a ochrana webů zatím nejsou připojeny.",
+    "loadError": "Načtení nastavení se nezdařilo",
+    "edit": "Upravit",
+    "editTitle": "Nastavení recyklace: {{name}}",
+    "scopes": { "instances": "Stahovač", "groups": "Skupina" },
+    "states": {
+      "unconfigured": "Nenakonfigurováno",
+      "explicit": "Nakonfigurováno samostatně",
+      "inherited": "Převzato ze skupiny",
+      "disabled": "Vypnuto",
+      "conflict": "Konflikt konfigurace skupiny",
+      "unavailable": "Stav není dostupný"
+    },
+    "enabled": "Povolit pozorování kandidátů pro recyklaci oficiálních torrentů",
+    "rules": "Použité pracovní postupy",
+    "rulesHelp": "Vyberte pravidla mazání výslovně označená jako Oficiální nebo Obojí, která trvají alespoň 60 sekund. Smíšené podmínky volného místa a rozšířené mazání zatím nejsou podporovány.",
+    "maxDeletes": "Maximum smazání na jedno spuštění",
+    "maxReclaimBytes": "Maximum uvolněných bajtů na jedno spuštění",
+    "maxRecentUploadBytes": "Limit nedávné ztráty uploadu (bajty)",
+    "recentUploadWindowSeconds": "Okno nedávného uploadu (sekundy)",
+    "maxOvershootBytes": "Maximální překročení recyklace (bajty)",
+    "saveError": "Uložení se nezdařilo",
+    "inherit": "Obnovit dědičnost ze skupiny",
+    "clearDefault": "Vymazat výchozí nastavení skupiny",
+    "cancel": "Zrušit",
+    "save": "Uložit"
+  },
   "preferences": {
     "dialog": {
       "title": "Nastavení instance",
@@ -1415,6 +1444,12 @@
       },
       "delete": {
         "mode": "Režim",
+        "usage": "Účel",
+        "usageOptions": {
+          "daily": "Denní úklid",
+          "official": "Recyklace oficiálních torrentů",
+          "both": "Obojí"
+        },
         "conditionDuration": "Doba trvání shody podmínek",
         "dailyTrigger": "Denní spouštěč (volitelné)",
         "dailyTriggerHelp": "Denní mazání vyžaduje tento spouštěč i hlavní podmínky. Doba pozorování zahrnuje pouze hlavní podmínky. Prázdná hodnota zachová stávající chování.",

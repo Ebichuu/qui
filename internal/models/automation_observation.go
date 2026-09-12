@@ -25,7 +25,13 @@ type AutomationConditionObservation struct {
 }
 
 func (s *AutomationStore) ConditionObservations(ctx context.Context, instanceID int) ([]AutomationConditionObservation, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT rule_id,rule_version,torrent_hash,added_on,dry_run,elapsed_ns,duration_ns,observed_at,uploaded,downloaded FROM automation_condition_observations WHERE instance_id=?`, instanceID)
+	return s.conditionObservations(ctx, instanceID, "automation_condition_observations")
+}
+func (s *AutomationStore) ReclaimObservations(ctx context.Context, instanceID int) ([]AutomationConditionObservation, error) {
+	return s.conditionObservations(ctx, instanceID, "reclaim_condition_observations")
+}
+func (s *AutomationStore) conditionObservations(ctx context.Context, instanceID int, table string) ([]AutomationConditionObservation, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT rule_id,rule_version,torrent_hash,added_on,dry_run,elapsed_ns,duration_ns,observed_at,uploaded,downloaded FROM `+table+` WHERE instance_id=?`, instanceID)
 	if err != nil {
 		return nil, err
 	}
@@ -49,19 +55,27 @@ func (s *AutomationStore) ConditionObservations(ctx context.Context, instanceID 
 }
 
 func (s *AutomationStore) SaveConditionObservations(ctx context.Context, instanceID int, items []AutomationConditionObservation) error {
+	return s.saveConditionObservations(ctx, instanceID, items, "automation_condition_observations")
+}
+func (s *AutomationStore) SaveReclaimObservations(ctx context.Context, instanceID int, items []AutomationConditionObservation) error {
+	return s.saveConditionObservations(ctx, instanceID, items, "reclaim_condition_observations")
+}
+
+// Table names are fixed by the two internal callers, never supplied by API data.
+func (s *AutomationStore) saveConditionObservations(ctx context.Context, instanceID int, items []AutomationConditionObservation, table string) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
-	if _, err := tx.ExecContext(ctx, `DELETE FROM automation_condition_observations WHERE instance_id=?`, instanceID); err != nil {
+	if _, err := tx.ExecContext(ctx, `DELETE FROM `+table+` WHERE instance_id=?`, instanceID); err != nil {
 		return err
 	}
 	for _, item := range items {
 		if item.Elapsed < 0 || item.Duration <= 0 || item.ObservedAt.IsZero() || len(item.RuleVersion) != 64 || item.Hash == "" {
 			return errors.New("invalid automation observation")
 		}
-		_, err := tx.ExecContext(ctx, `INSERT INTO automation_condition_observations(instance_id,rule_id,rule_version,torrent_hash,added_on,dry_run,elapsed_ns,duration_ns,observed_at,uploaded,downloaded) VALUES (?,?,?,?,?,?,?,?,?,?,?)`, instanceID, item.RuleID, item.RuleVersion, item.Hash, item.AddedOn, boolToInt(item.DryRun), item.Elapsed, item.Duration, item.ObservedAt.UTC().Format(time.RFC3339Nano), item.Uploaded, item.Downloaded)
+		_, err := tx.ExecContext(ctx, `INSERT INTO `+table+`(instance_id,rule_id,rule_version,torrent_hash,added_on,dry_run,elapsed_ns,duration_ns,observed_at,uploaded,downloaded) VALUES (?,?,?,?,?,?,?,?,?,?,?)`, instanceID, item.RuleID, item.RuleVersion, item.Hash, item.AddedOn, boolToInt(item.DryRun), item.Elapsed, item.Duration, item.ObservedAt.UTC().Format(time.RFC3339Nano), item.Uploaded, item.Downloaded)
 		if err != nil {
 			return err
 		}

@@ -60,3 +60,9 @@ Delete actions optionally carry a `dailyTrigger` alongside the existing candidat
 ## Automatic Delete Ownership
 
 Automatic callers pass the evaluated hash and added-on generation through SyncManager.AutomaticDelete. BulkAction resolves variants, checks fresh state and persists a batch under the racing ledger lock before sending through the single-attempt client. Daily workflows and failed-export cleanup share this boundary. Accepted requests await fresh absence; unknown requests retain ownership for explicit reconciliation. Confirmed generations remain tombstones. Manual requests and the qB proxy are external changes. Task absence does not certify physical space release, and automatic requests do not optimistically remove the task from the observed cache.
+
+### Official reclaim observations
+
+Delete usage defaults to daily; official and both explicitly permit candidate reuse. A lightweight observer per target instance reuses the existing evaluator and qB cache, strips unrelated actions and the additional daily trigger, and returns before action dispatch. Its measured timers persist in `reclaim_condition_observations`, separate from daily/dry-run checkpoints. Target settings can reference a stable definition on another instance, without inheriting that instance's operation authority. Unknown generation, incomplete data, unsupported deletion expansion and mixed FREE_SPACE expressions cannot qualify. The candidate API observes only; logical bytes are not evidence of physical yield.
+
+Downloader settings expose explicit overrides, group defaults and conflict state. Clearing an override restores inheritance; saving disabled keeps an explicit stop. These settings currently feed observation only, pending budgeted execution and site protections.

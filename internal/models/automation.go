@@ -313,6 +313,16 @@ func (s *AutomationStore) ListByInstance(ctx context.Context, instanceID int) ([
 	return automations, nil
 }
 
+// GetDefinition reads a stable rule definition for reuse on another instance.
+// It does not transfer the source instance's action authority.
+func (s *AutomationStore) GetDefinition(ctx context.Context, id int) (*Automation, error) {
+	var instanceID int
+	if err := s.db.QueryRowContext(ctx, "SELECT instance_id FROM automations WHERE id=?", id).Scan(&instanceID); err != nil {
+		return nil, err
+	}
+	return s.Get(ctx, instanceID, id)
+}
+
 func (s *AutomationStore) Get(ctx context.Context, instanceID, id int) (*Automation, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, instance_id, name, tracker_pattern, conditions, enabled, dry_run, notify, sort_order, interval_seconds, free_space_source, sorting_config, created_at, updated_at
@@ -946,6 +956,7 @@ type AutoManagementAction struct {
 
 // DeleteAction configures deletion with mode and conditions.
 type DeleteAction struct {
+	Usage                         string         `json:"usage,omitempty"`        // Empty retains daily-only behavior; official and both explicitly permit candidate reuse.
 	DailyTrigger                  *RuleCondition `json:"dailyTrigger,omitempty"` // Additional daily trigger, excluded from sustained candidate observation.
 	Enabled                       bool           `json:"enabled"`
 	Mode                          string         `json:"mode"`                                    // "delete", "deleteWithFiles", "deleteWithFilesPreserveCrossSeeds", "deleteWithFilesIncludeCrossSeeds"

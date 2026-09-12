@@ -479,6 +479,7 @@ type FormState = {
   exprShareLimitAction: string
   exprShareLimitsMode: string
   // Delete settings
+  deleteUsage: "daily" | "official" | "both"
   exprDeleteMode: "delete" | "deleteWithFiles" | "deleteWithFilesPreserveCrossSeeds" | "deleteWithFilesIncludeCrossSeeds"
   exprIncludeHardlinks: boolean // Only for deleteWithFilesIncludeCrossSeeds mode
   exprDeleteGroupId: string
@@ -553,6 +554,7 @@ const emptyFormState: FormState = {
   exprSeedingTimeValue: undefined,
   exprShareLimitAction: "default",
   exprShareLimitsMode: "default",
+  deleteUsage: "daily",
   exprDeleteMode: "deleteWithFilesPreserveCrossSeeds",
   exprIncludeHardlinks: false,
   exprDeleteGroupId: "",
@@ -1209,6 +1211,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
           exprSeedingTimeValue,
           exprShareLimitAction,
           exprShareLimitsMode,
+          deleteUsage: conditions?.delete?.usage ?? "daily",
           exprDeleteMode,
           exprIncludeHardlinks,
           exprDeleteGroupId,
@@ -1464,6 +1467,7 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
     if (input.deleteEnabled) {
       conditions.delete = {
         enabled: true,
+        usage: input.deleteUsage,
         mode: input.exprDeleteMode,
         // Only include includeHardlinks when using include cross-seeds mode
         includeHardlinks: input.exprDeleteMode === "deleteWithFilesIncludeCrossSeeds" ? input.exprIncludeHardlinks : undefined,
@@ -3744,6 +3748,17 @@ export function WorkflowDialog({ open, onOpenChange, instanceId, rule, onSuccess
                           >
                             <X className="h-3.5 w-3.5" />
                           </Button>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t("preferences.workflowDialog.delete.usage")}</Label>
+                          <Select value={formState.deleteUsage} onValueChange={(value: FormState["deleteUsage"]) => setFormState(prev => ({ ...prev, deleteUsage: value }))}>
+                            <SelectTrigger className="w-fit"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {(["daily", "official", "both"] as const).map(usage => (
+                                <SelectItem key={usage} value={usage}>{t(`preferences.workflowDialog.delete.usageOptions.${usage}`)}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">{t("preferences.workflowDialog.delete.mode")}</Label>

@@ -1199,3 +1199,11 @@ When torrents stall, alert an external monitoring system:
 Daily deletion and failed-export cleanup share a durable ownership ledger. Before sending a request, qui verifies the current torrent hash and added-on generation, then records the whole batch. Each automatic delete is sent once; an accepted request still waits for the task to disappear from a fresh snapshot. A timeout keeps the intent unresolved across restart and prevents automatic replay. Unknown added-on values block automatic deletion.
 
 A confirmed missing task is not evidence of released disk space. Requests with unknown results retain ownership for explicit reconciliation; they do not automatically retire, and managed empty-directory cleanup is only performed after an accepted response. Manual requests and external qB clients remain external changes, outside this automatic ownership ledger.
+
+## Official reclaim candidate observation
+
+A delete action has an explicit usage: daily cleanup, official torrent reclaim, or both. Existing rules default to daily cleanup. Official-only usage suppresses that rule's daily delete action; any other configured actions retain their normal behavior. A downloader must separately select the rule in its effective reclaim settings.
+
+Candidate observation reuses the existing condition evaluator and records measured time independently for each target downloader. References may point to a rule maintained on another downloader; this shares a condition definition, not deletion authority. A candidate needs a known task generation, completed data, a seeding state and at least 60 seconds of sustained matching. Unknown state, a new generation or missing measurements resets qualification. A small positive upload speed remains eligible when the condition allows it.
+
+The additional daily trigger does not constrain official candidate observation. A legacy expression containing FREE_SPACE is unavailable for reuse until explicitly separated. Keep-files, cross-seed expansion and atomic/group deletion modes are currently unavailable as official candidates. The observation endpoint returns candidates without sending actions; logical size and lifetime uploaded bytes are not physical release or recent upload measurements. Budgeted execution and site protection are separate later stages.

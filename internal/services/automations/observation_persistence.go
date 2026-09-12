@@ -28,7 +28,11 @@ func (s *Service) restoreConditionObservations(ctx context.Context, instanceID i
 	if s.ruleStore == nil || restored {
 		return nil
 	}
-	items, err := s.ruleStore.ConditionObservations(ctx, instanceID)
+	load := s.ruleStore.ConditionObservations
+	if s.reclaimObservation {
+		load = s.ruleStore.ReclaimObservations
+	}
+	items, err := load(ctx, instanceID)
 	if err != nil {
 		return err
 	}
@@ -73,5 +77,8 @@ func (s *Service) checkpointConditionObservations(ctx context.Context, instanceI
 		items = append(items, models.AutomationConditionObservation{RuleID: key.ruleID, RuleVersion: hex.EncodeToString(key.ruleVersion[:]), Hash: key.hash, AddedOn: key.addedOn, DryRun: key.dryRun, Elapsed: state.lastSeen.Sub(state.matchedSince), Duration: state.duration, ObservedAt: state.lastSeen, Uploaded: state.uploaded, Downloaded: state.downloaded})
 	}
 	s.mu.RUnlock()
+	if s.reclaimObservation {
+		return s.ruleStore.SaveReclaimObservations(ctx, instanceID, items)
+	}
 	return s.ruleStore.SaveConditionObservations(ctx, instanceID, items)
 }

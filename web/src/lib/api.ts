@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-import type { RacingInstancePolicy, RacingAddIntents, RacingCandidates, RacingDiscoveries, RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
+import type { RacingReclaimPolicy, RacingReclaimConfiguration, RacingInstancePolicy, RacingAddIntents, RacingCandidates, RacingDiscoveries, RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
 
 import type {
   AddRSSFeedRequest,
@@ -480,6 +480,14 @@ class ApiClient {
   reorderRacingRules(ids: number[]) { return this.request<void>("/racing/rules/order", { method: "PUT", body: JSON.stringify({ ids }) }) }
   getRacingDiscoveries() { return this.request<RacingDiscoveries>("/racing/discoveries") }
   getRacingCandidates(after = "") { return this.request<RacingCandidates>(`/racing/candidates?after=${encodeURIComponent(after)}`) }
+  getRacingReclaimConfiguration() { return this.request<RacingReclaimConfiguration>("/racing/reclaim-settings") }
+  saveRacingReclaimPolicy(scope: "instances" | "groups", id: number, policy: RacingReclaimPolicy) {
+    return this.request<void>(`/racing/reclaim-settings/${scope}/${id}`, { method: "PUT", body: JSON.stringify(policy) })
+  }
+  clearRacingReclaimPolicy(scope: "instances" | "groups", id: number) {
+    return this.request<void>(`/racing/reclaim-settings/${scope}/${id}`, { method: "DELETE" })
+  }
+
   getRacingReceptionPolicies() { return this.request<RacingInstancePolicy[]>("/racing/reception-policies") }
   saveRacingReceptionPolicy(policy: RacingInstancePolicy) { return this.request<void>(`/racing/reception-policies/${policy.instanceId}`, { method: "PUT", body: JSON.stringify(policy) }) }
   getRacingAddIntents(after = "") { return this.request<RacingAddIntents>(`/racing/add-intents?after=${encodeURIComponent(after)}`) }

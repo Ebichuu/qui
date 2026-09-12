@@ -742,6 +742,7 @@ func (app *Application) runServer() {
 		log.Fatal().Err(err).Msg("Failed to initialize racing configuration")
 	}
 	syncManager.SetAutomaticDeleteStore(racingStore)
+	automationService.SetReclaimStore(racingStore)
 	racingService := racing.NewService(racingStore)
 	racingCtx, racingCancel := context.WithCancel(context.Background())
 	defer racingCancel()
