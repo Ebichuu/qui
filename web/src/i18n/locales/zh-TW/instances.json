@@ -1931,5 +1931,38 @@
       "allBackupsDeleted": "所有備份已刪除",
       "failedToDeleteBackups": "刪除備份失敗"
     }
+  },
+  "trackerPolicies": {
+    "title": "Tracker 帳戶規則",
+    "intro": "規則會與監控設定分開儲存。請從已儲存的觀測中選擇精確的 Tracker 識別碼；相同主機名稱可能包含不同帳戶。不代表即時狀態。",
+    "warning": "qB 中的工作狀態無法證明站點記帳。現有等待會繼續遵循較短的設定。缺少帳戶涵蓋範圍會阻止受管理的操作。規則目前無法移除；停用已繫結的站點會阻止評估，直到修復。",
+    "refresh": "重新整理觀測",
+    "loadFailed": "無法載入帳戶規則或觀測結果。請再試一次。",
+    "loading": "正在載入帳戶規則…",
+    "empty": "目前沒有 Tracker 觀測或規則。監控工作查詢任務後才會出現觀測。",
+    "trackerAddress": "確認帳戶 Tracker 位址",
+    "trackerAddressHelp": "貼上所選帳戶對應的完整 Tracker 位址，包括帳戶參數。系統會在本機將其與所選識別碼核對，絕不會傳送或儲存。請使用 HTTPS 或 localhost。",
+    "tracker": "Tracker 帳戶識別碼",
+    "choose": "選擇…",
+    "site": "帳戶站點",
+    "noSites": "請先在下載器設定中啟用具有此 Tracker 主機名稱的站點。",
+    "interval": "最短傳送間隔（秒）",
+    "intervalHelp": "最長的適用間隔會套用至整個種子。縮短此值不會取消已儲存的截止時間。",
+    "knownWait": "套用已知回應等待時間",
+    "message": "精確的已知回應",
+    "messageHelp": "請原樣貼上完整回應，包括空白字元。只會傳送並儲存其 SHA-256 摘要；儲存或離開前，原始文字會保留在此表單中。",
+    "keepMessage": "留白以保留已儲存的回應比對。",
+    "wait": "已知等待時間（秒）",
+    "protection": "自動刪除條件",
+    "blocked": "保持阻止刪除",
+    "working": "接受 qB 工作狀態（不代表站點記帳）",
+    "accounted": "要求站點記帳（無法使用；保持阻止）",
+    "confirm": "我已確認此 Tracker 識別碼屬於所選帳戶，並了解刪除條件。",
+    "save": "儲存帳戶規則",
+    "saving": "正在儲存帳戶規則…",
+    "saved": "帳戶規則已儲存",
+    "saveFailed": "無法儲存。請檢查帳戶繫結、數值和回應比對，然後再試一次。",
+    "invalid": "請檢查帳戶繫結、間隔和回應比對。",
+    "secureContext": "請使用 HTTPS 或 localhost，以安全地計算回應摘要。"
   }
 }

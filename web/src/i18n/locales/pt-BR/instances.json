@@ -1951,5 +1951,38 @@
       "allBackupsDeleted": "Todos os backups excluídos",
       "failedToDeleteBackups": "Falha ao excluir backups"
     }
+  },
+  "trackerPolicies": {
+    "title": "Regras de contas do Tracker",
+    "intro": "As regras são salvas separadamente das configurações de monitoramento. Escolha um identificador exato do Tracker entre as observações salvas; o mesmo nome de host pode conter contas diferentes. Nenhum status em tempo real é indicado.",
+    "warning": "Estar em funcionamento no qB não comprova a contabilização pelo site. As esperas existentes continuam valendo com configurações menores. A ausência de cobertura da conta bloqueia operações gerenciadas. As regras ainda não podem ser removidas; desativar um site vinculado bloqueia a avaliação até que seja corrigido.",
+    "refresh": "Atualizar observações",
+    "loadFailed": "Não foi possível carregar as regras de contas ou as observações. Tente novamente.",
+    "loading": "Carregando regras de contas…",
+    "empty": "Ainda não há observações ou regras do Tracker. As observações aparecem depois que um trabalho de monitoramento consulta uma tarefa.",
+    "trackerAddress": "Confirmar endereço do Tracker da conta",
+    "trackerAddressHelp": "Cole o endereço completo e exato do Tracker da conta selecionada, incluindo o parâmetro da conta. Ele é verificado localmente em relação ao identificador selecionado e nunca é enviado ou salvo. Use HTTPS ou localhost.",
+    "tracker": "Identificador da conta do Tracker",
+    "choose": "Escolher…",
+    "site": "Site da conta",
+    "noSites": "Ative primeiro, nas configurações do downloader, um site com este nome de host do Tracker.",
+    "interval": "Intervalo mínimo de envio (segundos)",
+    "intervalHelp": "O maior intervalo aplicável vale para todo o torrent. Reduzir este valor não cancela um prazo armazenado.",
+    "knownWait": "Aplicar espera de resposta conhecida",
+    "message": "Resposta conhecida exata",
+    "messageHelp": "Cole a resposta completa exatamente como está, incluindo espaços em branco. Somente o resumo SHA-256 é enviado e salvo; o texto original permanece neste formulário até você salvar ou sair.",
+    "keepMessage": "Deixe em branco para manter a correspondência da resposta salva.",
+    "wait": "Espera conhecida (segundos)",
+    "protection": "Condição de exclusão automática",
+    "blocked": "Manter exclusão bloqueada",
+    "working": "Aceitar estado de funcionamento do qB (não contabilização pelo site)",
+    "accounted": "Exigir contabilização pelo site (indisponível; permanece bloqueado)",
+    "confirm": "Verifiquei que este identificador do Tracker pertence à conta selecionada e entendo a condição de exclusão.",
+    "save": "Salvar regra da conta",
+    "saving": "Salvando regra da conta…",
+    "saved": "Regra da conta salva",
+    "saveFailed": "Não foi possível salvar. Verifique o vínculo da conta, os valores numéricos e a correspondência da resposta e tente novamente.",
+    "invalid": "Verifique o vínculo da conta, os intervalos e a correspondência da resposta.",
+    "secureContext": "Use HTTPS ou localhost para gerar o hash da resposta com segurança."
   }
 }

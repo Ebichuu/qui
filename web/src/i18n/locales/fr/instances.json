@@ -1951,5 +1951,38 @@
       "allBackupsDeleted": "Toutes les sauvegardes supprimées",
       "failedToDeleteBackups": "Échec de la suppression des sauvegardes"
     }
+  },
+  "trackerPolicies": {
+    "trackerAddress": "Confirmer l'adresse Tracker du compte",
+    "trackerAddressHelp": "Collez l'adresse Tracker complète et exacte du compte sélectionné, avec son paramètre de compte. Elle est vérifiée localement avec l'identifiant sélectionné et n'est jamais envoyée ni enregistrée. Utilisez HTTPS ou localhost.",
+    "title": "Règles de compte des trackers",
+    "intro": "Les règles sont enregistrées séparément des paramètres de surveillance. Choisissez un identifiant Tracker exact parmi les observations enregistrées ; un même nom d'hôte peut contenir différents comptes. Aucun statut en temps réel n'est déduit.",
+    "warning": "Le fonctionnement dans qB ne prouve pas la comptabilisation du site. Les attentes existantes survivent à des paramètres plus courts. Une couverture de compte manquante bloque les opérations gérées. Les règles ne peuvent pas encore être supprimées ; désactiver un site lié bloque l'évaluation jusqu'à sa réparation.",
+    "refresh": "Actualiser les observations",
+    "loadFailed": "Impossible de charger les règles de compte ou les observations. Réessayez.",
+    "loading": "Chargement des règles de compte…",
+    "empty": "Aucune observation ni règle Tracker pour le moment. Les observations apparaissent après qu'une tâche de surveillance a interrogé une tâche.",
+    "tracker": "Identifiant du compte Tracker",
+    "choose": "Choisir…",
+    "site": "Site du compte",
+    "noSites": "Activez d'abord un site avec ce nom d'hôte Tracker dans les paramètres du téléchargeur.",
+    "interval": "Intervalle minimal d'envoi (secondes)",
+    "intervalHelp": "L'intervalle applicable le plus long s'applique à l'ensemble du torrent. Réduire cette valeur n'annule pas une échéance enregistrée.",
+    "knownWait": "Appliquer une attente de réponse connue",
+    "message": "Réponse connue exacte",
+    "messageHelp": "Collez la réponse complète exactement, espaces compris. Seul son condensat SHA-256 est envoyé et enregistré ; le texte original reste dans ce formulaire jusqu'à l'enregistrement ou la sortie.",
+    "keepMessage": "Laissez vide pour conserver la correspondance de réponse enregistrée.",
+    "wait": "Attente connue (secondes)",
+    "protection": "Condition de suppression automatique",
+    "blocked": "Maintenir la suppression bloquée",
+    "working": "Accepter l'état fonctionnel de qB (ne constitue pas une comptabilisation du site)",
+    "accounted": "Exiger la comptabilisation du site (indisponible ; reste bloqué)",
+    "confirm": "J'ai vérifié que cet identifiant Tracker appartient au compte sélectionné et je comprends la condition de suppression.",
+    "save": "Enregistrer la règle du compte",
+    "saving": "Enregistrement de la règle du compte…",
+    "saved": "Règle du compte enregistrée",
+    "saveFailed": "Impossible d'enregistrer. Vérifiez l'association au compte, les valeurs numériques et la correspondance de réponse, puis réessayez.",
+    "invalid": "Vérifiez l'association au compte, les intervalles et la correspondance de réponse.",
+    "secureContext": "Utilisez HTTPS ou localhost pour hacher une réponse en toute sécurité."
   }
 }

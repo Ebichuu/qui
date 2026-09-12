@@ -79,7 +79,16 @@ func (s *InstanceReannounceStore) SaveTrackerPolicy(ctx context.Context, instanc
 	return err
 }
 
+// ConfiguredTrackerPolicies includes invalid site bindings so the editor can repair them.
+func (s *InstanceReannounceStore) ConfiguredTrackerPolicies(ctx context.Context, instanceID int) ([]ReannounceTrackerPolicy, error) {
+	return s.trackerPolicies(ctx, instanceID, false)
+}
+
 func (s *InstanceReannounceStore) TrackerPolicies(ctx context.Context, instanceID int) ([]ReannounceTrackerPolicy, error) {
+	return s.trackerPolicies(ctx, instanceID, true)
+}
+
+func (s *InstanceReannounceStore) trackerPolicies(ctx context.Context, instanceID int, validate bool) ([]ReannounceTrackerPolicy, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT p.tracker_key,p.site_id,p.tracker_host,p.interval_seconds,p.wait_message_digest,p.wait_seconds,p.delete_protection,s.tracker_hosts,s.enabled FROM reannounce_tracker_policies p JOIN racing_sites s ON s.id=p.site_id WHERE p.instance_id=? ORDER BY p.tracker_key`, instanceID)
 	if err != nil {
 		return nil, err
@@ -97,7 +106,7 @@ func (s *InstanceReannounceStore) TrackerPolicies(ctx context.Context, instanceI
 		if err := json.Unmarshal([]byte(raw), &hosts); err != nil {
 			return nil, err
 		}
-		if !enabled || !slices.Contains(hosts, item.TrackerHost) {
+		if validate && (!enabled || !slices.Contains(hosts, item.TrackerHost)) {
 			return nil, ErrTrackerPolicyInvalid
 		}
 		items = append(items, item)

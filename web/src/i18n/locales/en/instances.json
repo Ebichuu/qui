@@ -1951,5 +1951,38 @@
       "allBackupsDeleted": "Deleted all backups",
       "failedToDeleteBackups": "Failed to delete backups"
     }
+  },
+  "trackerPolicies": {
+    "trackerAddress": "Confirm account Tracker address",
+    "trackerAddressHelp": "Paste the exact full Tracker address for the selected account, including its account parameter. It is checked locally against the selected identifier and is never sent or saved. Use HTTPS or localhost.",
+    "title": "Tracker account rules",
+    "intro": "Rules are saved separately from monitoring settings. Choose an exact Tracker identifier from saved observations; the same hostname can contain different accounts. No live status is implied.",
+    "warning": "Working in qB does not prove site accounting. Existing waits survive shorter settings. Missing account coverage blocks managed operations. Rules cannot yet be removed; disabling a bound site blocks evaluation until repaired.",
+    "refresh": "Refresh observations",
+    "loadFailed": "Unable to load account rules or observations. Try again.",
+    "loading": "Loading account rules…",
+    "empty": "No Tracker observations or rules yet. Observations appear after a monitoring job queries a task.",
+    "tracker": "Tracker account identifier",
+    "choose": "Choose…",
+    "site": "Account site",
+    "noSites": "Enable a site with this Tracker hostname in the downloader settings first.",
+    "interval": "Minimum send interval (seconds)",
+    "intervalHelp": "The longest applicable interval applies to the whole torrent. Shortening this value does not cancel a stored deadline.",
+    "knownWait": "Apply a known response wait",
+    "message": "Exact known response",
+    "messageHelp": "Paste the complete response exactly, including whitespace. Only its SHA-256 digest is sent and saved; the original text stays in this form until you save or leave.",
+    "keepMessage": "Leave blank to retain the saved response match.",
+    "wait": "Known wait (seconds)",
+    "protection": "Automatic deletion condition",
+    "blocked": "Keep deletion blocked",
+    "working": "Accept qB working state (not site accounting)",
+    "accounted": "Require site accounting (unavailable; stays blocked)",
+    "confirm": "I verified that this Tracker identifier belongs to the selected account and understand the deletion condition.",
+    "save": "Save account rule",
+    "saving": "Saving account rule…",
+    "saved": "Account rule saved",
+    "saveFailed": "Unable to save. Check the account binding, numeric values and response match, then try again.",
+    "invalid": "Check the account binding, intervals and response match.",
+    "secureContext": "Use HTTPS or localhost to hash a response securely."
   }
 }

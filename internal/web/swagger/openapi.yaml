@@ -2118,7 +2118,7 @@ paths:
         - $ref: '#/components/parameters/instanceID'
       responses:
         '200':
-          description: Configured policies; a disabled site or changed host binding makes the configuration unavailable.
+          description: Configured policies, including invalid site bindings so they can be repaired. Listing does not authorize operations; execution rejects disabled sites and changed host bindings.
           content:
             application/json:
               schema:

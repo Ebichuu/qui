@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+import { TrackerAccountPolicies } from "./TrackerAccountPolicies"
 import { buildCategoryTree, type CategoryNode } from "@/components/torrents/CategoryTree"
 import { ReannounceEnableWarningAlert, ReannounceEnableWarningDialog } from "@/components/instances/preferences/ReannounceEnableWarning"
 import { Badge } from "@/components/ui/badge"
@@ -786,6 +787,7 @@ export function TrackerReannounceForm({ instanceId, onInstanceChange, onSuccess,
           {headerContent}
           {settingsContent}
         </form>
+        <TrackerAccountPolicies key={instanceId} instanceId={instanceId} />
         {enableWarningDialog}
       </>
     )
@@ -817,6 +819,7 @@ export function TrackerReannounceForm({ instanceId, onInstanceChange, onSuccess,
           </CardContent>
         </Card>
       </form>
+      <TrackerAccountPolicies key={instanceId} instanceId={instanceId} />
       {enableWarningDialog}
     </>
   )

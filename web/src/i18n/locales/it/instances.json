@@ -1951,5 +1951,38 @@
       "failed": "Non riuscito",
       "canceled": "Annullato"
     }
+  },
+  "trackerPolicies": {
+    "trackerAddress": "Conferma l'indirizzo Tracker dell'account",
+    "trackerAddressHelp": "Incolla l'indirizzo Tracker completo ed esatto dell'account selezionato, incluso il relativo parametro account. Viene verificato localmente rispetto all'identificatore selezionato e non viene mai inviato né salvato. Usa HTTPS o localhost.",
+    "title": "Regole degli account Tracker",
+    "intro": "Le regole vengono salvate separatamente dalle impostazioni di monitoraggio. Scegli un identificatore Tracker esatto dalle osservazioni salvate; lo stesso hostname può contenere account diversi. Non viene implicato alcuno stato in tempo reale.",
+    "warning": "Lo stato operativo in qB non dimostra la contabilizzazione del sito. Le attese esistenti persistono con impostazioni più brevi. La copertura mancante dell'account blocca le operazioni gestite. Le regole non possono ancora essere rimosse; disabilitare un sito associato blocca la valutazione finché non viene ripristinato.",
+    "refresh": "Aggiorna osservazioni",
+    "loadFailed": "Impossibile caricare le regole degli account o le osservazioni. Riprova.",
+    "loading": "Caricamento delle regole degli account…",
+    "empty": "Nessuna osservazione o regola Tracker al momento. Le osservazioni compaiono dopo che un processo di monitoraggio interroga un'attività.",
+    "tracker": "Identificatore account Tracker",
+    "choose": "Scegli…",
+    "site": "Sito dell'account",
+    "noSites": "Abilita prima un sito con questo hostname Tracker nelle impostazioni del downloader.",
+    "interval": "Intervallo minimo di invio (secondi)",
+    "intervalHelp": "L'intervallo applicabile più lungo vale per l'intero torrent. Ridurre questo valore non annulla una scadenza salvata.",
+    "knownWait": "Applica un'attesa di risposta nota",
+    "message": "Risposta nota esatta",
+    "messageHelp": "Incolla la risposta completa esattamente, inclusi gli spazi. Viene inviato e salvato solo il suo digest SHA-256; il testo originale resta in questo modulo finché non salvi o esci.",
+    "keepMessage": "Lascia vuoto per mantenere la corrispondenza della risposta salvata.",
+    "wait": "Attesa nota (secondi)",
+    "protection": "Condizione di eliminazione automatica",
+    "blocked": "Mantieni bloccata l'eliminazione",
+    "working": "Accetta lo stato operativo di qB (non è contabilizzazione del sito)",
+    "accounted": "Richiedi la contabilizzazione del sito (non disponibile; resta bloccata)",
+    "confirm": "Ho verificato che questo identificatore Tracker appartenga all'account selezionato e comprendo la condizione di eliminazione.",
+    "save": "Salva regola account",
+    "saving": "Salvataggio della regola account…",
+    "saved": "Regola account salvata",
+    "saveFailed": "Impossibile salvare. Controlla l'associazione dell'account, i valori numerici e la corrispondenza della risposta, quindi riprova.",
+    "invalid": "Controlla l'associazione dell'account, gli intervalli e la corrispondenza della risposta.",
+    "secureContext": "Usa HTTPS o localhost per eseguire l'hash di una risposta in modo sicuro."
   }
 }

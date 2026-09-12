@@ -52,6 +52,10 @@ func TestTrackerPolicyWaitsAndAccountBinding(t *testing.T) {
 			require.NoError(t, err)
 			_, err = store.TrackerPolicies(t.Context(), f.instance)
 			require.ErrorIs(t, err, models.ErrTrackerPolicyInvalid)
+			configured, err := store.ConfiguredTrackerPolicies(t.Context(), f.instance)
+			require.NoError(t, err)
+			require.Len(t, configured, 1)
+			require.Equal(t, "a.example.invalid", configured[0].TrackerHost)
 		})
 	}
 }

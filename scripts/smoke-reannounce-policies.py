@@ -92,8 +92,13 @@ def main():
         assert not result["deleteAllowed"] and not result["reannounceAllowed"], result
         bulk()
         assert mock.posts == 1, "changed account escaped constraints"
+        # Configuration remains readable for repair, while execution still rejects it.
+        policy = policies[0]
+        app.request(f"/api/racing/sites/{policy['siteId']}", dict(name="Synthetic disabled account", baseUrl=mock.origin, enabled=False, trackerHosts=[policy["trackerHost"]], requestIntervalSeconds=1), method="PUT")
+        assert len(app.request(path + "/tracker-policies")) == 2
+        app.request(check, expected=503)
         assert not mock.errors, mock.errors
-    print("PASS C12 account policies: two exact bindings, known wait, restart, original interval, automatic deletion guard, explicit working-state condition and changed-account rejection")
+    print("PASS C12 account policies: two exact bindings, known wait, restart, original interval, automatic deletion guard, explicit working-state condition, changed-account rejection and invalid binding repair visibility")
 
 
 if __name__ == "__main__":

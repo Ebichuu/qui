@@ -1951,5 +1951,38 @@
       "failed": "Selhalo",
       "canceled": "Zrušeno"
     }
+  },
+  "trackerPolicies": {
+    "trackerAddress": "Potvrdit adresu Trackeru účtu",
+    "trackerAddressHelp": "Vložte přesnou úplnou adresu Trackeru vybraného účtu včetně parametru účtu. Lokálně se ověří podle vybraného identifikátoru a nikdy se neodešle ani neuloží. Použijte HTTPS nebo localhost.",
+    "title": "Pravidla účtů trackerů",
+    "intro": "Pravidla se ukládají odděleně od nastavení monitorování. Vyberte přesný identifikátor Trackeru z uložených pozorování; stejný název hostitele může obsahovat různé účty. Není tím naznačen aktuální stav.",
+    "warning": "Pracovní stav v qB neprokazuje účtování na webu. Stávající čekání přetrvají i při kratším nastavení. Chybějící pokrytí účtu blokuje spravované operace. Pravidla zatím nelze odstranit; deaktivace svázaného webu zablokuje vyhodnocování, dokud nebude opraven.",
+    "refresh": "Obnovit pozorování",
+    "loadFailed": "Nelze načíst pravidla účtů ani pozorování. Zkuste to znovu.",
+    "loading": "Načítání pravidel účtů…",
+    "empty": "Zatím žádná pozorování ani pravidla Trackeru. Pozorování se objeví po dotazu monitorovací úlohy na úkol.",
+    "tracker": "Identifikátor účtu Trackeru",
+    "choose": "Vybrat…",
+    "site": "Web účtu",
+    "noSites": "Nejprve v nastavení downloaderu povolte web s tímto hostname Trackeru.",
+    "interval": "Minimální interval odesílání (sekundy)",
+    "intervalHelp": "Nejdelší použitelný interval platí pro celý torrent. Zkrácení této hodnoty nezruší uložený termín.",
+    "knownWait": "Použít známou dobu čekání na odpověď",
+    "message": "Přesná známá odpověď",
+    "messageHelp": "Vložte úplnou odpověď přesně včetně mezer. Odeslán a uložen je pouze její digest SHA-256; původní text zůstane v tomto formuláři, dokud jej neuložíte nebo neopustíte.",
+    "keepMessage": "Ponechte prázdné pro zachování uložené shody odpovědi.",
+    "wait": "Známá doba čekání (sekundy)",
+    "protection": "Podmínka automatického mazání",
+    "blocked": "Ponechat mazání zablokované",
+    "working": "Přijmout pracovní stav qB (nejde o účtování na webu)",
+    "accounted": "Vyžadovat účtování na webu (nedostupné; zůstává zablokováno)",
+    "confirm": "Ověřil(a) jsem, že tento identifikátor Trackeru patří k vybranému účtu, a rozumím podmínce mazání.",
+    "save": "Uložit pravidlo účtu",
+    "saving": "Ukládání pravidla účtu…",
+    "saved": "Pravidlo účtu uloženo",
+    "saveFailed": "Nelze uložit. Zkontrolujte vazbu na účet, číselné hodnoty a shodu odpovědi a zkuste to znovu.",
+    "invalid": "Zkontrolujte vazbu na účet, intervaly a shodu odpovědi.",
+    "secureContext": "Pro bezpečné hashování odpovědi použijte HTTPS nebo localhost."
   }
 }

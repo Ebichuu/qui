@@ -1951,5 +1951,38 @@
       "allBackupsDeleted": "Alle Backups gelöscht",
       "failedToDeleteBackups": "Backups konnten nicht gelöscht werden"
     }
+  },
+  "trackerPolicies": {
+    "trackerAddress": "Tracker-Adresse des Kontos bestätigen",
+    "trackerAddressHelp": "Füge die vollständige exakte Tracker-Adresse für das ausgewählte Konto einschließlich des Kontoparameters ein. Sie wird lokal anhand der ausgewählten Kennung geprüft und niemals gesendet oder gespeichert. Verwende HTTPS oder localhost.",
+    "title": "Tracker-Kontoregeln",
+    "intro": "Regeln werden getrennt von den Überwachungseinstellungen gespeichert. Wähle eine exakte Tracker-Kennung aus den gespeicherten Beobachtungen; derselbe Hostname kann verschiedene Konten enthalten. Ein Live-Status wird nicht vorausgesetzt.",
+    "warning": "Der Arbeitsstatus in qB beweist keine Kontoverbuchung auf der Website. Bestehende Wartezeiten bleiben bei kürzeren Einstellungen erhalten. Fehlende Kontodeckung blockiert verwaltete Vorgänge. Regeln können derzeit nicht entfernt werden; das Deaktivieren einer gebundenen Website blockiert die Auswertung, bis sie repariert wurde.",
+    "refresh": "Beobachtungen aktualisieren",
+    "loadFailed": "Kontoregeln oder Beobachtungen konnten nicht geladen werden. Versuche es erneut.",
+    "loading": "Kontoregeln werden geladen…",
+    "empty": "Noch keine Tracker-Beobachtungen oder -Regeln. Beobachtungen erscheinen, nachdem ein Überwachungsjob eine Aufgabe abgefragt hat.",
+    "tracker": "Tracker-Konto-Kennung",
+    "choose": "Auswählen…",
+    "site": "Kontoseite",
+    "noSites": "Aktiviere zuerst in den Downloader-Einstellungen eine Seite mit diesem Tracker-Hostname.",
+    "interval": "Mindestintervall für das Senden (Sekunden)",
+    "intervalHelp": "Das längste zutreffende Intervall gilt für den gesamten Torrent. Das Verkürzen dieses Werts hebt keine gespeicherte Frist auf.",
+    "knownWait": "Bekannte Antwortwartezeit anwenden",
+    "message": "Exakte bekannte Antwort",
+    "messageHelp": "Füge die vollständige Antwort exakt einschließlich Leerzeichen ein. Nur ihr SHA-256-Digest wird gesendet und gespeichert; der Originaltext bleibt in diesem Formular, bis du speicherst oder es verlässt.",
+    "keepMessage": "Leer lassen, um den gespeicherten Antwortabgleich beizubehalten.",
+    "wait": "Bekannte Wartezeit (Sekunden)",
+    "protection": "Bedingung für automatische Löschung",
+    "blocked": "Löschung weiterhin blockieren",
+    "working": "qB-Arbeitsstatus akzeptieren (keine Kontoverbuchung auf der Website)",
+    "accounted": "Kontoverbuchung auf der Website verlangen (nicht verfügbar; bleibt blockiert)",
+    "confirm": "Ich habe überprüft, dass diese Tracker-Kennung zum ausgewählten Konto gehört, und verstehe die Löschbedingung.",
+    "save": "Kontoregel speichern",
+    "saving": "Kontoregel wird gespeichert…",
+    "saved": "Kontoregel gespeichert",
+    "saveFailed": "Speichern nicht möglich. Überprüfe die Kontobindung, numerischen Werte und den Antwortabgleich und versuche es erneut.",
+    "invalid": "Überprüfe die Kontobindung, Intervalle und den Antwortabgleich.",
+    "secureContext": "Verwende HTTPS oder localhost, um eine Antwort sicher zu hashen."
   }
 }

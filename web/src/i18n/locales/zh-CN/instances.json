@@ -1931,5 +1931,38 @@
       "allBackupsDeleted": "所有备份已删除",
       "failedToDeleteBackups": "删除备份失败"
     }
+  },
+  "trackerPolicies": {
+    "title": "Tracker 账户规则",
+    "intro": "规则与监控设置分开保存。请从已保存的观测中选择精确的 Tracker 标识；同一主机名可能包含不同账户。不代表实时状态。",
+    "warning": "qB 中的工作状态不能证明站点记账。已有等待会继续遵循较短的设置。缺少账户覆盖会阻止受管理的操作。规则目前无法移除；禁用已绑定的站点会阻止评估，直到修复。",
+    "refresh": "刷新观测",
+    "loadFailed": "无法加载账户规则或观测结果。请重试。",
+    "loading": "正在加载账户规则…",
+    "empty": "暂无 Tracker 观测或规则。监控任务查询任务后才会出现观测。",
+    "trackerAddress": "确认账户 Tracker 地址",
+    "trackerAddressHelp": "粘贴所选账户对应的完整 Tracker 地址，包括账户参数。系统会在本地将其与所选标识进行核对，绝不会发送或保存。请使用 HTTPS 或 localhost。",
+    "tracker": "Tracker 账户标识",
+    "choose": "选择…",
+    "site": "账户站点",
+    "noSites": "请先在下载器设置中启用具有此 Tracker 主机名的站点。",
+    "interval": "最短发送间隔（秒）",
+    "intervalHelp": "最长的适用间隔将应用于整个种子。缩短此值不会取消已保存的截止时间。",
+    "knownWait": "应用已知响应等待时间",
+    "message": "精确的已知响应",
+    "messageHelp": "请原样粘贴完整响应，包括空白字符。仅会发送并保存其 SHA-256 摘要；保存或离开前，原始文本会保留在此表单中。",
+    "keepMessage": "留空以保留已保存的响应匹配。",
+    "wait": "已知等待时间（秒）",
+    "protection": "自动删除条件",
+    "blocked": "保持阻止删除",
+    "working": "接受 qB 工作状态（不代表站点记账）",
+    "accounted": "要求站点记账（不可用；保持阻止）",
+    "confirm": "我已确认此 Tracker 标识属于所选账户，并理解删除条件。",
+    "save": "保存账户规则",
+    "saving": "正在保存账户规则…",
+    "saved": "账户规则已保存",
+    "saveFailed": "无法保存。请检查账户绑定、数值和响应匹配，然后重试。",
+    "invalid": "请检查账户绑定、间隔和响应匹配。",
+    "secureContext": "请使用 HTTPS 或 localhost，以安全地计算响应摘要。"
   }
 }

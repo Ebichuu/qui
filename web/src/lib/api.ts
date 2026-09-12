@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+import type { ReannounceObservation, ReannounceTrackerPolicy } from "@/types/reannounce-policy"
 import type { RacingReclaimPolicy, RacingReclaimConfiguration, RacingInstancePolicy, RacingAddIntents, RacingCandidates, RacingDiscoveries, RacingConfiguration, RacingObservations, RacingResource, RacingResourceInput } from "@/types/racing"
 
 import type {
@@ -721,6 +722,18 @@ class ApiClient {
 
   async getDailyTransferStats(id: number): Promise<DailyTransferStats> {
     return this.request<DailyTransferStats>(`/instances/${id}/daily-transfer`)
+  }
+
+  getReannounceTrackerPolicies(instanceId: number) {
+    return this.request<ReannounceTrackerPolicy[]>(`/instances/${instanceId}/reannounce/tracker-policies`)
+  }
+
+  saveReannounceTrackerPolicy(instanceId: number, policy: ReannounceTrackerPolicy) {
+    return this.request<void>(`/instances/${instanceId}/reannounce/tracker-policies`, { method: "PUT", body: JSON.stringify(policy) })
+  }
+
+  getReannounceObservations(instanceId: number) {
+    return this.request<ReannounceObservation[]>(`/instances/${instanceId}/reannounce/observations`)
   }
 
   async getInstanceReannounceActivity(

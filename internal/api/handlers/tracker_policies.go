@@ -37,7 +37,7 @@ func (h *InstancesHandler) TrackerPolicies(w http.ResponseWriter, r *http.Reques
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	policies, err := h.reannounceStore.TrackerPolicies(r.Context(), instanceID)
+	policies, err := h.reannounceStore.ConfiguredTrackerPolicies(r.Context(), instanceID)
 	if err != nil {
 		RespondError(w, http.StatusInternalServerError, "Failed to load tracker policies")
 		return
