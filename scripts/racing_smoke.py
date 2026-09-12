@@ -38,7 +38,9 @@ class App:
         config = self.directory / "config.toml"
         config.write_text(f'host="127.0.0.1"\nport={port}\ncheckForUpdates=false\nsessionSecret="{secrets.token_urlsafe(32)}"\ntrackerIconsFetchEnabled=false\nlogLevel="WARN"\n', encoding="utf-8")
         config.chmod(0o600)
-        self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+        # This fixture only talks to its own loopback listener. System HTTP proxies
+        # must not intercept startup checks or synthetic credentials.
+        self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
         self.credentials = {"username": "racing-smoke", "password": secrets.token_urlsafe(24)}
 
     def request(self, path, payload=None, method=None, expected=200):

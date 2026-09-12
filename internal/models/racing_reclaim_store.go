@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"slices"
+	"time"
 
 	"github.com/autobrr/qui/internal/dbinterface"
 )
@@ -32,7 +33,7 @@ func (s *RacingStore) SaveReclaimSetting(ctx context.Context, scope string, targ
 	if err != nil {
 		return err
 	}
-	if policy.MaxDeletes < 0 || policy.MaxReclaimBytes < 0 || policy.MaxRecentUploadBytes < 0 || policy.RecentUploadWindowSeconds < 0 || policy.MaxOvershootBytes < 0 || policy.MaxOvershootBytes > policy.MaxReclaimBytes {
+	if policy.MaxDeletes < 0 || policy.MaxReclaimBytes < 0 || policy.MaxRecentUploadBytes < 0 || policy.RecentUploadWindowSeconds < 0 || int64(policy.RecentUploadWindowSeconds) > int64((1<<63-1)/time.Second) || policy.MaxOvershootBytes < 0 || policy.MaxOvershootBytes > policy.MaxReclaimBytes {
 		return racingInvalid("reclaim budgets")
 	}
 	if policy.Enabled && (len(policy.RuleIDs) == 0 || policy.MaxDeletes == 0 || policy.MaxReclaimBytes == 0 || policy.RecentUploadWindowSeconds == 0) {

@@ -6,6 +6,7 @@ package racing
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"time"
 
 	"github.com/autobrr/qui/internal/models"
@@ -14,6 +15,7 @@ import (
 
 type ReclaimCandidateReader interface {
 	ObserveReclaimCandidates(context.Context, int) (*automations.ReclaimCandidates, error)
+	ReclaimPhysicalBytes(context.Context, int, automations.ReclaimCandidate, []int) (*int64, error)
 }
 
 func (s *Service) SetReclaimCandidateReader(reader ReclaimCandidateReader) {
@@ -87,17 +89,40 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 			if selection.Deadline == nil || !now.Before(*selection.Deadline) {
 				return
 			}
+			poolInstances := []int{}
+			for _, mapping := range config.PathMappings {
+				if mapping.StoragePoolID == target.pools[0] && !slices.Contains(poolInstances, mapping.InstanceID) {
+					poolInstances = append(poolInstances, mapping.InstanceID)
+				}
+			}
 			evidence := []ReclaimEvidence{}
 			for _, item := range candidates.Candidates {
 				pool, known := ResolveStoragePool(config.PathMappings, target.instance.InstanceID, item.SavePath)
 				if !known {
 					continue
 				}
-				// Logical size and lifetime upload are deliberately not promoted into
-				// physical release or covered recent-window evidence.
-				evidence = append(evidence, ReclaimEvidence{Hash: item.Hash, AddedOn: item.AddedOn, InstanceID: target.instance.InstanceID, PoolID: pool, ObservedAt: item.ObservedAt})
+				// Logical size is never promoted into physical release evidence.
+				entry := ReclaimEvidence{Hash: item.Hash, AddedOn: item.AddedOn, InstanceID: target.instance.InstanceID, PoolID: pool, ObservedAt: item.ObservedAt, LowEfficiencyDuration: time.Duration(item.LowEfficiencySeconds) * time.Second}
+				if item.RecentUploadBytes != nil && item.UploadWindowSeconds == policy.RecentUploadWindowSeconds {
+					entry.UploadWindowCovered = true
+					entry.RecentUploadBytes = *item.RecentUploadBytes
+				}
+				if pool == target.pools[0] {
+					if bytes, err := observer.ReclaimPhysicalBytes(ctx, target.instance.InstanceID, item, poolInstances); err == nil && bytes != nil {
+						entry.CapacityKnown = true
+						entry.PhysicalBytes = *bytes
+					}
+				}
+				evidence = append(evidence, entry)
+			}
+			now = time.Now()
+			if !now.Before(*selection.Deadline) {
+				return
 			}
 			result := assessReclaim(target.instance.InstanceID, target.pools[0], candidate.VerifiedMetadata.SizeBytes, target.available, *policy, *policy, ReclaimSpent{}, evidence, now)
+			if result.State == "assessed" {
+				result.State = "awaiting_site_protection"
+			}
 			raw, err := json.Marshal(result)
 			if err != nil {
 				continue

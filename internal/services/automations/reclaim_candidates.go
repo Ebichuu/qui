@@ -15,13 +15,16 @@ import (
 )
 
 type ReclaimCandidate struct {
-	Hash          string    `json:"hash"`
-	AddedOn       int64     `json:"addedOn"`
-	SavePath      string    `json:"savePath"`
-	SizeBytes     int64     `json:"sizeBytes"`
-	UploadedBytes int64     `json:"uploadedBytes"`
-	RuleID        int       `json:"ruleId"`
-	ObservedAt    time.Time `json:"observedAt"`
+	RecentUploadBytes    *int64    `json:"recentUploadBytes,omitempty"`
+	UploadWindowSeconds  int       `json:"uploadWindowSeconds"`
+	LowEfficiencySeconds int64     `json:"lowEfficiencySeconds"`
+	Hash                 string    `json:"hash"`
+	AddedOn              int64     `json:"addedOn"`
+	SavePath             string    `json:"savePath"`
+	SizeBytes            int64     `json:"sizeBytes"`
+	UploadedBytes        int64     `json:"uploadedBytes"`
+	RuleID               int       `json:"ruleId"`
+	ObservedAt           time.Time `json:"observedAt"`
 }
 
 type ReclaimCandidates struct {
@@ -107,17 +110,43 @@ func (s *Service) ObserveReclaimCandidates(ctx context.Context, instanceID int) 
 		result.State = "conditions_unavailable"
 		return result, nil
 	}
+	var sampleErr error
 	observer.candidateCollector = func(states map[string]*torrentDesiredState, torrents []qbt.Torrent) {
-		now := time.Now().UTC()
+		now := observer.reclaimObservedAt.UTC()
+		counters := []models.ReclaimUploadCounter{}
+		for _, torrent := range torrents {
+			if torrent.AddedOn > 0 && torrent.Uploaded >= 0 && torrent.Size > 0 && torrent.Completed >= torrent.Size && torrent.AmountLeft == 0 {
+				counters = append(counters, models.ReclaimUploadCounter{Hash: torrent.Hash, AddedOn: torrent.AddedOn, Uploaded: torrent.Uploaded})
+			}
+		}
+		windows, err := s.ruleStore.CaptureReclaimUploads(ctx, instanceID, now, time.Duration(policy.RecentUploadWindowSeconds)*time.Second, 2*observer.cfg.ScanInterval, counters)
+		if err != nil {
+			sampleErr = err
+			return
+		}
+		durations := map[string]int64{}
+		for key, match := range observer.deleteConditionMatches {
+			if state := states[key.hash]; state != nil && state.deleteRuleID == key.ruleID {
+				durations[key.hash] = int64(match.lastSeen.Sub(match.matchedSince) / time.Second)
+			}
+		}
 		for _, torrent := range torrents {
 			if state := states[torrent.Hash]; state != nil && state.shouldDelete {
-				result.Candidates = append(result.Candidates, ReclaimCandidate{Hash: torrent.Hash, AddedOn: torrent.AddedOn, SavePath: torrent.SavePath, SizeBytes: torrent.Size, UploadedBytes: torrent.Uploaded, RuleID: state.deleteRuleID, ObservedAt: now})
+				candidate := ReclaimCandidate{Hash: torrent.Hash, AddedOn: torrent.AddedOn, SavePath: torrent.SavePath, SizeBytes: torrent.Size, UploadedBytes: torrent.Uploaded, RuleID: state.deleteRuleID, ObservedAt: now, UploadWindowSeconds: policy.RecentUploadWindowSeconds}
+				if window := windows[torrent.Hash]; window.Covered {
+					candidate.RecentUploadBytes = &window.Bytes
+				}
+				candidate.LowEfficiencySeconds = durations[torrent.Hash]
+				result.Candidates = append(result.Candidates, candidate)
 			}
 		}
 	}
 	defer func() { observer.candidateCollector = nil }()
 	if _, err := observer.applyRulesForInstance(ctx, instanceID, true, rules, true); err != nil {
 		return nil, err
+	}
+	if sampleErr != nil {
+		return nil, sampleErr
 	}
 	slices.SortFunc(result.Candidates, func(a, b ReclaimCandidate) int {
 		if a.Hash < b.Hash {

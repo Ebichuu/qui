@@ -8566,6 +8566,15 @@ components:
                 type: integer
                 format: int64
                 description: Logical size, never a physical free-space guarantee
+              recentUploadBytes:
+                type: integer
+                format: int64
+                description: Conservative uploaded-byte upper bound for the configured window; omitted without continuous sample coverage
+              uploadWindowSeconds:
+                type: integer
+              lowEfficiencySeconds:
+                type: integer
+                format: int64
               uploadedBytes:
                 type: integer
                 format: int64

@@ -539,6 +539,7 @@ type Service struct {
 	reclaimStore       *models.RacingStore
 	reclaimObservers   sync.Map
 	reclaimObservation bool
+	reclaimObservedAt  time.Time
 	candidateCollector func(map[string]*torrentDesiredState, []qbt.Torrent)
 
 	cfg                       Config
@@ -2081,7 +2082,16 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 		}
 	}
 
-	torrents, err := s.syncManager.GetAllTorrents(ctx, instanceID)
+	var torrents []qbt.Torrent
+	var err error
+	if s.reclaimObservation {
+		torrents, s.reclaimObservedAt, err = s.syncManager.GetObservedTorrents(ctx, instanceID)
+		if err == nil {
+			now = s.reclaimObservedAt
+		}
+	} else {
+		torrents, err = s.syncManager.GetAllTorrents(ctx, instanceID)
+	}
 	if err != nil {
 		s.pruneDeleteConditionMatches(instanceID, eligibleRules, dryRun, nil)
 		log.Debug().Err(err).Int("instanceID", instanceID).Msg("automations: unable to fetch torrents")
@@ -2090,6 +2100,9 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 	}
 
 	if len(torrents) == 0 {
+		if s.candidateCollector != nil {
+			s.candidateCollector(nil, nil)
+		}
 		s.pruneDeleteConditionMatches(instanceID, eligibleRules, dryRun, nil)
 		return nil, nil
 	}
@@ -2279,6 +2292,12 @@ func (s *Service) applyRulesForInstance(ctx context.Context, instanceID int, for
 
 	deleteDurationSeen := make(map[deleteConditionMatchKey]struct{})
 	syncFresh := s.syncManager.HasFreshTorrentCache(ctx, instanceID)
+	if s.reclaimObservation {
+		// GetObservedTorrents already validates this exact snapshot. Do not mix it
+		// with the UI cache's shorter stale threshold or a later sync generation.
+		age := time.Since(s.reclaimObservedAt)
+		syncFresh = !s.reclaimObservedAt.IsZero() && age >= 0 && age <= 5*time.Second
+	}
 	deleteRuleVersions := make(map[int][32]byte, len(eligibleRules))
 	for _, rule := range eligibleRules {
 		deleteRuleVersions[rule.ID] = deleteConditionRuleVersion(rule)
