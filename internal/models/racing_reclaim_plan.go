@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/autobrr/qui/internal/dbinterface"
+	"github.com/autobrr/qui/pkg/fileallocation"
 )
 
 type RacingReclaimSpent struct {
@@ -188,7 +189,7 @@ func validateReclaimPlan(plan RacingReclaimPlan, current RacingReclaimPolicy, no
 // BeginReclaimDelete is the store boundary for a future verified executor. It
 // charges the first step and claims the shared deletion ledger atomically. It
 // never sends a request or treats task absence as physical space confirmation.
-func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation string) error {
+func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation string, baseline fileallocation.ReleaseBaseline) error {
 	snapshot, err := s.ReclaimPlan(ctx, key)
 	if err != nil {
 		return err
@@ -217,9 +218,32 @@ func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation str
 		if err := s.checkReclaimCandidate(ctx, tx, *plan); err != nil {
 			return 0, err
 		}
+		var occupied bool
+		if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM racing_reclaim_releases WHERE pool_id=? AND state='pending')`, plan.PoolID).Scan(&occupied); err != nil {
+			return 0, err
+		}
+		if occupied {
+			return 0, ErrRacingIntentState
+		}
 		item := plan.Items[0]
-		if operation == "" {
+		if operation == "" || baseline.Root == "" || len(baseline.Files) == 0 || len(baseline.Files) > 10000 || baseline.ExpectedBytes != item.CapacityBytes || baseline.Space.Available < 0 || !racingFresh(baseline.Space.ObservedAt, time.Now()) {
 			return 0, ErrRacingInvalid
+		}
+		// A baseline taken before the preceding pool receipt could count the
+		// same net recovery twice, even when both observations are still fresh.
+		var previousObservation string
+		err = tx.QueryRowContext(ctx, `SELECT observation_json FROM racing_reclaim_releases WHERE pool_id=? AND state='observed' ORDER BY updated_at DESC LIMIT 1`, plan.PoolID).Scan(&previousObservation)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return 0, err
+		}
+		if err == nil {
+			var previous fileallocation.Space
+			if err := json.Unmarshal([]byte(previousObservation), &previous); err != nil {
+				return 0, err
+			}
+			if !baseline.Space.ObservedAt.After(previous.ObservedAt) {
+				return 0, ErrRacingStale
+			}
 		}
 		if err := s.claimAutomaticDelete(ctx, tx, plan.InstanceID, operation, "official-reclaim", DeleteModeWithFiles, []DeleteIdentity{{Hash: strings.ToLower(item.Hash), AddedOn: item.AddedOn}}); err != nil {
 			return 0, err
@@ -235,7 +259,14 @@ func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation str
 			return 0, err
 		}
 		raw, _ = json.Marshal(charge)
-		_, err = tx.ExecContext(ctx, `INSERT INTO racing_reclaim_charges(operation_id,candidate_key,charge_json) VALUES(?,?,?)`, operation, key, string(raw))
+		if _, err = tx.ExecContext(ctx, `INSERT INTO racing_reclaim_charges(operation_id,candidate_key,charge_json) VALUES(?,?,?)`, operation, key, string(raw)); err != nil {
+			return 0, err
+		}
+		raw, err = json.Marshal(baseline)
+		if err != nil {
+			return 0, err
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO racing_reclaim_releases(operation_id,pool_id,baseline_json,state,updated_at) VALUES(?,?,?,'pending',?)`, operation, plan.PoolID, string(raw), time.Now().UTC().Format(time.RFC3339Nano))
 		return 0, err
 	})
 	return err

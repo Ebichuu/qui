@@ -117,6 +117,6 @@ func (s *RacingStore) ConfirmAutomaticDelete(ctx context.Context, item Automatic
 	if !observedAt.After(item.SubmittedAt) {
 		return ErrRacingStale
 	}
-	_, err := s.db.ExecContext(ctx, `UPDATE automatic_delete_intents SET state='confirmed',updated_at=? WHERE instance_id=? AND torrent_hash=? AND added_on=? AND operation_id=? AND state<>'confirmed'`, observedAt.UTC().Format(time.RFC3339Nano), item.InstanceID, item.Hash, item.AddedOn, item.OperationID)
+	_, err := s.db.ExecContext(ctx, `UPDATE automatic_delete_intents SET state='confirmed',updated_at=? WHERE instance_id=? AND torrent_hash=? AND added_on=? AND operation_id=? AND state='accepted'`, observedAt.UTC().Format(time.RFC3339Nano), item.InstanceID, item.Hash, item.AddedOn, item.OperationID)
 	return err
 }

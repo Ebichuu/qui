@@ -52,9 +52,10 @@ func TestAutomaticDeleteOwnership(t *testing.T) {
 			require.NoError(t, f.store.RecordAutomaticDeleteResult(ctx, items[0].OperationID, true))
 			rows, err = f.store.PendingAutomaticDeletes(ctx, f.instance)
 			require.NoError(t, err)
-			require.Empty(t, rows, "late response must not regress confirmed state")
+			require.Len(t, rows, 1, "unknown result must not become confirmed through absence or a late response")
+			require.Equal(t, "unknown", rows[0].State)
 			require.ErrorIs(t, f.store.BeginAutomaticDelete(ctx, f.instance, "same-generation", "official", "delete", candidates), models.ErrDeleteOwned)
-			require.NoError(t, f.store.BeginAutomaticDelete(ctx, f.instance, "new-generation", "official", "delete", []models.DeleteIdentity{{Hash: candidates[0].Hash, AddedOn: 200}}))
+			require.ErrorIs(t, f.store.BeginAutomaticDelete(ctx, f.instance, "new-generation", "official", "delete", []models.DeleteIdentity{{Hash: candidates[0].Hash, AddedOn: 200}}), models.ErrDeleteOwned)
 			require.ErrorIs(t, f.store.BeginAutomaticDelete(ctx, f.instance, "unknown-generation", "daily", "delete", []models.DeleteIdentity{{Hash: "unknown"}}), models.ErrRacingInvalid)
 		})
 	}

@@ -54,3 +54,16 @@
 - 组件尚未接入生产执行器，未增加删除权限，C11 仍未完成。没有新增用户界面或 API；本批仅更新开发记录，不需要修改 Docusaurus 使用说明。
 - 验证：`make precommit`、`make build` 通过（既有前端 58 条 warning、0 error）；fileallocation、automations、racing 定向 `go test -race -count=1` 通过，Linux 专项静态检查及 amd64/arm64 交叉编译通过。未改数据库或 API，未重复全量 Go／OpenAPI 检查。
 - 实跑：`make smoke-reclaim-assessment smoke-automatic-delete` 输出 PASS，覆盖容量恢复接种与删除断连／重启不重放。macOS 不能运行本批 Linux 原生容量核实，最近似本地检查为交叉编译及不支持平台的拒绝路径；原生测试随开发分支推送交由 Actions，不能将模拟余额测试当作真实释放验收。
+
+
+## 第六批：持久空间基线与逐项核实账本
+
+- SQLite 110／PostgreSQL 111 保存删除前文件／空间基线、核实记录与同池待核实占用。占用、自动删除意图、扣账及基线同事务提交；同池存在未决步骤时不能开始下一项。
+- 核实存储边界要求请求已接受且任务缺失已确认，空间观测新鲜、晚于任务确认、仍为原设备与目录身份，并达到原净增长门槛。调用方仍须先以 ObserveRelease 核对文件缺失；此方法不是可直接接受外部空间数据的 API。
+- 核实后保留累计消耗、初始预算与截止时间，清空旧候选及其时间，再回到待评估状态。下一项的空间基线必须晚于上一项核实；空间增长不另加到接种余额，仍以当前同盘空闲与未完成承诺计算。
+- 未知删除结果不能仅凭任务缺失转为 confirmed，同一 hash 的新代次继续受未决操作阻挡。升级的旧未决步骤保留同池占用，基线为未知；不会以升级后的空闲容量伪造删除前证据，也不自动解锁。
+- 两引擎定向测试覆盖原子占用、扣账保持、重开存储、重复核实拒绝、基线过旧／设备变化／容量不足、未知请求、新代次阻挡及旧布局升级。测试中的空间是合成存储证据，不是物理删除验收。
+- 运行时仍未接官种删除发送及文件核实调用者，未新增删除权；C11 及 C13 尚未完成。本批没有新增用户 API／界面，更新开发和架构说明，Docusaurus 使用说明无需变动。
+- 验证：`make precommit`、`make build` 通过；models、database、qbittorrent 整包竞态测试通过，PostgreSQL 启用；最终两引擎核实／升级及未知删除定向测试通过。既有前端 58 条 warning、0 error。未改变公共 API，未重复 OpenAPI；本批未跑全仓 Go 测试，由 Actions 继续验证。
+- 实跑：`make smoke-reclaim-assessment smoke-automatic-delete` 输出容量恢复接种、accepted／断连单次删除及重启不重放 PASS；最终构建的 `make smoke-baseline` 输出空库启动、认证、重启持久化及正常停止 PASS。本机没有原生 Linux 文件删除与运行时官种执行验收。
+- 已核对上一批 [5d992d8b 的 Actions](https://github.com/Ebichuu/qui/actions/runs/34716895842) 成功；详细日志下载遭遇证书域名不匹配，未绕过校验，也未将整体成功宣称为所有原生文件测试均未跳过。

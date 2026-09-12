@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/autobrr/qui/internal/models"
+	"github.com/autobrr/qui/pkg/fileallocation"
 )
 
 func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
@@ -25,13 +26,14 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 			require.NoError(t, f.store.SaveReclaimSetting(ctx, "instances", f.instance, policy))
 			reservation := f.reservation(t, "official:event", "a", 90, f.pools[0])
 			plan := models.RacingReclaimPlan{CandidateKey: reservation.Plan.CandidateKey, CandidateUpdatedAt: reservation.Plan.CandidateUpdatedAt, InstanceID: f.instance, PoolID: f.pools[0], ConfigurationRevision: reservation.Plan.ConfigurationRevision, Deadline: time.Now().Add(time.Minute), ObservedAt: time.Now(), DeficitBytes: 80, Items: []models.RacingReclaimItem{{Hash: "abc", AddedOn: 100, CapacityBytes: 90, RecentUploadBytes: 4}}}
+			baseline := fileallocation.ReleaseBaseline{Root: t.TempDir(), Files: []string{"synthetic.bin"}, ExpectedBytes: 90, Space: fileallocation.Space{Device: 1, RootID: 2, Available: 100, ObservedAt: time.Now()}}
 			require.NoError(t, f.store.SaveReclaimPlan(ctx, plan))
 			require.Error(t, f.store.BeginAutomaticDelete(ctx, f.instance, "bypass", "official-reclaim", models.DeleteModeWithFiles, []models.DeleteIdentity{{Hash: "abc", AddedOn: 100}}))
 			original, err := f.store.ReclaimPlan(ctx, plan.CandidateKey)
 			require.NoError(t, err)
 			policy.MaxReclaimBytes = 200
 			require.NoError(t, f.store.SaveReclaimSetting(ctx, "instances", f.instance, policy))
-			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, plan.CandidateKey, "stale"), models.ErrRacingStale)
+			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, plan.CandidateKey, "stale", baseline), models.ErrRacingStale)
 			config, err := f.store.ReclaimConfiguration(ctx)
 			require.NoError(t, err)
 			plan.ConfigurationRevision = config.Revision
@@ -67,7 +69,7 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 			require.NoError(t, err)
 			var wg sync.WaitGroup
 			results := make(chan error, 2)
-			wg.Go(func() { results <- reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step") })
+			wg.Go(func() { results <- reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step", baseline) })
 			wg.Go(func() {
 				results <- f.store.BeginAutomaticDelete(ctx, f.instance, "daily-step", "daily", models.DeleteModeWithFiles, []models.DeleteIdentity{{Hash: "ABC", AddedOn: 100}})
 			})
@@ -87,14 +89,14 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 				require.Equal(t, models.RacingReclaimSpent{}, persisted.Spent)
 				_, err = f.db.ExecContext(ctx, `DELETE FROM automatic_delete_intents WHERE operation_id='daily-step'`)
 				require.NoError(t, err)
-				require.NoError(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step"))
+				require.NoError(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step", baseline))
 			}
 			require.NoError(t, reopened.RecordAutomaticDeleteResult(ctx, "official-step", false))
 			persisted, err = reopened.ReclaimPlan(ctx, plan.CandidateKey)
 			require.NoError(t, err)
 			require.Equal(t, "awaiting_release", persisted.State)
 			require.Equal(t, models.RacingReclaimSpent{Deletes: 1, CapacityBytes: 90, RecentUploadBytes: 4, OvershootBytes: 10}, persisted.Spent)
-			require.Error(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "repeat"))
+			require.Error(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "repeat", baseline))
 			require.Error(t, reopened.SaveReclaimPlan(ctx, plan))
 			// Even task absence cannot clear the charge or authorize another step.
 			pending, err := reopened.PendingAutomaticDeletes(ctx, f.instance)
@@ -110,7 +112,7 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 			require.True(t, owned)
 			owned, err = reopened.AutomaticDeleteOwned(ctx, f.instance, models.DeleteIdentity{Hash: "ABC", AddedOn: 200})
 			require.NoError(t, err)
-			require.False(t, owned)
+			require.True(t, owned, "unknown requests cannot confirm absence or release later generations")
 		})
 	}
 }
