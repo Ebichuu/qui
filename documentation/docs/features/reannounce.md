@@ -61,3 +61,5 @@ If you want to view activity:
 The log displays a real-time feed of every checked torrent. It shows whether qui succeeded, failed, or skipped the reannounce, for example because the tracker already works.
 
 A retry succeeds only after qB reports the original enabled Trackers as working. Accepting the reannounce request alone does not count as success, and an exhausted retry remains unconfirmed. If only some Trackers recover, qui stops further torrent-wide retries and records a skip. Changing the Tracker list also stops that attempt. These observations do not prove that a site's account statistics have refreshed.
+
+Tracker queries made during these jobs also save a historical snapshot, available at `GET /api/instances/{instanceID}/reannounce/observations`. It contains separate Tracker and local-counter observation times and survives restarts. The endpoint returns at most 100 tasks; it does not cover every torrent or represent live state. Full Tracker URLs and messages are stored as digests. The local upload counter is not a site-accounted amount.

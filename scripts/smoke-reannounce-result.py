@@ -50,9 +50,19 @@ def main():
                 return [row for row in rows if row["outcome"] in ("failed", "skipped", "succeeded")]
             rows = until(finished, "reannounce result was not verified", 35)
             assert rows[0]["outcome"] == outcome, rows
-            assert mock.posts == 1, mock.posts
+            assert mock.posts == 1, (mock.posts, rows)
             assert not mock.errors, mock.errors
-    print("PASS C12 retry: HTTP acceptance followed by tracker failure is failed; partial tracker acceptance is skipped; each scenario sends one request")
+            history_path = f"/api/instances/{instance}/reannounce/observations"
+            history = app.request(history_path)
+            assert len(history) == 1 and history[0]["hash"] == item["hash"], history
+            assert len(history[0]["trackers"]) == 2, history
+            states = {row["host"]: row["state"] for row in history[0]["trackers"]}
+            assert states["b.example.invalid"] == "error_unknown", states
+            assert states["a.example.invalid"] == ("reported_working" if mode == "partial" else "error_unknown"), states
+            app.request(f"/api/instances/{instance}", dict(name="Synthetic tracker verification", host=mock.origin, username="synthetic", reannounceSettings=dict(enabled=False)), method="PUT")
+            app.restart(crash=True)
+            assert app.request(history_path) == history, "historical tracker observations did not survive restart"
+    print("PASS C12 retry and observations: failed and partial results remain distinct; each scenario sends one request; per-tracker history survives restart")
 
 
 if __name__ == "__main__":

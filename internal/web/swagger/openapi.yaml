@@ -2110,6 +2110,63 @@ paths:
         '500':
           description: Failed to get directory contents
 
+  /api/instances/{instanceID}/reannounce/observations:
+    get:
+      tags: [Instances]
+      summary: Get historical tracker observations
+      description: Latest snapshots for at most 100 monitored tasks. Times and task generations identify observations, not live state or site accounting confirmation. Tracker URLs and messages are represented by digests.
+      parameters:
+        - $ref: '#/components/parameters/instanceID'
+      responses:
+        '200':
+          description: Historical observations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [instanceId, hash, addedOn, observedAt, localObservedAt, localUploaded, trackers]
+                  properties:
+                    instanceId:
+                      type: integer
+                    hash:
+                      type: string
+                    addedOn:
+                      type: integer
+                      format: int64
+                    observedAt:
+                      type: string
+                      format: date-time
+                    localObservedAt:
+                      type: string
+                      format: date-time
+                    localUploaded:
+                      type: integer
+                      format: int64
+                      description: Local lifetime upload counter; not a site-accounted amount.
+                    trackers:
+                      type: array
+                      items:
+                        type: object
+                        required: [key, host, state]
+                        properties:
+                          key:
+                            type: string
+                            description: SHA-256 of the exact tracker URL.
+                          host:
+                            type: string
+                          state:
+                            type: string
+                            enum: [unknown, disabled, updating, not_contacted, reported_working, error_unknown, unreachable, unregistered]
+                          messageDigest:
+                            type: string
+                            description: Optional SHA-256 of the qB tracker message.
+        '400':
+          description: Invalid instance ID
+        '500':
+          description: Observation storage unavailable
+
   /api/instances/{instanceID}/reannounce/activity:
     get:
       tags:

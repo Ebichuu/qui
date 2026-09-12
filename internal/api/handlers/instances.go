@@ -87,6 +87,21 @@ func instanceCapabilitiesClientErrorMessage(err error) string {
 	return "Failed to load instance capabilities"
 }
 
+// GetReannounceObservations returns historical, generation-specific qB reports.
+func (h *InstancesHandler) GetReannounceObservations(w http.ResponseWriter, r *http.Request) {
+	instanceID, err := strconv.Atoi(chi.URLParam(r, "instanceID"))
+	if err != nil || instanceID <= 0 {
+		RespondError(w, http.StatusBadRequest, "Invalid instance ID")
+		return
+	}
+	rows, err := h.reannounceStore.Observations(r.Context(), instanceID)
+	if err != nil {
+		RespondError(w, http.StatusInternalServerError, "Failed to load tracker observations")
+		return
+	}
+	RespondJSON(w, http.StatusOK, rows)
+}
+
 // GetReannounceActivity returns recent reannounce events for an instance.
 func (h *InstancesHandler) GetReannounceActivity(w http.ResponseWriter, r *http.Request) {
 	instanceID, err := strconv.Atoi(chi.URLParam(r, "instanceID"))

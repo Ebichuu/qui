@@ -441,7 +441,8 @@ func (s *Service) executeJob(parentCtx context.Context, instanceID int, hash str
 		s.recordActivity(instanceID, hash, torrentName, initialTrackers, ActivityOutcomeFailed, fmt.Sprintf("client unavailable: %v", err))
 		return
 	}
-	trackerList, err := client.GetTorrentTrackersCtx(ctx, hash)
+	observedClient := &observedReannounceClient{Client: client, service: s, instanceID: instanceID}
+	trackerList, err := observedClient.GetTorrentTrackersCtx(ctx, hash)
 	if err != nil {
 		log.Debug().Err(err).Int("instanceID", instanceID).Str("hash", hash).Msg("reannounce: failed to load trackers")
 		s.recordActivity(instanceID, hash, torrentName, initialTrackers, ActivityOutcomeFailed, fmt.Sprintf("failed to load trackers: %v", err))
@@ -459,7 +460,7 @@ func (s *Service) executeJob(parentCtx context.Context, instanceID int, hash str
 	}
 	s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeStarted, fmt.Sprintf("reannounce job started (max %d retries)", settings.MaxRetries))
 
-	if err := retryReannounce(ctx, client, hash, trackerList, time.Duration(settings.ReannounceIntervalSeconds)*time.Second, settings.MaxRetries); err != nil {
+	if err := retryReannounce(ctx, observedClient, hash, trackerList, time.Duration(settings.ReannounceIntervalSeconds)*time.Second, settings.MaxRetries); err != nil {
 		if errors.Is(err, errTrackerPartial) {
 			s.recordActivity(instanceID, hash, torrentName, freshTrackers, ActivityOutcomeSkipped, err.Error())
 			return
