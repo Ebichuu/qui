@@ -52,3 +52,12 @@ func (h *RacingHandler) writeReclaimSetting(w http.ResponseWriter, r *http.Reque
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *RacingHandler) reclaimAssessments(w http.ResponseWriter, r *http.Request) {
+	items, err := h.store.ReclaimAssessments(r.Context(), 100)
+	if err != nil {
+		RespondError(w, http.StatusServiceUnavailable, "Reclaim assessments unavailable")
+		return
+	}
+	RespondJSON(w, http.StatusOK, items)
+}

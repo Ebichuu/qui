@@ -32,13 +32,14 @@ type ExecutionClient interface {
 	GetTorrentTrackers(context.Context, int, string) ([]qbt.TorrentTracker, error)
 }
 type executionRunner struct {
-	service   *Service
-	store     *models.RacingStore
-	mu        sync.Mutex
-	busy      map[string]bool
-	slots     map[int]int
-	attempted map[string]time.Time
-	workers   sync.WaitGroup
+	service     *Service
+	store       *models.RacingStore
+	mu          sync.Mutex
+	busy        map[string]bool
+	slots       map[int]int
+	attempted   map[string]time.Time
+	workers     sync.WaitGroup
+	reclaimBusy bool
 }
 
 func newExecutionRunner(store *models.RacingStore, service *Service) *executionRunner {
@@ -169,6 +170,9 @@ func (e *executionRunner) tick(ctx context.Context) {
 			targets := receptionTargets(*selection.Rule, config, config.ExecutionPolicies, observations, intents, budgets, proof.SizeBytes, time.Now())
 			targets = avoidDuplicateParticipants(targets, observations, proof.HashV1, proof.HashV2)
 			if len(targets) == 0 {
+				if selection.Priority == "official" && selection.Rule.AllowOfficialReclaim {
+					e.launchReclaimAssessment(ctx, record, candidate, selection, config, reader)
+				}
 				continue
 			}
 			raw, err := e.store.CandidateMetainfo(ctx, record.Key)

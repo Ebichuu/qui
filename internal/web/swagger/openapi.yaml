@@ -211,6 +211,61 @@ paths:
           description: Invalid policy or instance mismatch
         '503':
           description: Reception configuration unavailable
+  /api/racing/reclaim-assessments:
+    get:
+      tags: [Racing]
+      summary: Read the latest 100 official reclaim assessments
+      description: Historical read-only observations, never a reservation or deletion authorization. Physical release and upload-window evidence may be unavailable.
+      responses:
+        '200':
+          description: Newest observations first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [candidateKey, instanceId, configurationRevision, assessment, observedAt]
+                  properties:
+                    candidateKey:
+                      type: string
+                    instanceId:
+                      type: integer
+                    configurationRevision:
+                      type: integer
+                      format: int64
+                    observedAt:
+                      type: string
+                      format: date-time
+                    assessment:
+                      type: object
+                      properties:
+                        state:
+                          type: string
+                        deficitBytes:
+                          type: integer
+                          format: int64
+                        physicalBytes:
+                          type: integer
+                          format: int64
+                        futureWriteBytes:
+                          type: integer
+                          format: int64
+                        recentUploadBytes:
+                          type: integer
+                          format: int64
+                        observedCandidates:
+                          type: integer
+                        unknownCapacityCandidates:
+                          type: integer
+                        unknownUploadCandidates:
+                          type: integer
+                        selected:
+                          type: array
+                          items:
+                            type: object
+        '503':
+          description: Assessment history unavailable
   /api/racing/reclaim-settings:
     get:
       tags: [Racing]

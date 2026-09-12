@@ -141,7 +141,7 @@ func executionBudgets(config *models.RacingConfiguration, observations []qbittor
 		if pool.unknown || !pool.freeKnown || pool.budget.ObservedAt.IsZero() || pool.latestCapacity.Before(pool.latestState) {
 			continue
 		}
-		pool.budget.AvailableBytes = max(int64(0), pool.budget.AvailableBytes-pool.remaining)
+		pool.budget.AvailableBytes -= pool.remaining
 		result = append(result, pool.budget)
 	}
 	slices.SortFunc(result, func(a, b models.RacingPoolBudget) int { return a.StoragePoolID - b.StoragePoolID })
@@ -197,6 +197,10 @@ func matchesIntentTorrent(intent models.RacingAddIntent, torrent qbittorrent.Exe
 }
 
 func receptionTargets(rule models.RacingRule, config *models.RacingConfiguration, policies []models.RacingInstancePolicy, observations []qbittorrent.ExecutionObservation, intents []models.RacingAddIntent, budgets []models.RacingPoolBudget, size int64, now time.Time) []receptionTarget {
+	return receptionTargetsWithCapacity(rule, config, policies, observations, intents, budgets, size, now, false)
+}
+
+func receptionTargetsWithCapacity(rule models.RacingRule, config *models.RacingConfiguration, policies []models.RacingInstancePolicy, observations []qbittorrent.ExecutionObservation, intents []models.RacingAddIntent, budgets []models.RacingPoolBudget, size int64, now time.Time, allowDeficit bool) []receptionTarget {
 	allowed := []int{}
 	if rule.TargetInstanceID != nil {
 		allowed = append(allowed, *rule.TargetInstanceID)
@@ -260,10 +264,14 @@ func receptionTargets(rule models.RacingRule, config *models.RacingConfiguration
 					covered = err == nil && !at.After(budget.ObservedAt)
 				}
 				if !covered {
-					available = max(int64(0), available-intent.Plan.SizeBytes)
+					if intent.Plan.SizeBytes < 0 || available < math.MinInt64+intent.Plan.SizeBytes {
+						ok = false
+						break
+					}
+					available -= intent.Plan.SizeBytes
 				}
 			}
-			if policy.MinFreeBytes > available || size > available-policy.MinFreeBytes {
+			if !ok || available < math.MinInt64+policy.MinFreeBytes || (!allowDeficit && (policy.MinFreeBytes > available || size > available-policy.MinFreeBytes)) {
 				ok = false
 				break
 			}

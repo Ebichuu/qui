@@ -744,6 +744,7 @@ func (app *Application) runServer() {
 	syncManager.SetAutomaticDeleteStore(racingStore)
 	automationService.SetReclaimStore(racingStore)
 	racingService := racing.NewService(racingStore)
+	racingService.SetReclaimCandidateReader(automationService)
 	racingCtx, racingCancel := context.WithCancel(context.Background())
 	defer racingCancel()
 	if err := racingService.Start(racingCtx); err != nil {

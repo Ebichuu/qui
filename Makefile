@@ -111,7 +111,7 @@ test:
 	@echo "Running tests..."
 	go test -race -count=1 -v ./...
 
-.PHONY: smoke-baseline smoke-racing smoke-racing-execution smoke-racing-integration smoke-automation-observation smoke-reclaim-settings smoke-automatic-delete smoke-reclaim-candidates
+.PHONY: smoke-baseline smoke-racing smoke-racing-execution smoke-racing-integration smoke-automation-observation smoke-reclaim-settings smoke-automatic-delete smoke-reclaim-candidates smoke-reclaim-assessment
 smoke-baseline:
 	python3 scripts/smoke-baseline.py
 
@@ -297,3 +297,6 @@ help:
 
 smoke-reclaim-candidates:
 	python3 scripts/smoke-reclaim-candidates.py
+
+smoke-reclaim-assessment:
+	python3 scripts/smoke-reclaim-assessment.py

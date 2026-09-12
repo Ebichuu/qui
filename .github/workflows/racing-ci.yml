@@ -73,3 +73,5 @@ jobs:
         run: make smoke-automatic-delete
       - name: Verify official candidate observation and isolation
         run: make smoke-reclaim-candidates
+      - name: Verify official shortage assessment without deletion
+        run: make smoke-reclaim-assessment
