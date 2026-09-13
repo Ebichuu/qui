@@ -171,6 +171,12 @@ func (e *executionRunner) launchReclaimAssessment(ctx context.Context, record mo
 					if err != nil {
 						return
 					}
+					if previous != nil {
+						e.executeReclaim(ctx, *previous, candidate, selection, config, reader, observer, poolInstances)
+						if current, err := e.store.ReclaimPlan(ctx, record.Key); err == nil && current != nil {
+							result.State = current.State
+						}
+					}
 				}
 			}
 			raw, err := json.Marshal(result)

@@ -71,7 +71,7 @@ export interface RacingCandidateRecord {
 export interface RacingCandidates { items: RacingCandidateRecord[]; nextCursor?: string }
 
 export interface RacingInstancePolicy {
-  instanceId: number; enabled: boolean; maxConcurrentAdds: number; maxActiveDownloads: number
+  instanceId: number; enabled: boolean; reclaimEnabled?: boolean; maxConcurrentAdds: number; maxActiveDownloads: number
   minFreeBytes: number; savePath: string; category: string; autoTMM: boolean; startPaused: boolean; updatedAt?: string
 }
 export type RacingIntentState = "reserved" | "submitted" | "unknown" | "accepted" | "confirmed" | "cancelled" | "retired"

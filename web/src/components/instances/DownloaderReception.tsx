@@ -42,12 +42,14 @@ export function DownloaderReception({ instances }: { instances: InstanceResponse
 export function ReceptionForm({ instanceId, initial, onClose }: { instanceId: number; initial?: RacingInstancePolicy; onClose: () => void }) {
   const { t } = useTranslation("rss")
   const client = useQueryClient()
-  const [policy, setPolicy] = useState<RacingInstancePolicy>(() => initial ?? { instanceId, enabled: false, maxConcurrentAdds: 1, maxActiveDownloads: 8, minFreeBytes: 0, savePath: "", category: "", autoTMM: false, startPaused: false })
+  const [policy, setPolicy] = useState<RacingInstancePolicy>(() => initial ?? { instanceId, enabled: false, reclaimEnabled: false, maxConcurrentAdds: 1, maxActiveDownloads: 8, minFreeBytes: 0, savePath: "", category: "", autoTMM: false, startPaused: false })
   const mutation = useMutation({ mutationFn: () => api.saveRacingReceptionPolicy(policy), onSuccess: () => { client.invalidateQueries({ queryKey: ["racing-reception-policies"] }); client.invalidateQueries({ queryKey: ["racing-configuration"] }); onClose() } })
   const id = (field: string) => `reception-${instanceId}-${field}`
   return <form className="space-y-4" onSubmit={event => { event.preventDefault(); mutation.mutate() }}>
     <div className="flex items-center gap-2"><Checkbox id={id("enabled")} checked={policy.enabled} onCheckedChange={value => setPolicy({ ...policy, enabled: value === true })} /><Label htmlFor={id("enabled")}>{t("execution.enableLabel")}</Label></div>
     {policy.enabled && <p className="rounded-md border p-3 text-sm">{t("execution.enableWarning")}</p>}
+    <div className="flex items-center gap-2"><Checkbox id={id("reclaimEnabled")} checked={policy.reclaimEnabled === true} onCheckedChange={value => setPolicy({ ...policy, reclaimEnabled: value === true })} /><Label htmlFor={id("reclaimEnabled")}>{t("execution.reclaimEnableLabel")}</Label></div>
+    <p className="rounded-md border p-3 text-sm">{t("execution.reclaimEnableWarning")}</p>
     {(["maxConcurrentAdds", "maxActiveDownloads", "minFreeBytes"] as const).map(field => <div key={field} className="space-y-2"><Label htmlFor={id(field)} className="flex gap-2 items-center">{t(`execution.${field}`)}<FieldHelp>{t(`execution.${field}Help`)}</FieldHelp></Label><Input id={id(field)} type="number" required min={field === "minFreeBytes" ? 0 : 1} max={field === "maxConcurrentAdds" ? 8 : Number.MAX_SAFE_INTEGER} step={1} value={policy[field]} onChange={event => setPolicy({ ...policy, [field]: event.target.valueAsNumber })} /></div>)}
     <div className="space-y-2"><Label htmlFor={id("category")}>{t("execution.category")}</Label><Input id={id("category")} value={policy.category} onChange={event => setPolicy({ ...policy, category: event.target.value })} /></div>
     <div className="flex items-center gap-2"><Checkbox id={id("autoTMM")} checked={policy.autoTMM} onCheckedChange={value => setPolicy({ ...policy, autoTMM: value === true, savePath: value === true ? "" : policy.savePath })} /><Label htmlFor={id("autoTMM")}>{t("execution.autoTMM")}</Label></div>

@@ -101,3 +101,26 @@ func (s *RacingStore) RecordReclaimRelease(ctx context.Context, operation string
 	})
 	return err
 }
+
+// ReclaimReleasesToObserve pages only accepted/confirmed requests. Unknown
+// requests keep their pool occupancy but never trigger automatic completion.
+func (s *RacingStore) ReclaimReleasesToObserve(ctx context.Context, after string, before time.Time) ([]ReclaimRelease, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT r.operation_id,c.candidate_key,p.instance_id,r.pool_id,r.baseline_json,r.state FROM racing_reclaim_releases r JOIN racing_reclaim_charges c ON c.operation_id=r.operation_id JOIN racing_reclaim_plans p ON p.candidate_key=c.candidate_key JOIN automatic_delete_intents a ON a.operation_id=r.operation_id AND a.owner='official-reclaim' WHERE r.state='pending' AND a.state IN ('accepted','confirmed') AND r.operation_id>? AND r.updated_at<=? ORDER BY r.operation_id LIMIT 20`, after, before.UTC().Format(time.RFC3339Nano))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []ReclaimRelease{}
+	for rows.Next() {
+		var item ReclaimRelease
+		var raw string
+		if err := rows.Scan(&item.OperationID, &item.CandidateKey, &item.InstanceID, &item.PoolID, &raw, &item.State); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal([]byte(raw), &item.Baseline); err != nil {
+			return nil, err
+		}
+		result = append(result, item)
+	}
+	return result, rows.Err()
+}

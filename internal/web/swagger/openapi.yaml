@@ -7759,6 +7759,10 @@ components:
           minimum: 1
         enabled:
           type: boolean
+        reclaimEnabled:
+          type: boolean
+          default: false
+          description: Explicit per-downloader permission for official-candidate reclamation. Reception and reclaim settings alone do not grant deletion authority.
         maxConcurrentAdds:
           type: integer
           minimum: 1

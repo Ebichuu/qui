@@ -32,14 +32,18 @@ type ExecutionClient interface {
 	GetTorrentTrackers(context.Context, int, string) ([]qbt.TorrentTracker, error)
 }
 type executionRunner struct {
-	service     *Service
-	store       *models.RacingStore
-	mu          sync.Mutex
-	busy        map[string]bool
-	slots       map[int]int
-	attempted   map[string]time.Time
-	workers     sync.WaitGroup
-	reclaimBusy bool
+	service               *Service
+	store                 *models.RacingStore
+	mu                    sync.Mutex
+	busy                  map[string]bool
+	slots                 map[int]int
+	attempted             map[string]time.Time
+	workers               sync.WaitGroup
+	reclaimBusy           bool
+	reclaimReleaseBusy    bool
+	reclaimReleaseAfter   string
+	reclaimReleaseBefore  time.Time
+	reclaimReleaseAttempt time.Time
 }
 
 func newExecutionRunner(store *models.RacingStore, service *Service) *executionRunner {
@@ -84,6 +88,7 @@ func (e *executionRunner) allIntents(ctx context.Context) ([]models.RacingAddInt
 }
 
 func (e *executionRunner) tick(ctx context.Context) {
+	e.launchReclaimReconciliation(ctx)
 	e.service.mu.RLock()
 	config, reader, client, ready := e.service.configuration, e.service.executionReader, e.service.executionClient, e.service.status.ConfigurationReady
 	e.service.mu.RUnlock()
@@ -164,6 +169,10 @@ func (e *executionRunner) tick(ctx context.Context) {
 			}
 			if candidate.VerifiedMetadata == nil {
 				e.requestMetainfo(ctx, record)
+				continue
+			}
+			reclaim, err := e.store.ReclaimPlan(ctx, record.Key)
+			if err != nil || (reclaim != nil && reclaim.State == "awaiting_release") {
 				continue
 			}
 			proof := candidate.VerifiedMetadata

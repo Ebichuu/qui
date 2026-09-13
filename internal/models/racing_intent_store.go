@@ -64,11 +64,18 @@ func (s *RacingStore) ReserveAdd(ctx context.Context, input RacingReservation) e
 		if err := s.lockExecution(ctx, tx, &plan.ConfigurationRevision); err != nil {
 			return 0, err
 		}
+		reclaim, err := reclaimPlan(ctx, tx, plan.CandidateKey)
+		if err != nil {
+			return 0, err
+		}
+		if reclaim != nil && reclaim.State == "awaiting_release" {
+			return 0, ErrRacingIntentState
+		}
 		if err := s.checkAddPlan(ctx, tx, plan); err != nil {
 			return 0, err
 		}
 		var state string
-		err := tx.QueryRowContext(ctx, "SELECT state FROM racing_add_intents WHERE candidate_key=?", plan.CandidateKey).Scan(&state)
+		err = tx.QueryRowContext(ctx, "SELECT state FROM racing_add_intents WHERE candidate_key=?", plan.CandidateKey).Scan(&state)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return 0, err
 		}

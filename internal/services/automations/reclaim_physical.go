@@ -141,3 +141,51 @@ func (s *Service) ReclaimPhysicalBytes(ctx context.Context, instanceID int, cand
 	}
 	return &total, nil
 }
+
+// ReclaimReleaseBaseline revalidates shared ownership around a native baseline.
+// The configured pool path is retained as an anchor even if qB removes the task directory.
+func (s *Service) ReclaimReleaseBaseline(ctx context.Context, instanceID int, candidate ReclaimCandidate, poolInstances []int, anchor string) (*fileallocation.ReleaseBaseline, error) {
+	before, err := s.ReclaimPhysicalBytes(ctx, instanceID, candidate, poolInstances)
+	if err != nil || before == nil {
+		return nil, err
+	}
+	files, err := s.syncManager.GetTorrentFilesBatch(ctx, instanceID, []string{candidate.Hash})
+	if err != nil {
+		return nil, err
+	}
+	names := []string{}
+	for _, file := range files[candidate.Hash] {
+		full, valid := buildFullPath(candidate.SavePath, file.Name)
+		if !valid {
+			return nil, fileallocation.ErrUnknown
+		}
+		name, err := filepath.Rel(filepath.FromSlash(anchor), full)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+	baseline, err := fileallocation.CaptureRelease(ctx, filepath.FromSlash(anchor), names)
+	if err != nil {
+		return nil, err
+	}
+	after, err := s.ReclaimPhysicalBytes(ctx, instanceID, candidate, poolInstances)
+	if err != nil || after == nil {
+		return nil, err
+	}
+	if *before != *after || baseline.ExpectedBytes != *after {
+		return nil, fileallocation.ErrUnknown
+	}
+	return &baseline, nil
+}
+
+func (s *Service) ReclaimReleaseSpace(ctx context.Context, instanceID int, baseline fileallocation.ReleaseBaseline) (fileallocation.Space, bool, error) {
+	instance, err := s.instanceStore.Get(ctx, instanceID)
+	if err != nil {
+		return fileallocation.Space{}, false, err
+	}
+	if !instance.IsActive || !instance.HasLocalFilesystemAccess {
+		return fileallocation.Space{}, false, fileallocation.ErrUnknown
+	}
+	return fileallocation.ObserveRelease(ctx, baseline)
+}

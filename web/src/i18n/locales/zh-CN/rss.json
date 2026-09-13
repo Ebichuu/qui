@@ -367,6 +367,8 @@
     "editTitle": "接种设置 · {{name}}",
     "enableLabel": "允许命中规则的种子自动添加到此下载器",
     "enableWarning": "启用后保存将允许自动添加。请先停止 qBittorrent 或 Vertex 中与本范围重叠的自动添加。停用只阻止新的发送，已发送的请求仍会继续核实。",
+    "reclaimEnableLabel": "允许此下载器为官种执行回收",
+    "reclaimEnableWarning": "开启后可永久删除低效种子及其文件，为官种腾出空间。请先关闭其他应用中同范围的自动删除。关闭此选项不会解除已有未知操作的占用。",
     "maxConcurrentAdds": "并发添加数",
     "maxConcurrentAddsHelp": "此下载器尚未确认的添加上限。慢下载器不会阻塞其他下载器。",
     "maxActiveDownloads": "下载名额",

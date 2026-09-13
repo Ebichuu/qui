@@ -29,7 +29,7 @@ func (s *RacingStore) SaveInstancePolicy(ctx context.Context, input RacingInstan
 		if err := racingExists(ctx, tx, "instances", input.InstanceID); err != nil {
 			return 0, err
 		}
-		_, err := tx.ExecContext(ctx, `INSERT INTO racing_instance_policies(instance_id,enabled,max_concurrent_adds,max_active_downloads,min_free_bytes,save_path,category,auto_tmm,start_paused,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(instance_id) DO UPDATE SET enabled=excluded.enabled,max_concurrent_adds=excluded.max_concurrent_adds,max_active_downloads=excluded.max_active_downloads,min_free_bytes=excluded.min_free_bytes,save_path=excluded.save_path,category=excluded.category,auto_tmm=excluded.auto_tmm,start_paused=excluded.start_paused,updated_at=excluded.updated_at`, input.InstanceID, boolToInt(input.Enabled), input.MaxConcurrentAdds, input.MaxActiveDownloads, input.MinFreeBytes, input.SavePath, strings.TrimSpace(input.Category), boolToInt(input.AutoTMM), boolToInt(input.StartPaused), time.Now().UTC().Format(time.RFC3339Nano))
+		_, err := tx.ExecContext(ctx, `INSERT INTO racing_instance_policies(instance_id,enabled,max_concurrent_adds,max_active_downloads,min_free_bytes,save_path,category,auto_tmm,start_paused,reclaim_enabled,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(instance_id) DO UPDATE SET enabled=excluded.enabled,max_concurrent_adds=excluded.max_concurrent_adds,max_active_downloads=excluded.max_active_downloads,min_free_bytes=excluded.min_free_bytes,save_path=excluded.save_path,category=excluded.category,auto_tmm=excluded.auto_tmm,start_paused=excluded.start_paused,reclaim_enabled=excluded.reclaim_enabled,updated_at=excluded.updated_at`, input.InstanceID, boolToInt(input.Enabled), input.MaxConcurrentAdds, input.MaxActiveDownloads, input.MinFreeBytes, input.SavePath, strings.TrimSpace(input.Category), boolToInt(input.AutoTMM), boolToInt(input.StartPaused), boolToInt(input.ReclaimEnabled), time.Now().UTC().Format(time.RFC3339Nano))
 		return 0, err
 	})
 	return err
@@ -42,7 +42,7 @@ func (s *RacingStore) InstancePolicies(ctx context.Context) ([]RacingInstancePol
 func readInstancePolicies(ctx context.Context, reader interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
 }) ([]RacingInstancePolicy, error) {
-	rows, err := reader.QueryContext(ctx, `SELECT instance_id,enabled,max_concurrent_adds,max_active_downloads,min_free_bytes,save_path,category,auto_tmm,start_paused,updated_at FROM racing_instance_policies ORDER BY instance_id`)
+	rows, err := reader.QueryContext(ctx, `SELECT instance_id,enabled,max_concurrent_adds,max_active_downloads,min_free_bytes,save_path,category,auto_tmm,start_paused,reclaim_enabled,updated_at FROM racing_instance_policies ORDER BY instance_id`)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func readInstancePolicies(ctx context.Context, reader interface {
 	result := []RacingInstancePolicy{}
 	for rows.Next() {
 		var item RacingInstancePolicy
-		if err := rows.Scan(&item.InstanceID, &item.Enabled, &item.MaxConcurrentAdds, &item.MaxActiveDownloads, &item.MinFreeBytes, &item.SavePath, &item.Category, &item.AutoTMM, &item.StartPaused, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.InstanceID, &item.Enabled, &item.MaxConcurrentAdds, &item.MaxActiveDownloads, &item.MinFreeBytes, &item.SavePath, &item.Category, &item.AutoTMM, &item.StartPaused, &item.ReclaimEnabled, &item.UpdatedAt); err != nil {
 			return nil, err
 		}
 		result = append(result, item)

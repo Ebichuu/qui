@@ -5,7 +5,9 @@ package models
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"math"
@@ -189,7 +191,7 @@ func validateReclaimPlan(plan RacingReclaimPlan, current RacingReclaimPolicy, no
 // BeginReclaimDelete is the store boundary for a future verified executor. It
 // charges the first step and claims the shared deletion ledger atomically. It
 // never sends a request or treats task absence as physical space confirmation.
-func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation string, baseline fileallocation.ReleaseBaseline) error {
+func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation string, baseline fileallocation.ReleaseBaseline, expected DeleteIdentity, instanceID int, commitments string) error {
 	snapshot, err := s.ReclaimPlan(ctx, key)
 	if err != nil {
 		return err
@@ -209,7 +211,7 @@ func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation str
 		if err != nil {
 			return 0, err
 		}
-		if plan == nil || plan.State != "awaiting_executor" || revision != plan.ConfigurationRevision {
+		if plan == nil || plan.InstanceID != instanceID || plan.State != "awaiting_executor" || revision != plan.ConfigurationRevision {
 			return 0, ErrRacingStale
 		}
 		if err := validateReclaimPlan(*plan, *current, time.Now()); err != nil {
@@ -217,6 +219,27 @@ func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation str
 		}
 		if err := s.checkReclaimCandidate(ctx, tx, *plan); err != nil {
 			return 0, err
+		}
+		currentCommitments, err := reclaimCommitments(ctx, tx, plan.PoolID)
+		if err != nil {
+			return 0, err
+		}
+		if currentCommitments != commitments {
+			return 0, ErrRacingStale
+		}
+		var added bool
+		if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM racing_add_intents WHERE candidate_key=? AND state NOT IN ('cancelled','retired'))`, key).Scan(&added); err != nil {
+			return 0, err
+		}
+		if added {
+			return 0, ErrRacingIntentState
+		}
+		var authorized bool
+		if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM racing_instance_policies WHERE instance_id=? AND enabled=1 AND reclaim_enabled=1)`, plan.InstanceID).Scan(&authorized); err != nil {
+			return 0, err
+		}
+		if !authorized {
+			return 0, ErrRacingIntentState
 		}
 		var occupied bool
 		if err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM racing_reclaim_releases WHERE pool_id=? AND state='pending')`, plan.PoolID).Scan(&occupied); err != nil {
@@ -226,6 +249,9 @@ func (s *RacingStore) BeginReclaimDelete(ctx context.Context, key, operation str
 			return 0, ErrRacingIntentState
 		}
 		item := plan.Items[0]
+		if !strings.EqualFold(item.Hash, expected.Hash) || item.AddedOn != expected.AddedOn {
+			return 0, ErrRacingStale
+		}
 		if operation == "" || baseline.Root == "" || len(baseline.Files) == 0 || len(baseline.Files) > 10000 || baseline.ExpectedBytes != item.CapacityBytes || baseline.Space.Available < 0 || !racingFresh(baseline.Space.ObservedAt, time.Now()) {
 			return 0, ErrRacingInvalid
 		}
@@ -292,4 +318,36 @@ func (s *RacingStore) ReclaimPlans(ctx context.Context) ([]RacingReclaimPlan, er
 		result = append(result, plan)
 	}
 	return result, rows.Err()
+}
+
+// ReclaimCommitments fingerprints the pool promises used for a deficit decision.
+// The delete transaction must see the same set, including each intent state.
+func (s *RacingStore) ReclaimCommitments(ctx context.Context, pool int) (string, error) {
+	return reclaimCommitments(ctx, s.db, pool)
+}
+func reclaimCommitments(ctx context.Context, reader interface {
+	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
+}, pool int) (string, error) {
+	rows, err := reader.QueryContext(ctx, `SELECT c.candidate_key,c.bytes,i.state,i.updated_at FROM racing_space_commitments c JOIN racing_add_intents i ON i.candidate_key=c.candidate_key WHERE c.storage_pool_id=? ORDER BY c.candidate_key`, pool)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	digest := sha256.New()
+	for rows.Next() {
+		var key, state, updated string
+		var size int64
+		if err := rows.Scan(&key, &size, &state, &updated); err != nil {
+			return "", err
+		}
+		raw, err := json.Marshal([]any{key, size, state, updated})
+		if err != nil {
+			return "", err
+		}
+		digest.Write(raw)
+	}
+	if err := rows.Err(); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(digest.Sum(nil)), nil
 }

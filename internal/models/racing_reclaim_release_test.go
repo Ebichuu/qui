@@ -21,6 +21,12 @@ func TestReclaimReleaseRetainsChargesAndSerializesPool(t *testing.T) {
 		t.Run(engine, func(t *testing.T) {
 			f := newRacingExecutionFixture(t, engine)
 			ctx := t.Context()
+			reception, err := f.store.InstancePolicies(ctx)
+			require.NoError(t, err)
+			reception[0].ReclaimEnabled = true
+			require.NoError(t, f.store.SaveInstancePolicy(ctx, reception[0]))
+			commitments, err := f.store.ReclaimCommitments(ctx, f.pools[0])
+			require.NoError(t, err)
 			var rule int
 			require.NoError(t, f.db.QueryRowContext(ctx, `INSERT INTO automations(instance_id,name,tracker_pattern,conditions) VALUES(?,?,?,?) RETURNING id`, f.instance, "Synthetic release", "*", `{}`).Scan(&rule))
 			policy := models.RacingReclaimPolicy{Enabled: true, RuleIDs: []int{rule}, MaxDeletes: 3, MaxReclaimBytes: 300, MaxRecentUploadBytes: 30, RecentUploadWindowSeconds: 60, MaxOvershootBytes: 30}
@@ -32,11 +38,33 @@ func TestReclaimReleaseRetainsChargesAndSerializesPool(t *testing.T) {
 				return plan
 			}
 			first, second := makePlan("event:first", "a"), makePlan("event:second", "b")
+			reception[0].ReclaimEnabled = false
+			require.NoError(t, f.store.SaveInstancePolicy(ctx, reception[0]))
+			config, err := f.store.Configuration(ctx)
+			require.NoError(t, err)
+			first.ConfigurationRevision = config.Revision
+			require.NoError(t, f.store.SaveReclaimPlan(ctx, first))
 			baseline := fileallocation.ReleaseBaseline{Root: t.TempDir(), Files: []string{"synthetic.bin"}, ExpectedBytes: 90, Space: fileallocation.Space{Device: 1, RootID: 2, Available: 100, ObservedAt: time.Now()}}
+			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "not-authorized", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance, commitments), models.ErrRacingIntentState)
+			reception[0].ReclaimEnabled = true
+			require.NoError(t, f.store.SaveInstancePolicy(ctx, reception[0]))
+			config, err = f.store.Configuration(ctx)
+			require.NoError(t, err)
+			first.ConfigurationRevision, second.ConfigurationRevision = config.Revision, config.Revision
+			require.NoError(t, f.store.SaveReclaimPlan(ctx, first))
+			require.NoError(t, f.store.SaveReclaimPlan(ctx, second))
+			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "wrong-target", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance+100, commitments), models.ErrRacingStale)
+			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "wrong-generation", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 200}, f.instance, commitments), models.ErrRacingStale)
+			other := f.reservation(t, "event:concurrent-add", "c", 10, f.pools[0])
+			require.NoError(t, f.store.ReserveAdd(ctx, other))
+			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "changed-promises", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance, commitments), models.ErrRacingStale)
+			intent, err := f.store.AddIntent(ctx, other.Plan.CandidateKey)
+			require.NoError(t, err)
+			require.NoError(t, f.store.CancelReserved(ctx, intent))
 			invalid := baseline
 			invalid.ExpectedBytes = 1
-			require.Error(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "invalid", invalid))
-			require.NoError(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "first", baseline))
+			require.Error(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "invalid", invalid, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance, commitments))
+			require.NoError(t, f.store.BeginReclaimDelete(ctx, first.CandidateKey, "first", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance, commitments))
 			reopened, err := models.NewRacingStore(f.db, bytes.Repeat([]byte{9}, 32))
 			require.NoError(t, err)
 			receipt, err := reopened.ReclaimRelease(ctx, "first")
@@ -44,7 +72,7 @@ func TestReclaimReleaseRetainsChargesAndSerializesPool(t *testing.T) {
 			require.Equal(t, baseline.Root, receipt.Baseline.Root)
 			require.Equal(t, baseline.ExpectedBytes, receipt.Baseline.ExpectedBytes)
 			require.Equal(t, "pending", receipt.State)
-			require.ErrorIs(t, reopened.BeginReclaimDelete(ctx, second.CandidateKey, "second", baseline), models.ErrRacingIntentState)
+			require.ErrorIs(t, reopened.BeginReclaimDelete(ctx, second.CandidateKey, "second", baseline, models.DeleteIdentity{Hash: "b", AddedOn: 100}, f.instance, commitments), models.ErrRacingIntentState)
 			unspent, err := reopened.ReclaimPlan(ctx, second.CandidateKey)
 			require.NoError(t, err)
 			require.Zero(t, unspent.Spent.Deletes)
@@ -77,13 +105,13 @@ func TestReclaimReleaseRetainsChargesAndSerializesPool(t *testing.T) {
 			require.Empty(t, finished.Items)
 			require.True(t, finished.ObservedAt.IsZero())
 			require.Equal(t, models.RacingReclaimSpent{Deletes: 1, CapacityBytes: 90, RecentUploadBytes: 4, OvershootBytes: 10}, finished.Spent)
-			require.Error(t, reopened.BeginReclaimDelete(ctx, first.CandidateKey, "stale-items", baseline))
+			require.Error(t, reopened.BeginReclaimDelete(ctx, first.CandidateKey, "stale-items", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance, commitments))
 			// A new baseline is essential: the next operation must not count the
 			// previous recovery again. These are synthetic store-level receipts.
-			require.ErrorIs(t, reopened.BeginReclaimDelete(ctx, second.CandidateKey, "old-baseline", baseline), models.ErrRacingStale)
+			require.ErrorIs(t, reopened.BeginReclaimDelete(ctx, second.CandidateKey, "old-baseline", baseline, models.DeleteIdentity{Hash: "b", AddedOn: 100}, f.instance, commitments), models.ErrRacingStale)
 			baseline.Space = observed
 			baseline.Space.ObservedAt = time.Now()
-			require.NoError(t, reopened.BeginReclaimDelete(ctx, second.CandidateKey, "second", baseline))
+			require.NoError(t, reopened.BeginReclaimDelete(ctx, second.CandidateKey, "second", baseline, models.DeleteIdentity{Hash: "b", AddedOn: 100}, f.instance, commitments))
 			receipt, err = reopened.ReclaimRelease(ctx, "first")
 			require.NoError(t, err)
 			require.Equal(t, "observed", receipt.State)
@@ -110,7 +138,7 @@ func TestReclaimReleaseRetainsChargesAndSerializesPool(t *testing.T) {
 			require.Error(t, reopened.RecordReclaimRelease(ctx, "second", observed))
 			first.ObservedAt = time.Now()
 			require.NoError(t, reopened.SaveReclaimPlan(ctx, first))
-			require.ErrorIs(t, reopened.BeginReclaimDelete(ctx, first.CandidateKey, "blocked-by-legacy", baseline), models.ErrRacingIntentState)
+			require.ErrorIs(t, reopened.BeginReclaimDelete(ctx, first.CandidateKey, "blocked-by-legacy", baseline, models.DeleteIdentity{Hash: "a", AddedOn: 100}, f.instance, commitments), models.ErrRacingIntentState)
 		})
 	}
 }

@@ -20,6 +20,12 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 		t.Run(engine, func(t *testing.T) {
 			f := newRacingExecutionFixture(t, engine)
 			ctx := t.Context()
+			reception, err := f.store.InstancePolicies(ctx)
+			require.NoError(t, err)
+			reception[0].ReclaimEnabled = true
+			require.NoError(t, f.store.SaveInstancePolicy(ctx, reception[0]))
+			commitments, err := f.store.ReclaimCommitments(ctx, f.pools[0])
+			require.NoError(t, err)
 			var rule int
 			require.NoError(t, f.db.QueryRowContext(ctx, `INSERT INTO automations(instance_id,name,tracker_pattern,conditions) VALUES(?,?,?,?) RETURNING id`, f.instance, "Synthetic reclaim", "*", `{}`).Scan(&rule))
 			policy := models.RacingReclaimPolicy{Enabled: true, RuleIDs: []int{rule}, MaxDeletes: 2, MaxReclaimBytes: 100, MaxRecentUploadBytes: 10, RecentUploadWindowSeconds: 60, MaxOvershootBytes: 20}
@@ -33,7 +39,7 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 			require.NoError(t, err)
 			policy.MaxReclaimBytes = 200
 			require.NoError(t, f.store.SaveReclaimSetting(ctx, "instances", f.instance, policy))
-			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, plan.CandidateKey, "stale", baseline), models.ErrRacingStale)
+			require.ErrorIs(t, f.store.BeginReclaimDelete(ctx, plan.CandidateKey, "stale", baseline, models.DeleteIdentity{Hash: "abc", AddedOn: 100}, f.instance, commitments), models.ErrRacingStale)
 			config, err := f.store.ReclaimConfiguration(ctx)
 			require.NoError(t, err)
 			plan.ConfigurationRevision = config.Revision
@@ -69,7 +75,9 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 			require.NoError(t, err)
 			var wg sync.WaitGroup
 			results := make(chan error, 2)
-			wg.Go(func() { results <- reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step", baseline) })
+			wg.Go(func() {
+				results <- reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step", baseline, models.DeleteIdentity{Hash: "abc", AddedOn: 100}, f.instance, commitments)
+			})
 			wg.Go(func() {
 				results <- f.store.BeginAutomaticDelete(ctx, f.instance, "daily-step", "daily", models.DeleteModeWithFiles, []models.DeleteIdentity{{Hash: "ABC", AddedOn: 100}})
 			})
@@ -89,14 +97,14 @@ func TestReclaimPlanFrozenBudgetsAndAtomicClaims(t *testing.T) {
 				require.Equal(t, models.RacingReclaimSpent{}, persisted.Spent)
 				_, err = f.db.ExecContext(ctx, `DELETE FROM automatic_delete_intents WHERE operation_id='daily-step'`)
 				require.NoError(t, err)
-				require.NoError(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step", baseline))
+				require.NoError(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "official-step", baseline, models.DeleteIdentity{Hash: "abc", AddedOn: 100}, f.instance, commitments))
 			}
 			require.NoError(t, reopened.RecordAutomaticDeleteResult(ctx, "official-step", false))
 			persisted, err = reopened.ReclaimPlan(ctx, plan.CandidateKey)
 			require.NoError(t, err)
 			require.Equal(t, "awaiting_release", persisted.State)
 			require.Equal(t, models.RacingReclaimSpent{Deletes: 1, CapacityBytes: 90, RecentUploadBytes: 4, OvershootBytes: 10}, persisted.Spent)
-			require.Error(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "repeat", baseline))
+			require.Error(t, reopened.BeginReclaimDelete(ctx, plan.CandidateKey, "repeat", baseline, models.DeleteIdentity{Hash: "abc", AddedOn: 100}, f.instance, commitments))
 			require.Error(t, reopened.SaveReclaimPlan(ctx, plan))
 			// Even task absence cannot clear the charge or authorize another step.
 			pending, err := reopened.PendingAutomaticDeletes(ctx, f.instance)

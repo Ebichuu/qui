@@ -367,6 +367,8 @@
     "editTitle": "Příjem · {{name}}",
     "enableLabel": "Povolit odpovídajícím pravidlům přidávat torrenty do tohoto stahovače",
     "enableWarning": "Uložení s povoleným příjmem umožňuje automatické přidávání. Před povolením zastavte překrývající se automatické přidávání v qBittorrentu nebo Vertexu. Zakázáním se zastaví nová odeslání; již odeslané požadavky zůstanou sledované.",
+    "reclaimEnableLabel": "Povolit u tohoto stahovače uvolnění místa pro oficiální kandidáty",
+    "reclaimEnableWarning": "Tím lze trvale odstranit neefektivní torrenty a jejich soubory, aby se uvolnilo místo pro oficiálního kandidáta. Povolte pouze po vypnutí konkurenčního automatického mazání v ostatních aplikacích. Již existující neznámé operace zůstanou při vypnutí této možnosti blokované.",
     "maxConcurrentAdds": "Souběžné požadavky na přidání",
     "maxConcurrentAddsHelp": "Maximální počet nevyřízených přidání u tohoto stahovače. Pomalý stahovač neblokuje ostatní stahovače.",
     "maxActiveDownloads": "Stahovací sloty",

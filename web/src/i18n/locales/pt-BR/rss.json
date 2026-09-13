@@ -367,6 +367,8 @@
     "editTitle": "Recepção · {{name}}",
     "enableLabel": "Permitir que regras correspondentes adicionem torrents a este downloader",
     "enableWarning": "Salvar com a recepção ativada permite adições automáticas. Antes de ativar, interrompa as adições automáticas sobrepostas no qBittorrent ou no Vertex. Desativar interrompe novos envios; as solicitações já enviadas continuam sob observação.",
+    "reclaimEnableLabel": "Ativar a recuperação de candidatos oficiais neste downloader",
+    "reclaimEnableWarning": "Isso pode excluir permanentemente torrents de baixa eficiência e seus arquivos para liberar espaço para um candidato oficial. Ative somente depois de desabilitar a exclusão automática concorrente em outros aplicativos. Operações desconhecidas existentes continuam bloqueadas quando esta opção está desativada.",
     "maxConcurrentAdds": "Solicitações de adição simultâneas",
     "maxConcurrentAddsHelp": "Máximo de adições pendentes neste downloader. Um downloader lento não bloqueia outros downloaders.",
     "maxActiveDownloads": "Vagas de download",

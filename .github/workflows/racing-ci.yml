@@ -56,6 +56,15 @@ jobs:
         run: go test -race -count=1 -timeout 20m ./...
       - name: Report native Linux allocation evidence
         run: go test -race -count=1 -v ./pkg/fileallocation
+      - name: Verify native official reclaim execution and restart
+        run: |
+          truncate -s 256M "$RUNNER_TEMP/qui-reclaim.ext4"
+          mkfs.ext4 -q -F "$RUNNER_TEMP/qui-reclaim.ext4"
+          mkdir -p "$RUNNER_TEMP/qui-reclaim-fs"
+          sudo mount -o loop "$RUNNER_TEMP/qui-reclaim.ext4" "$RUNNER_TEMP/qui-reclaim-fs"
+          sudo chown "$(id -u):$(id -g)" "$RUNNER_TEMP/qui-reclaim-fs"
+          trap 'sudo umount "$RUNNER_TEMP/qui-reclaim-fs"' EXIT
+          QUI_RECLAIM_TEST_ROOT="$RUNNER_TEMP/qui-reclaim-fs" python3 scripts/smoke-reclaim-execution.py
       - name: Run frontend tests
         working-directory: web
         run: pnpm test

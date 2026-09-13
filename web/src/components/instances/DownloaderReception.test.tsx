@@ -21,7 +21,16 @@ describe("downloader reception policy", () => {
     expect(screen.getByRole("checkbox", { name: "execution.enableLabel" }).getAttribute("aria-checked")).toBe("false")
     expect(screen.queryByText("execution.enableWarning")).toBeNull()
     fireEvent.click(screen.getByRole("button", { name: "central.save" }))
-    await waitFor(() => expect(api.saveRacingReceptionPolicy).toHaveBeenCalledWith(expect.objectContaining({ instanceId: 7, enabled: false, maxConcurrentAdds: 1, maxActiveDownloads: 8 })))
+    await waitFor(() => expect(api.saveRacingReceptionPolicy).toHaveBeenCalledWith(expect.objectContaining({ instanceId: 7, enabled: false, reclaimEnabled: false, maxConcurrentAdds: 1, maxActiveDownloads: 8 })))
+  })
+  it("keeps reclaim separate from reception and saves explicit permission", async () => {
+    mount()
+    fireEvent.click(screen.getByRole("checkbox", { name: "execution.enableLabel" }))
+    expect(screen.getByRole("checkbox", { name: "execution.reclaimEnableLabel" }).getAttribute("aria-checked")).toBe("false")
+    expect(screen.getByText("execution.reclaimEnableWarning")).not.toBeNull()
+    fireEvent.click(screen.getByRole("checkbox", { name: "execution.reclaimEnableLabel" }))
+    fireEvent.click(screen.getByRole("button", { name: "central.save" }))
+    await waitFor(() => expect(api.saveRacingReceptionPolicy).toHaveBeenCalledWith(expect.objectContaining({ enabled: true, reclaimEnabled: true })))
   })
   it("shows takeover warning and clears manual path when automatic management is selected", async () => {
     mount()

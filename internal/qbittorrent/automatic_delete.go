@@ -12,6 +12,7 @@ import (
 	qbt "github.com/autobrr/go-qbittorrent"
 
 	"github.com/autobrr/qui/internal/models"
+	"github.com/autobrr/qui/pkg/fileallocation"
 )
 
 type automaticDeleteKey struct{}
@@ -24,8 +25,12 @@ func (sm *SyncManager) SetAutomaticDeleteGuard(guard AutomaticDeleteGuard) {
 }
 
 type automaticDeleteRequest struct {
-	owner      string
-	candidates []models.DeleteIdentity
+	owner       string
+	candidates  []models.DeleteIdentity
+	plan        *models.RacingReclaimPlan
+	baseline    fileallocation.ReleaseBaseline
+	commitments string
+	savePath    string
 }
 
 func (sm *SyncManager) SetAutomaticDeleteStore(store *models.RacingStore) {
@@ -45,7 +50,18 @@ func (sm *SyncManager) AutomaticDelete(ctx context.Context, instanceID int, cand
 	for _, item := range candidates {
 		hashes = append(hashes, item.Hash)
 	}
-	return sm.BulkAction(context.WithValue(ctx, automaticDeleteKey{}, automaticDeleteRequest{owner, candidates}), instanceID, hashes, action)
+	return sm.BulkAction(context.WithValue(ctx, automaticDeleteKey{}, automaticDeleteRequest{owner: owner, candidates: candidates}), instanceID, hashes, action)
+}
+
+// ReclaimDelete uses the common single-attempt delete path, but the guarded
+// claim atomically consumes the official plan budget instead of claiming twice.
+func (sm *SyncManager) ReclaimDelete(ctx context.Context, plan models.RacingReclaimPlan, baseline fileallocation.ReleaseBaseline, commitments, savePath string) error {
+	if len(plan.Items) == 0 {
+		return models.ErrRacingStale
+	}
+	item := plan.Items[0]
+	request := automaticDeleteRequest{owner: "official-reclaim", candidates: []models.DeleteIdentity{{Hash: item.Hash, AddedOn: item.AddedOn}}, plan: &plan, baseline: baseline, commitments: commitments, savePath: savePath}
+	return sm.BulkAction(context.WithValue(ctx, automaticDeleteKey{}, request), plan.InstanceID, []string{item.Hash}, models.DeleteModeWithFiles)
 }
 
 func (sm *SyncManager) beginAutomaticDelete(ctx context.Context, instanceID int, syncManager *qbt.SyncManager, hashes []string, action string) (string, error) {
@@ -67,13 +83,26 @@ func (sm *SyncManager) beginAutomaticDelete(ctx context.Context, instanceID int,
 		if !found || expected.AddedOn <= 0 || torrent.AddedOn != expected.AddedOn {
 			return "", errors.New("automatic delete identity changed or is unknown")
 		}
+		if request.plan != nil && (torrent.SavePath != request.savePath || torrent.Size <= 0 || torrent.Completed < torrent.Size || torrent.AmountLeft != 0) {
+			return "", errors.New("official reclaim data changed")
+		}
 		identities = append(identities, models.DeleteIdentity{Hash: torrent.Hash, AddedOn: torrent.AddedOn})
 	}
 	if len(identities) != len(hashes) {
 		return "", errors.New("automatic delete batch changed")
 	}
 	if guard, ok := sm.automaticDeleteGuard.Load().(AutomaticDeleteGuard); ok {
-		if err := guard.GuardAutomaticDelete(ctx, instanceID, identities); err != nil {
+		if request.plan != nil {
+			strict, ok := guard.(interface {
+				GuardReclaimDelete(context.Context, int, []models.DeleteIdentity) error
+			})
+			if !ok {
+				return "", errors.New("official reclaim protection unavailable")
+			}
+			if err := strict.GuardReclaimDelete(ctx, instanceID, identities); err != nil {
+				return "", err
+			}
+		} else if err := guard.GuardAutomaticDelete(ctx, instanceID, identities); err != nil {
 			return "", err
 		}
 		if !sm.HasFreshTorrentCache(ctx, instanceID) {
@@ -82,10 +111,26 @@ func (sm *SyncManager) beginAutomaticDelete(ctx context.Context, instanceID int,
 		latest := syncManager.GetTorrentMap(qbt.TorrentFilterOptions{})
 		for _, expected := range identities {
 			torrent, found := resolveTorrentByVariantHash(latest, expected.Hash)
+			if request.plan != nil && (!found || torrent.SavePath != request.savePath || torrent.Size <= 0 || torrent.Completed < torrent.Size || torrent.AmountLeft != 0) {
+				return "", errors.New("official reclaim data changed during protection check")
+			}
 			if !found || torrent.AddedOn != expected.AddedOn {
 				return "", errors.New("automatic delete identity changed during protection check")
 			}
 		}
+	}
+	if request.plan != nil {
+		if _, ok := sm.automaticDeleteGuard.Load().(AutomaticDeleteGuard); !ok {
+			return "", errors.New("official reclaim protection unavailable")
+		}
+		operation := rand.Text()
+		if len(identities) != 1 || action != models.DeleteModeWithFiles {
+			return "", models.ErrRacingInvalid
+		}
+		if err := store.BeginReclaimDelete(ctx, request.plan.CandidateKey, operation, request.baseline, identities[0], instanceID, request.commitments); err != nil {
+			return "", err
+		}
+		return operation, nil
 	}
 	operation := rand.Text()
 	if err := store.BeginAutomaticDelete(ctx, instanceID, operation, request.owner, action, identities); err != nil {

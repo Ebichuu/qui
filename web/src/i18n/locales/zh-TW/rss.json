@@ -367,6 +367,8 @@
     "editTitle": "接種 · {{name}}",
     "enableLabel": "允許符合規則的項目將種子新增至此下載器",
     "enableWarning": "啟用接種後儲存會允許自動新增。啟用前，請先停止 qBittorrent 或 Vertex 中重疊範圍的自動新增。停用會停止新的送出；已送出的要求仍會繼續觀察。",
+    "reclaimEnableLabel": "允許此下載器為官種執行回收",
+    "reclaimEnableWarning": "啟用後可能永久刪除低效能種子及其檔案，為官種騰出空間。請先停用其他應用程式中相同範圍的自動刪除。停用此選項不會解除既有未知作業的占用。",
     "maxConcurrentAdds": "並行新增要求",
     "maxConcurrentAddsHelp": "此下載器同時尚未完成的新增數量上限。速度較慢的下載器不會阻塞其他下載器。",
     "maxActiveDownloads": "下載名額",

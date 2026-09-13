@@ -367,6 +367,8 @@
     "editTitle": "Empfang · {{name}}",
     "enableLabel": "Passenden Regeln erlauben, Torrents zu diesem Downloader hinzuzufügen",
     "enableWarning": "Das Speichern mit aktiviertem Empfang erlaubt automatische Hinzufügungen. Beenden Sie überlappende automatische Hinzufügungen in qBittorrent oder Vertex, bevor Sie den Empfang aktivieren. Beim Deaktivieren werden neue Übermittlungen gestoppt; bereits gesendete Anfragen bleiben unter Beobachtung.",
+    "reclaimEnableLabel": "Rückgewinnung für offizielle Kandidaten auf diesem Downloader aktivieren",
+    "reclaimEnableWarning": "Dadurch können Torrents mit geringer Effizienz und ihre Dateien dauerhaft gelöscht werden, um Platz für einen offiziellen Kandidaten zu schaffen. Aktivieren Sie dies erst, nachdem Sie konkurrierende automatische Löschvorgänge in anderen Anwendungen deaktiviert haben. Bereits bestehende unbekannte Vorgänge bleiben blockiert, wenn diese Option deaktiviert ist.",
     "maxConcurrentAdds": "Gleichzeitige Hinzufügungsanfragen",
     "maxConcurrentAddsHelp": "Maximale Anzahl ausstehender Hinzufügungen bei diesem Downloader. Ein langsamer Downloader blockiert keine anderen Downloader.",
     "maxActiveDownloads": "Download-Slots",

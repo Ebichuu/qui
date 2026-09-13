@@ -367,6 +367,8 @@
     "editTitle": "Ricezione · {{name}}",
     "enableLabel": "Consenti alle regole corrispondenti di aggiungere torrent a questo downloader",
     "enableWarning": "Salvare con la ricezione abilitata consente l’aggiunta automatica. Arresta le aggiunte automatiche sovrapposte in qBittorrent o Vertex prima di abilitarla. La disabilitazione interrompe i nuovi invii; le richieste già inviate restano sotto osservazione.",
+    "reclaimEnableLabel": "Abilita il recupero dei candidati ufficiali su questo downloader",
+    "reclaimEnableWarning": "Questa opzione può eliminare definitivamente i torrent a bassa efficienza e i relativi file per fare spazio a un candidato ufficiale. Abilitala solo dopo aver disattivato l’eliminazione automatica concorrente nelle altre applicazioni. Le operazioni sconosciute già esistenti restano bloccate quando questa opzione è disattivata.",
     "maxConcurrentAdds": "Richieste di aggiunta simultanee",
     "maxConcurrentAddsHelp": "Numero massimo di aggiunte in sospeso su questo downloader. Un downloader lento non blocca gli altri downloader.",
     "maxActiveDownloads": "Slot di download",

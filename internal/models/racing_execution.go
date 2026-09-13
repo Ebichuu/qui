@@ -8,6 +8,7 @@ import "time"
 // RacingInstancePolicy opts one downloader into new reception. Existing Q1
 // sources and rules alone never acquire automatic-add ownership on upgrade.
 type RacingInstancePolicy struct {
+	ReclaimEnabled     bool   `json:"reclaimEnabled"`
 	InstanceID         int    `json:"instanceId"`
 	Enabled            bool   `json:"enabled"`
 	MaxConcurrentAdds  int    `json:"maxConcurrentAdds"`

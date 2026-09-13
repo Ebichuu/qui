@@ -367,6 +367,8 @@
     "editTitle": "Réception · {{name}}",
     "enableLabel": "Autoriser les règles correspondantes à ajouter des torrents à ce téléchargeur",
     "enableWarning": "Enregistrer avec la réception activée autorise l’ajout automatique. Désactivez les ajouts automatiques qui se chevauchent dans qBittorrent ou Vertex avant de l’activer. La désactivation arrête les nouvelles soumissions ; les demandes déjà envoyées restent surveillées.",
+    "reclaimEnableLabel": "Activer la récupération des candidats officiels sur ce téléchargeur",
+    "reclaimEnableWarning": "Cette option peut supprimer définitivement des torrents peu efficaces et leurs fichiers afin de faire de la place pour un candidat officiel. Activez-la uniquement après avoir désactivé la suppression automatique concurrente dans les autres applications. Les opérations inconnues existantes restent bloquées lorsque cette option est désactivée.",
     "maxConcurrentAdds": "Demandes d’ajout simultanées",
     "maxConcurrentAddsHelp": "Nombre maximal d’ajouts en attente pour ce téléchargeur. Un téléchargeur lent ne bloque pas les autres téléchargeurs.",
     "maxActiveDownloads": "Emplacements de téléchargement",

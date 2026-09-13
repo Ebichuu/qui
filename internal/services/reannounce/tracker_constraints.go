@@ -188,3 +188,17 @@ func (s *Service) GuardAutomaticDelete(ctx context.Context, instanceID int, cand
 	}
 	return nil
 }
+
+// GuardReclaimDelete requires coverage for every tracker before official reclaim.
+func (s *Service) GuardReclaimDelete(ctx context.Context, instanceID int, candidates []models.DeleteIdentity) error {
+	for _, item := range candidates {
+		result, err := s.CheckTrackerDeletion(ctx, instanceID, item.Hash, item.AddedOn, true)
+		if err != nil {
+			return err
+		}
+		if !result.DeleteAllowed {
+			return fmt.Errorf("official reclaim blocked by tracker protection: %s", result.Reason)
+		}
+	}
+	return nil
+}

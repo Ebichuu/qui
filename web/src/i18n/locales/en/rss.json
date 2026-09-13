@@ -367,6 +367,8 @@
     "editTitle": "Reception · {{name}}",
     "enableLabel": "Allow matching rules to add torrents to this downloader",
     "enableWarning": "Saving with reception enabled allows automatic adding. Stop overlapping automatic adding in qBittorrent or Vertex before enabling. Disabling stops new submissions; requests already sent remain under observation.",
+    "reclaimEnableLabel": "Enable official-candidate reclamation on this downloader",
+    "reclaimEnableWarning": "This can permanently delete low-efficiency torrents and their files to make room for an official candidate. Enable only after disabling competing automatic deletion in other applications. Existing unknown operations remain blocked when this is turned off.",
     "maxConcurrentAdds": "Concurrent add requests",
     "maxConcurrentAddsHelp": "Maximum outstanding additions on this downloader. A slow downloader does not block other downloaders.",
     "maxActiveDownloads": "Download slots",
