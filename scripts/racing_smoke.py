@@ -89,6 +89,19 @@ class App:
         self.start()
         self.request("/api/auth/login", self.credentials)
 
+    def restore_backup(self):
+        # Exercise a consistent SQLite backup in this disposable fixture only.
+        # Keep the same configuration/key and the remote mock qB state intact.
+        backup = self.directory / "restore-check.db"
+        with sqlite3.connect(self.directory / "qui.db") as source, sqlite3.connect(backup) as target:
+            source.backup(target)
+        self.stop(crash=True)
+        for suffix in ("-wal", "-shm"):
+            (self.directory / ("qui.db" + suffix)).unlink(missing_ok=True)
+        backup.replace(self.directory / "qui.db")
+        self.start()
+        self.request("/api/auth/login", self.credentials)
+
     def rows(self, query, params=()):
         # Read-only inspection of this private temporary database; never a user DB.
         with sqlite3.connect(f"file:{self.directory / 'qui.db'}?mode=ro", uri=True) as db:

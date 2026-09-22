@@ -45,12 +45,12 @@ def main():
                 app.request(path+"/apply", {}, expected=202)
             assert mock.deletes == 1
             previous = mock.rid
-            app.restart(crash=True)
+            app.restore_backup()
             until(lambda: mock.rid >= previous+2, "restarted snapshot did not warm")
             app.request(path+"/apply", {}, expected=202)
             assert mock.deletes == 1, "automatic delete replayed after restart"
             assert not mock.errors and not mock.adds
-            print(f"PASS automatic delete {mode}: one request, persistent ownership, no restart replay")
+            print(f"PASS automatic delete {mode}: one request, persistent ownership, no backup-restore replay")
 
 
 if __name__ == "__main__":

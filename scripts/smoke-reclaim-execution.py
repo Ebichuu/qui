@@ -108,7 +108,7 @@ def run(mode, root):
         charges = app.rows("SELECT charge_json FROM racing_reclaim_charges")
         reception["reclaimEnabled"] = False
         app.request(f"/api/racing/reception-policies/{instance}", reception, method="PUT", expected=204)
-        app.restart(crash=True)
+        app.restore_backup()
         until(lambda: mock.rid >= 3, "snapshot did not recover")
         time.sleep(7)
         assert mock.deletes == 1 and not mock.adds
@@ -124,7 +124,7 @@ def run(mode, root):
             assert not mock.adds, "unknown deletion was automatically released"
         assert app.rows("SELECT charge_json FROM racing_reclaim_charges") == charges
         assert mock.deletes == 1 and not mock.errors
-        print(f"PASS native reclaim {mode}: explicit permission, one delete, restart, file/space gate, persistent charges", flush=True)
+        print(f"PASS native reclaim {mode}: explicit permission, one delete, consistent backup restore, file/space gate, persistent charges", flush=True)
 
 
 def main():
