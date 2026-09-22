@@ -411,5 +411,27 @@
       "runnableAt": "Připravenost ke spuštění zaznamenána",
       "transferredAt": "První přenos zaznamenán"
     }
+  },
+  "analysis": {
+    "asnMissing": "Žádné odpovídající ASN",
+    "asnError": "Vyhledání ASN selhalo",
+    "asnUnavailable": "ASN nebylo zaznamenáno",
+    "asnEvidence": "Databáze: {{database}}; vyhledání: {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Zaznamenávat historii Peerů",
+    "help": "Vzorkování pouze pro čtení po dobu 20 minut po potvrzeném přijetí. IP adresy a BT porty se ukládají 30 dní. Neaktivuje příjem ani mazání.",
+    "show": "Historie Peerů",
+    "empty": "Nebyly zaznamenány žádné vzorky. Vzorkování může být zakázané nebo historie mohla vypršet.",
+    "coverage": "Úplné vzorky: {{successful}} / {{expected}}; chybějící nebo částečné: {{missing}}",
+    "unknown": "Žebříčky webu zatím nejsou dostupné. Připojené peery ani časy dokončení neprokazují původního nahrávajícího.",
+    "lastVisible": "Úloha naposledy viditelná",
+    "lastSuccess": "Poslední úplný vzorek",
+    "endpoint": "Koncový bod Peera",
+    "firstSeen": "Poprvé zaznamenán",
+    "lastSeen": "Naposledy zaznamenán",
+    "absent": "Chybí v posledním úplném vzorku",
+    "visible": "Naposledy zaznamenán ve vzorku",
+    "truncated": "Historie dosáhla limitu koncových bodů nebo byl vzorek neúplný; pokrytí zahrnuje tuto mezeru."
   }
 }

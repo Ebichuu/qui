@@ -411,5 +411,27 @@
       "runnableAt": "Runnable observed",
       "transferredAt": "First transfer observed"
     }
+  },
+  "analysis": {
+    "asnMissing": "No matching ASN",
+    "asnError": "ASN lookup failed",
+    "asnUnavailable": "ASN not recorded",
+    "asnEvidence": "Database: {{database}}; lookup: {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Record Peer history",
+    "help": "Read-only sampling for 20 minutes after confirmed reception. Stores IP addresses and BT ports for 30 days. Does not enable reception or deletion.",
+    "show": "Peer history",
+    "empty": "No samples recorded. Sampling may be disabled or history may have expired.",
+    "coverage": "Complete samples: {{successful}} / {{expected}}; missing or partial: {{missing}}",
+    "unknown": "Site rankings remain unavailable. Connected peers and completion times do not prove the original uploader.",
+    "lastVisible": "Task last visible",
+    "lastSuccess": "Last complete sample",
+    "endpoint": "Peer endpoint",
+    "firstSeen": "First seen",
+    "lastSeen": "Last seen",
+    "absent": "Absent from the last complete sample",
+    "visible": "Last seen in a sample",
+    "truncated": "History reached its endpoint limit or a sample was incomplete; coverage includes this gap."
   }
 }

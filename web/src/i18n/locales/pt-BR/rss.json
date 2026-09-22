@@ -411,5 +411,27 @@
       "runnableAt": "Estado executável observado",
       "transferredAt": "Primeira transferência observada"
     }
+  },
+  "analysis": {
+    "asnMissing": "Nenhum ASN correspondente",
+    "asnError": "Falha na consulta ASN",
+    "asnUnavailable": "ASN não registrado",
+    "asnEvidence": "Banco de dados: {{database}}; consulta: {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Registrar histórico de Peers",
+    "help": "Amostragem somente leitura por 20 minutos após o recebimento confirmado. Endereços IP e portas BT são armazenados por 30 dias. Não ativa recebimento nem exclusão.",
+    "show": "Histórico de Peers",
+    "empty": "Nenhuma amostra registrada. A amostragem pode estar desativada ou o histórico pode ter expirado.",
+    "coverage": "Amostras completas: {{successful}} / {{expected}}; ausentes ou parciais: {{missing}}",
+    "unknown": "As classificações do site continuam indisponíveis. Os pares conectados e os horários de conclusão não comprovam quem foi o remetente original.",
+    "lastVisible": "Tarefa vista pela última vez",
+    "lastSuccess": "Última amostra completa",
+    "endpoint": "Endpoint do Peer",
+    "firstSeen": "Visto pela primeira vez",
+    "lastSeen": "Visto pela última vez",
+    "absent": "Ausente da última amostra completa",
+    "visible": "Visto pela última vez em uma amostra",
+    "truncated": "O histórico atingiu o limite de endpoints ou uma amostra ficou incompleta; a cobertura inclui essa lacuna."
   }
 }

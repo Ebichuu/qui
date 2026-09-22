@@ -55,6 +55,8 @@ type Config struct {
 	// Empty means <config-dir>/themes. A relative value is resolved against the config dir.
 	CustomThemesDir string `toml:"customThemesDir" mapstructure:"customThemesDir"`
 
+	RacingASNDatabasePath string `toml:"racingASNDatabasePath" mapstructure:"racingASNDatabasePath"`
+
 	ExternalProgramAllowList []string `toml:"externalProgramAllowList" mapstructure:"externalProgramAllowList"`
 
 	// CrossSeedRecoverErroredTorrents enables recovery attempts for errored/missingFiles torrents

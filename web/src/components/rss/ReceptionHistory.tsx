@@ -1,6 +1,7 @@
 /* Copyright (c) 2026, s0up and the autobrr contributors.
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+import { PeerHistory } from "@/components/rss/PeerHistory"
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
@@ -25,6 +26,7 @@ export function ReceptionHistory({ config, instances }: { config: RacingConfigur
       <p className="text-sm">{t(`execution.states.${intent.state}`)} · {formatBytes(intent.plan.sizeBytes)}</p>
       <p className="text-xs text-muted-foreground break-all">{intent.plan.hashV1 || intent.plan.hashV2}</p>
       {intent.reason && <p className="text-sm">{t(`execution.reasons.${reasons.includes(intent.reason) ? intent.reason : "unknown"}`)}</p>}
+      <PeerHistory candidateKey={intent.candidateKey} />
       <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2">{(["reservedAt", "submittedAt", "acceptedAt", "confirmedAt", "runnableAt", "transferredAt"] as const).map(stage => <div key={stage}><dt className="inline text-muted-foreground">{t(`execution.stages.${stage}`)}: </dt><dd className="inline">{intent[stage] ? new Date(intent[stage]).toLocaleString() : t("execution.notObserved")}</dd></div>)}</dl>
     </div>)}
     <div className="flex gap-2"><Button size="sm" variant="outline" disabled={cursors.length < 2} onClick={() => setCursors(current => current.slice(0, -1))}>{t("central.previous")}</Button><Button size="sm" variant="outline" disabled={!history.data?.nextCursor} onClick={() => { if (history.data?.nextCursor) setCursors(current => [...current, history.data!.nextCursor!]) }}>{t("central.next")}</Button></div>

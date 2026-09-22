@@ -312,3 +312,7 @@ smoke-reannounce-shared:
 .PHONY: smoke-reannounce-policies
 smoke-reannounce-policies:
 	python3 scripts/smoke-reannounce-policies.py
+
+.PHONY: smoke-racing-analysis
+smoke-racing-analysis:
+	python3 scripts/smoke-racing-analysis.py

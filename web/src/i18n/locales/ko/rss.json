@@ -411,5 +411,27 @@
       "runnableAt": "실행 가능 상태 관찰됨",
       "transferredAt": "첫 전송 관찰됨"
     }
+  },
+  "analysis": {
+    "asnMissing": "일치하는 ASN 없음",
+    "asnError": "ASN 조회 실패",
+    "asnUnavailable": "ASN 기록 없음",
+    "asnEvidence": "데이터베이스: {{database}}; 조회: {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Peer 기록 저장",
+    "help": "수신이 확인된 후 20분 동안 읽기 전용 샘플링을 수행합니다. IP 주소와 BT 포트는 30일 동안 저장됩니다. 수신이나 삭제를 활성화하지 않습니다.",
+    "show": "Peer 기록",
+    "empty": "기록된 샘플이 없습니다. 샘플링이 비활성화되었거나 기록이 만료되었을 수 있습니다.",
+    "coverage": "완전한 샘플: {{successful}} / {{expected}}; 누락 또는 부분 샘플: {{missing}}",
+    "unknown": "사이트 순위는 아직 지원되지 않습니다. 연결된 피어와 완료 시간만으로 최초 업로더를 확인할 수 없습니다.",
+    "lastVisible": "작업 마지막 표시 시간",
+    "lastSuccess": "마지막 완전한 샘플",
+    "endpoint": "Peer 엔드포인트",
+    "firstSeen": "처음 확인됨",
+    "lastSeen": "마지막 확인됨",
+    "absent": "마지막 완전한 샘플에서 없음",
+    "visible": "샘플에서 마지막으로 확인됨",
+    "truncated": "기록이 엔드포인트 한도에 도달했거나 샘플이 불완전했습니다. 이 누락은 포함 범위에 반영됩니다."
   }
 }

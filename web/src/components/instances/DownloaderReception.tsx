@@ -1,6 +1,7 @@
 /* Copyright (c) 2026, s0up and the autobrr contributors.
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+import { AnalysisSetting } from "@/components/rss/PeerHistory"
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
@@ -35,6 +36,7 @@ export function DownloaderReception({ instances }: { instances: InstanceResponse
     {policies.isError && <p role="alert" className="text-destructive">{t("execution.loadError")}</p>}
     {instances.length === 0 && <p>{t("execution.noInstances")}</p>}
     {instances.map(item => <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-t pt-3"><p>{item.name} · {t(policies.isError || !policies.data ? "execution.statusUnavailable" : policies.data.find(policy => policy.instanceId === item.id)?.enabled ? "execution.enabled" : "execution.disabled")}</p><Button size="sm" variant="outline" disabled={!policies.data || policies.isError} onClick={() => setEditing(item.id)}>{t("central.edit")}</Button></div>)}
+    <AnalysisSetting instances={instances} />
     <Dialog open={!!instance} onOpenChange={open => { if (!open) setEditing(null) }}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>{t("execution.editTitle", { name: instance?.name })}</DialogTitle><DialogDescription>{t("execution.setupHelp")}</DialogDescription></DialogHeader>{instance && <ReceptionForm key={instance.id} instanceId={instance.id} initial={policies.data?.find(policy => policy.instanceId === instance.id)} onClose={() => setEditing(null)} />}</DialogContent></Dialog>
   </section>
 }

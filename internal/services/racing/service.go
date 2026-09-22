@@ -32,6 +32,7 @@ type Status struct {
 }
 
 type Service struct {
+	asnDatabasePath     string
 	reclaimReader       ReclaimCandidateReader
 	reclaimProtection   ReclaimProtectionReader
 	executor            *executionRunner
@@ -116,6 +117,9 @@ func (s *Service) setConfiguration(config *models.RacingConfiguration) {
 func (s *Service) run(ctx context.Context) {
 	s.ConfigurationChanged()
 	var evaluations sync.WaitGroup
+	if store, ok := s.store.(*models.RacingStore); ok {
+		evaluations.Go(func() { s.runAnalysis(ctx, store) })
+	}
 	if s.executor != nil {
 		evaluations.Go(func() { s.executor.run(ctx) })
 	}

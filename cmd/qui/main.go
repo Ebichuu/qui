@@ -746,6 +746,7 @@ func (app *Application) runServer() {
 	syncManager.SetAutomaticDeleteStore(racingStore)
 	automationService.SetReclaimStore(racingStore)
 	racingService := racing.NewService(racingStore)
+	racingService.SetASNDatabasePath(cfg.GetRacingASNDatabasePath())
 	racingService.SetReclaimCandidateReader(automationService)
 	racingService.SetReclaimProtectionReader(reannounceService)
 	racingCtx, racingCancel := context.WithCancel(context.Background())

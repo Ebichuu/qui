@@ -40,3 +40,20 @@ qB 提供的剩余空间属于其默认保存目录。只有该目录已明确�
 同一存储池一次只推进一项待核实回收。任务消失不等于文件释放；文件仍存在、净空间未恢复、目录身份变化时继续等待。关闭回收开关阻止新删除，已接受的旧操作仍会继续核实。超时或断连产生的未知操作不会自动重发、退款或解除占用；即使空间后来增加，也不能绕过该事件的未决步骤直接接种。
 
 核实通过后会重新检查缺口和候选，空间足够即走正常接种；已消耗的删除数量、容量预算和近期上传代价不会因重启或改规则而重置。本功能仍处于开发验收阶段，真实多站点与旧执行者交接需单独验证。
+
+## Peer history
+
+Each downloader has a separate **Record Peer history** switch. It is off by default and does not enable reception or deletion. After a confirmed reception, analysis samples connected peers for up to 20 minutes. It stores IP addresses and BT ports for 30 days. View the report from **Reception history**. Saved reports expire 30 days after their last sampling attempt; reports with no samples expire 30 days after reception confirmation. Expired reports are unavailable immediately, even when background cleanup is still catching up after downtime.
+
+Reports show complete samples against expected samples, including missed opportunities during downtime, overload or disabled sampling. An unavailable or partial snapshot cannot prove that a peer disappeared. The report preserves first and last visibility; a later successful complete snapshot can record absence. Endpoint history is limited to 1000 endpoints per torrent. Truncation remains visible in coverage.
+
+The history uses verified torrent hashes and checks the qB task generation. It does not link tasks by name. Connection counters may reset, and seeing a complete peer does not establish who originally uploaded the torrent. Site ranking collection remains unsupported. These reports do not prove tracker accounting or complete replacement of an existing setup.
+
+
+### Offline ASN lookup
+
+Set `racingASNDatabasePath` in `config.toml` to a local [GeoLite2-ASN database](https://dev.maxmind.com/geoip/docs/databases/asn/) in MMDB format, or use `QUI__RACING_ASN_DATABASE_PATH`. Relative paths resolve against the configuration directory. Obtain and maintain the database separately; qui does not download it or send Peer IP addresses to a lookup service. Empty configuration disables lookup. Restart qui after replacing the database or changing its path.
+
+The same bounded analysis worker enriches observed endpoints during the reception observation window. Each result records its ASN, organization, matching network, lookup time, database build time and SHA-256 fingerprint. The history distinguishes no matching record, lookup errors and endpoints not yet enriched. Its ASN coverage includes completed no-match lookups and does not change Peer sampling coverage. ASN ownership describes an IP network, not the original uploader or the physical location of a seedbox.
+
+An invalid or unavailable database produces a startup warning in the analysis worker; reception and Peer sampling continue. Previously recorded results retain their original database and lookup timestamps, even if lookup is later disabled. On restart with a new database, endpoints in active observation windows are enriched again. Older, finished histories remain unchanged. The reader uses an immutable in-memory snapshot of at most 64 MiB; no new database schema or network worker is needed.

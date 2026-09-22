@@ -25,8 +25,10 @@ require (
 	github.com/klauspost/compress v1.19.2
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/mat/besticon/v3 v3.22.0
+	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/moistari/rls v0.6.0
 	github.com/nicholas-fedor/shoutrrr v0.17.0
+	github.com/oschwald/maxminddb-golang/v2 v2.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.24.1
 	github.com/rs/cors v1.11.1
@@ -89,6 +91,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	gitlab.com/gitlab-org/api/client-go v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20260508232706-74f9aab9d74a // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	modernc.org/libc v1.74.4 // indirect

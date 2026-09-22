@@ -90,5 +90,7 @@ jobs:
         run: make smoke-reannounce-result
       - name: Verify tracker account constraints
         run: make smoke-reannounce-policies
+      - name: Verify bounded Peer history and independent reception
+        run: make smoke-racing-analysis
       - name: Verify shared reannounce entry points
         run: make smoke-reannounce-shared

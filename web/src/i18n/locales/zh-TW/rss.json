@@ -411,5 +411,27 @@
       "runnableAt": "已觀察到可執行狀態",
       "transferredAt": "已觀察到首次傳輸"
     }
+  },
+  "analysis": {
+    "asnMissing": "未符合任何 ASN",
+    "asnError": "ASN 查詢失敗",
+    "asnUnavailable": "尚無 ASN 記錄",
+    "asnEvidence": "資料庫：{{database}}；查詢：{{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "記錄 Peer 歷史",
+    "help": "確認接收後進行 20 分鐘的唯讀取樣。IP 位址和 BT 連接埠保存 30 天。不啟用接收或刪除。",
+    "show": "Peer 歷史",
+    "empty": "沒有記錄取樣。取樣可能已停用，或歷史記錄已過期。",
+    "coverage": "完整取樣：{{successful}} / {{expected}}；缺失或部分取樣：{{missing}}",
+    "unknown": "暫不支援站點排名。已連線的 Peer 與完成時間不能證明最初上傳者。",
+    "lastVisible": "工作最後可見時間",
+    "lastSuccess": "最近一次完整取樣",
+    "endpoint": "Peer 端點",
+    "firstSeen": "首次發現",
+    "lastSeen": "最後發現",
+    "absent": "在最近一次完整取樣中缺失",
+    "visible": "最近一次在取樣中發現",
+    "truncated": "歷史記錄達到端點限制，或某次取樣不完整；涵蓋範圍包含此缺口。"
   }
 }

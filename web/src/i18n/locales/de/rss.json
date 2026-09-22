@@ -411,5 +411,27 @@
       "runnableAt": "Ausführbarkeit beobachtet",
       "transferredAt": "Erster Transfer beobachtet"
     }
+  },
+  "analysis": {
+    "asnMissing": "Kein passendes ASN",
+    "asnError": "ASN-Abfrage fehlgeschlagen",
+    "asnUnavailable": "ASN nicht erfasst",
+    "asnEvidence": "Datenbank: {{database}}; Abfrage: {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Peer-Verlauf aufzeichnen",
+    "help": "Schreibgeschützte Stichprobenerfassung für 20 Minuten nach bestätigtem Empfang. IP-Adressen und BT-Ports werden 30 Tage gespeichert. Aktiviert weder Empfang noch Löschung.",
+    "show": "Peer-Verlauf",
+    "empty": "Keine Stichproben aufgezeichnet. Die Stichprobenerfassung ist möglicherweise deaktiviert oder der Verlauf abgelaufen.",
+    "coverage": "Vollständige Stichproben: {{successful}} / {{expected}}; fehlend oder unvollständig: {{missing}}",
+    "unknown": "Website-Ranglisten sind weiterhin nicht verfügbar. Verbundene Peers und Abschlusszeiten belegen nicht den ursprünglichen Uploader.",
+    "lastVisible": "Aufgabe zuletzt sichtbar",
+    "lastSuccess": "Letzte vollständige Stichprobe",
+    "endpoint": "Peer-Endpunkt",
+    "firstSeen": "Zuerst gesehen",
+    "lastSeen": "Zuletzt gesehen",
+    "absent": "In der letzten vollständigen Stichprobe nicht vorhanden",
+    "visible": "Zuletzt in einer Stichprobe gesehen",
+    "truncated": "Der Verlauf hat sein Endpunktlimit erreicht oder eine Stichprobe war unvollständig; die Abdeckung umfasst diese Lücke."
   }
 }

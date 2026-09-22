@@ -20,6 +20,7 @@ func TestRacingRoutesRequireAuthentication(t *testing.T) {
 	routes = append(routes, struct{ method, path string }{http.MethodGet, "/api/racing/configuration"}, struct{ method, path string }{http.MethodGet, "/api/racing/status"})
 	routes = append(routes, struct{ method, path string }{http.MethodGet, "/api/racing/observations"}, struct{ method, path string }{http.MethodGet, "/api/racing/discoveries"}, struct{ method, path string }{http.MethodGet, "/api/racing/candidates"})
 	routes = append(routes, struct{ method, path string }{http.MethodPut, "/api/racing/rules/order"}, struct{ method, path string }{http.MethodGet, "/api/racing/reception-policies"}, struct{ method, path string }{http.MethodPut, "/api/racing/reception-policies/1"}, struct{ method, path string }{http.MethodGet, "/api/racing/add-intents"})
+	routes = append(routes, struct{ method, path string }{http.MethodGet, "/api/racing/analysis-settings"}, struct{ method, path string }{http.MethodPut, "/api/racing/analysis-settings/1"}, struct{ method, path string }{http.MethodGet, "/api/racing/analysis-history?candidateKey=synthetic"})
 	for _, resource := range []string{"sites", "sources", "groups", "rules", "storage-pools", "path-mappings"} {
 		routes = append(routes, struct{ method, path string }{http.MethodPost, "/api/racing/" + resource}, struct{ method, path string }{http.MethodPut, "/api/racing/" + resource + "/1"}, struct{ method, path string }{http.MethodDelete, "/api/racing/" + resource + "/1"})
 	}

@@ -411,5 +411,27 @@
       "runnableAt": "Exécution observée",
       "transferredAt": "Premier transfert observé"
     }
+  },
+  "analysis": {
+    "asnMissing": "Aucun ASN correspondant",
+    "asnError": "Échec de la recherche ASN",
+    "asnUnavailable": "ASN non enregistré",
+    "asnEvidence": "Base : {{database}} ; recherche : {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Enregistrer l’historique des pairs",
+    "help": "Échantillonnage en lecture seule pendant 20 minutes après une réception confirmée. Les adresses IP et ports BT sont conservés pendant 30 jours. N’active ni la réception ni la suppression.",
+    "show": "Historique des pairs",
+    "empty": "Aucun échantillon enregistré. L’échantillonnage est peut-être désactivé ou l’historique a peut-être expiré.",
+    "coverage": "Échantillons complets : {{successful}} / {{expected}} ; manquants ou partiels : {{missing}}",
+    "unknown": "Les classements du site restent indisponibles. Les pairs connectés et les heures de fin ne prouvent pas qui est le diffuseur initial.",
+    "lastVisible": "Dernière visibilité de la tâche",
+    "lastSuccess": "Dernier échantillon complet",
+    "endpoint": "Point de terminaison du pair",
+    "firstSeen": "Première apparition",
+    "lastSeen": "Dernière apparition",
+    "absent": "Absent du dernier échantillon complet",
+    "visible": "Vu pour la dernière fois dans un échantillon",
+    "truncated": "L’historique a atteint sa limite de points de terminaison ou un échantillon était incomplet ; la couverture inclut cette lacune."
   }
 }

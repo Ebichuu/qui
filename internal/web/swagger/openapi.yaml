@@ -190,7 +190,7 @@ paths:
     put:
       tags: [Racing]
       summary: Set one downloader reception policy
-      description: Enabling allows matching sources and rules to add torrents. Disabling prevents new submissions; unknown submitted requests keep their original target and reservation for reconciliation. No deletion or tracker mutation is granted.
+      description: Enabling allows matching sources and rules to add torrents. Disabling prevents new submissions; unknown submitted requests keep their original target and reservation for reconciliation. The separate reclaimEnabled field additionally grants official reclaim authority only when its independent safeguards pass.
       parameters:
       - name: id
         in: path
@@ -211,11 +211,66 @@ paths:
           description: Invalid policy or instance mismatch
         '503':
           description: Reception configuration unavailable
+  /api/racing/analysis-settings:
+    get:
+      tags: [Racing]
+      summary: Read independent opt-in Peer history settings
+      responses:
+        '200':
+          description: Instances absent from this list have analysis disabled
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RacingAnalysisSetting'
+        '503':
+          description: Analysis unavailable
+  /api/racing/analysis-settings/{id}:
+    put:
+      tags: [Racing]
+      summary: Enable or disable read-only Peer history for an instance
+      description: Does not grant reception or deletion authority. Samples confirmed receptions for 20 minutes and retains IP addresses and BT ports for 30 days. Disabling stops new sampling; existing history is retained.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RacingAnalysisSetting'
+      responses:
+        '204': {description: Setting saved}
+        '400': {description: Invalid setting}
+        '503': {description: Analysis unavailable}
+  /api/racing/analysis-history:
+    get:
+      tags: [Racing]
+      summary: Read bounded Peer history for an exact reception candidate
+      description: Uses the persisted confirmation time as the denominator even when no samples were recorded. Missing and partial samples never count as success. Only complete snapshots prove endpoint absence. Optional offline ASN evidence records database version and lookup time; site rankings remain unavailable. The history cannot prove the original uploader.
+      parameters:
+      - name: candidateKey
+        in: query
+        required: true
+        schema: {type: string, minLength: 1, maxLength: 512}
+      responses:
+        '200':
+          description: Up to 240 attempts and 1000 unique endpoints
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RacingAnalysisHistory'
+        '400': {description: Missing candidate key}
+        '404': {description: No confirmed reception or history expired}
+        '503': {description: Analysis unavailable}
   /api/racing/reclaim-plans:
     get:
       tags: [Racing]
       summary: Read the latest 100 prepared reclaim plans
-      description: Persistent plan history with frozen budget ceilings and conservative charges at the deletion claim boundary. Plans do not grant operation authority or prove released space. No network reclaim executor is enabled.
+      description: Persistent plan history with frozen budget ceilings and conservative charges at the deletion claim boundary. Plans do not grant operation authority or prove released space. Network reclaim execution requires explicit instance permission and all current budget, tracker and filesystem safeguards.
       responses:
         '200':
           description: Newest plans first
@@ -7750,6 +7805,71 @@ components:
                   type: integer
               policy:
                 $ref: '#/components/schemas/RacingReclaimPolicy'
+    RacingAnalysisSetting:
+      type: object
+      required: [instanceId, enabled]
+      properties:
+        instanceId: {type: integer, minimum: 1}
+        enabled: {type: boolean, default: false}
+    RacingAnalysisHistory:
+      type: object
+      required: [candidateKey, instanceId, hash, hashV1, hashV2, addedOn, startedAt, samples, peers, truncated, expectedSamples, successfulSamples, missingSamples, asnState, rankingState]
+      properties:
+        candidateKey: {type: string}
+        instanceId: {type: integer}
+        hash: {type: string}
+        hashV1: {type: string}
+        hashV2: {type: string}
+        addedOn: {type: integer, format: int64}
+        startedAt: {type: string, format: date-time}
+        lastVisible: {type: string, format: date-time}
+        lastSuccess: {type: string, format: date-time}
+        truncated: {type: boolean}
+        expectedSamples: {type: integer, minimum: 0, maximum: 240}
+        successfulSamples: {type: integer, minimum: 0, maximum: 240}
+        missingSamples: {type: integer, minimum: 0, maximum: 240}
+        asnState: {type: string, enum: [unavailable, partial, available], description: Coverage of stored ASN lookups, including explicit no-match results. Not a statement about the current database configuration.}
+        rankingState: {type: string, enum: [unsupported]}
+        samples:
+          type: array
+          maxItems: 240
+          items:
+            type: object
+            required: [at, state]
+            properties:
+              at: {type: string, format: date-time}
+              state:
+                type: string
+                enum: [observed, partial, snapshot_unavailable, task_absent, generation_unknown, generation_changed, peers_unavailable]
+        peers:
+          type: object
+          maxProperties: 1000
+          additionalProperties:
+            type: object
+            required: [ip, port, firstSeen, lastSeen, samples, downloaded, uploaded, counterResets]
+            properties:
+              asn:
+                type: object
+                required: [state, observedAt, databaseBuiltAt, databaseSHA256]
+                properties:
+                  state: {type: string, enum: [found, not_found, error]}
+                  number: {type: integer, format: int64, minimum: 1, maximum: 4294967295}
+                  organization: {type: string}
+                  network: {type: string}
+                  observedAt: {type: string, format: date-time}
+                  databaseBuiltAt: {type: string, format: date-time}
+                  databaseSHA256: {type: string, pattern: '^[a-f0-9]{64}$'}
+              ip: {type: string}
+              port: {type: integer, minimum: 1, maximum: 65535}
+              firstSeen: {type: string, format: date-time}
+              lastSeen: {type: string, format: date-time}
+              absentAt: {type: string, format: date-time}
+              samples: {type: integer}
+              maxProgress: {type: number, minimum: 0, maximum: 1}
+              firstComplete: {type: string, format: date-time}
+              downloaded: {type: integer, format: int64}
+              uploaded: {type: integer, format: int64}
+              counterResets: {type: integer}
     RacingInstancePolicy:
       type: object
       required: [instanceId, enabled, maxConcurrentAdds, maxActiveDownloads, minFreeBytes, savePath, category, autoTMM, startPaused]

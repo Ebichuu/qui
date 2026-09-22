@@ -126,6 +126,7 @@ func (c *AppConfig) defaults() {
 	c.viper.SetDefault("checkForUpdates", true)
 	c.viper.SetDefault("trackerIconsFetchEnabled", true)
 	c.viper.SetDefault("customThemesDir", "") // Empty means <config-dir>/themes
+	c.viper.SetDefault("racingASNDatabasePath", "")
 	c.viper.SetDefault("crossSeedRecoverErroredTorrents", false)
 	c.viper.SetDefault("pprofEnabled", false)
 	c.viper.SetDefault("pprofAddr", "127.0.0.1:6060")
@@ -231,6 +232,7 @@ func (c *AppConfig) loadFromEnv() {
 	c.viper.BindEnv("checkForUpdates", envPrefix+"CHECK_FOR_UPDATES")
 	c.viper.BindEnv("trackerIconsFetchEnabled", envPrefix+"TRACKER_ICONS_FETCH_ENABLED")
 	c.viper.BindEnv("customThemesDir", envPrefix+"CUSTOM_THEMES_DIR")
+	c.viper.BindEnv("racingASNDatabasePath", envPrefix+"RACING_ASN_DATABASE_PATH")
 	c.viper.BindEnv("crossSeedRecoverErroredTorrents", envPrefix+"CROSS_SEED_RECOVER_ERRORED_TORRENTS")
 	c.viper.BindEnv("pprofEnabled", envPrefix+"PPROF_ENABLED")
 	c.viper.BindEnv("pprofAddr", envPrefix+"PPROF_ADDR")
@@ -354,6 +356,7 @@ func (c *AppConfig) hydrateConfigFromViper() {
 	c.Config.CheckForUpdates = c.viper.GetBool("checkForUpdates")
 	c.Config.TrackerIconsFetchEnabled = c.viper.GetBool("trackerIconsFetchEnabled")
 	c.Config.CustomThemesDir = c.viper.GetString("customThemesDir")
+	c.Config.RacingASNDatabasePath = c.viper.GetString("racingASNDatabasePath")
 	c.Config.CrossSeedRecoverErroredTorrents = c.viper.GetBool("crossSeedRecoverErroredTorrents")
 	c.Config.PprofEnabled = c.viper.GetBool("pprofEnabled")
 	c.Config.PprofAddr = c.viper.GetString("pprofAddr")
@@ -524,6 +527,10 @@ sessionSecret = "{{ .sessionSecret }}"
 # Drop sideloaded *.css theme files here. Listing requires premium access.
 # A relative path is resolved against the config directory.
 #customThemesDir = "/config/themes"
+
+# Optional offline GeoLite2-ASN MMDB; relative to the config directory.
+# Restart qui after changing the path or replacing the database. Empty disables lookup.
+#racingASNDatabasePath = "GeoLite2-ASN.mmdb"
 
 # Database engine
 # Options: "sqlite" (default), "postgres"
@@ -859,6 +866,15 @@ func (c *AppConfig) GetCustomThemesDir() string {
 		return filepath.Join(c.GetConfigDir(), dir)
 	}
 	return dir
+}
+
+// GetRacingASNDatabasePath resolves the optional offline database at startup.
+func (c *AppConfig) GetRacingASNDatabasePath() string {
+	name := strings.TrimSpace(c.Config.RacingASNDatabasePath)
+	if name == "" || filepath.IsAbs(name) {
+		return name
+	}
+	return filepath.Join(c.GetConfigDir(), name)
 }
 
 // EnsureCustomThemesDir resolves the custom themes directory and creates it if missing.

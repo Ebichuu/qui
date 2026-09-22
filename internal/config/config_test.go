@@ -136,6 +136,27 @@ func TestCustomThemesDirResolution(t *testing.T) {
 	}
 }
 
+func TestRacingASNDatabasePath(t *testing.T) {
+	for _, name := range []string{"", "synthetic.mmdb", filepath.Join(t.TempDir(), "absolute.mmdb")} {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "config.toml")
+			require.NoError(t, os.WriteFile(path, []byte(testConfigContent+fmt.Sprintf("racingASNDatabasePath = %q\n", name)), 0o600))
+			cfg, err := New(path)
+			require.NoError(t, err)
+			expected := name
+			if name != "" && !filepath.IsAbs(name) {
+				expected = filepath.Join(dir, name)
+			}
+			require.Equal(t, expected, cfg.GetRacingASNDatabasePath())
+			t.Setenv(envPrefix+"RACING_ASN_DATABASE_PATH", "override.mmdb")
+			cfg, err = New(path)
+			require.NoError(t, err)
+			require.Equal(t, filepath.Join(dir, "override.mmdb"), cfg.GetRacingASNDatabasePath())
+		})
+	}
+}
+
 func TestBackupDirResolution(t *testing.T) {
 	tests := []struct {
 		name    string

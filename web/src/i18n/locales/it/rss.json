@@ -411,5 +411,27 @@
       "runnableAt": "Esecuzione osservata",
       "transferredAt": "Primo trasferimento osservato"
     }
+  },
+  "analysis": {
+    "asnMissing": "Nessun ASN corrispondente",
+    "asnError": "Ricerca ASN non riuscita",
+    "asnUnavailable": "ASN non registrato",
+    "asnEvidence": "Database: {{database}}; ricerca: {{observed}}",
+    "asn": "ASN",
+    "asnValue": "AS{{number}} · {{organization}}",
+    "enable": "Registra la cronologia dei Peer",
+    "help": "Campionamento in sola lettura per 20 minuti dopo una ricezione confermata. Gli indirizzi IP e le porte BT vengono conservati per 30 giorni. Non abilita la ricezione né l’eliminazione.",
+    "show": "Cronologia dei Peer",
+    "empty": "Nessun campione registrato. Il campionamento potrebbe essere disabilitato oppure la cronologia potrebbe essere scaduta.",
+    "coverage": "Campioni completi: {{successful}} / {{expected}}; mancanti o parziali: {{missing}}",
+    "unknown": "Le classifiche del sito non sono ancora disponibili. I peer connessi e gli orari di completamento non identificano chi ha caricato il file originariamente.",
+    "lastVisible": "Attività visibile l’ultima volta",
+    "lastSuccess": "Ultimo campione completo",
+    "endpoint": "Endpoint del Peer",
+    "firstSeen": "Prima visualizzazione",
+    "lastSeen": "Ultima visualizzazione",
+    "absent": "Assente dall’ultimo campione completo",
+    "visible": "Vista l’ultima volta in un campione",
+    "truncated": "La cronologia ha raggiunto il limite degli endpoint oppure un campione era incompleto; la copertura include questa lacuna."
   }
 }

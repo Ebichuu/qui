@@ -91,3 +91,21 @@ export interface RacingReclaimConfiguration {
   settings: { scope: "instances" | "groups"; targetId: number; policy: RacingReclaimPolicy }[]
   effective: { instanceId: number; state: "unconfigured" | "explicit" | "inherited" | "disabled" | "conflict"; groupIds: number[]; policy?: RacingReclaimPolicy }[]
 }
+
+export interface RacingAnalysisSetting { instanceId: number; enabled: boolean }
+export interface RacingASNObservation {
+  state: "found" | "not_found" | "error"; number?: number; organization?: string; network?: string
+  observedAt: string; databaseBuiltAt: string; databaseSHA256: string
+}
+export interface RacingPeerHistory {
+  asn?: RacingASNObservation
+  ip: string; port: number; firstSeen: string; lastSeen: string; absentAt?: string
+  samples: number; maxProgress?: number; firstComplete?: string; downloaded: number; uploaded: number; counterResets: number
+}
+export interface RacingAnalysisHistory {
+  candidateKey: string; instanceId: number; hash: string; hashV1: string; hashV2: string; addedOn: number
+  startedAt: string; lastVisible?: string; lastSuccess?: string; truncated: boolean
+  expectedSamples: number; successfulSamples: number; missingSamples: number
+  asnState: "unavailable" | "partial" | "available"; rankingState: "unsupported"
+  samples: { at: string; state: string }[]; peers: Record<string, RacingPeerHistory>
+}
