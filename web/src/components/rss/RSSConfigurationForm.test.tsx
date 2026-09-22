@@ -14,11 +14,39 @@ const config: RacingConfiguration = { sites: [{ id: 1, name: "Site", baseUrl: "h
 const capabilities: RacingCapability[] = [{ id: "chd", site: "CHDBits", kinds: ["rss", "web", "revival"], pagination: true, official: true, free: true, revival: true, validation: "synthetic_fixtures" }]
 beforeEach(() => { vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} }); vi.mocked(api.saveRacingResource).mockResolvedValue({ id: 1 }) })
 afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals() })
-function mount(selection: RSSSelection) {
+function mount(selection: RSSSelection, configuration = config) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
-  render(<QueryClientProvider client={client}><TooltipProvider><RSSConfigurationForm selection={selection} config={config} instances={[]} capabilities={capabilities} onClose={() => {}} /></TooltipProvider></QueryClientProvider>)
+  render(<QueryClientProvider client={client}><TooltipProvider><RSSConfigurationForm selection={selection} config={configuration} instances={[]} capabilities={capabilities} onClose={() => {}} /></TooltipProvider></QueryClientProvider>)
 }
 describe("central RSS configuration", () => {
+  it.each([
+    { sourceEnabled: false, siteEnabled: true, warning: true },
+    { sourceEnabled: true, siteEnabled: false, warning: true },
+    { sourceEnabled: true, siteEnabled: true, warning: false },
+  ])("checks the enabled source and site for revival: %j", ({ sourceEnabled, siteEnabled, warning }) => {
+    mount({ resource: "rules", id: null }, {
+      ...config,
+      sites: config.sites.map(site => ({ ...site, enabled: siteEnabled })),
+      sources: config.sources.map(source => ({ ...source, enabled: sourceEnabled })),
+    })
+    fireEvent.click(screen.getByRole("checkbox", { name: /Feed/ }))
+    fireEvent.click(screen.getByRole("checkbox", { name: "central.accept.revival" }))
+    expect(screen.queryByText("central.revivalUnavailable") !== null).toBe(warning)
+  })
+
+  it("keeps revival available when another selected source is disabled", () => {
+    mount({ resource: "rules", id: null }, {
+      ...config,
+      sources: [...config.sources, { ...config.sources[0], id: 4, name: "Disabled source", enabled: false }],
+    })
+    fireEvent.click(screen.getByRole("checkbox", { name: "Feed" }))
+    fireEvent.click(screen.getByRole("checkbox", { name: /Disabled source/ }))
+    fireEvent.click(screen.getByRole("checkbox", { name: "central.accept.revival" }))
+    expect(screen.queryByText("central.revivalUnavailable")).toBeNull()
+    fireEvent.click(screen.getByRole("checkbox", { name: "Feed" }))
+    expect(screen.getByText("central.revivalUnavailable")).toBeTruthy()
+  })
+
   it("requires explicit reception types and window, and saves one complete group target", async () => {
     mount({ resource: "rules", id: null })
     expect((screen.getByRole("button", { name: "central.save" }) as HTMLButtonElement).disabled).toBe(true)

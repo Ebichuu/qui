@@ -270,7 +270,7 @@
       "revival": "Revival"
     },
     "chooseKind": "Vyberte alespoň jeden typ příjmu.",
-    "revivalUnavailable": "Vybrané zdroje nemají registrovanou schopnost ověřit revival. Revival zůstane neznámý, dokud nebudou dostupné důkazy.",
+    "revivalUnavailable": "Žádný vybraný zdroj není zapnutý s podporou rozpoznání obnovených torrentů. Zkontrolujte zdroj, jeho web a možnosti adaptéru.",
     "target": "Cíl stahování",
     "targetHelp": "Vyberte jeden stahovač nebo znovu použitelnou skupinu. Vítězné pravidlo s nedostupným cílem se nevrátí k jinému pravidlu.",
     "groups": "Skupiny stahovačů",

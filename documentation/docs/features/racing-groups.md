@@ -26,7 +26,6 @@ qB 提供的剩余空间属于其默认保存目录。只有该目录已明确�
 
 认证 API 在 `/api/racing` 下提供 `configuration`、`observations` 以及 `groups`、`storage-pools`、`path-mappings` 的增改删。配置重启后保留；实时观测重新从下载器取得，不把重启前样本当作当前状态。接种、官种回收仍分别受到实例开关、规则及预算约束。
 
-
 ## 官种回收执行权限
 
 在实例的接种设置里，“允许此下载器为官种执行回收”默认关闭。仅开启接种、加入群组、保存回收预算或勾选 RSS 的允许回收，都不会授予删除权。
@@ -49,7 +48,6 @@ Reports show complete samples against expected samples, including missed opportu
 
 The history uses verified torrent hashes and checks the qB task generation. It does not link tasks by name. Connection counters may reset, and seeing a complete peer does not establish who originally uploaded the torrent. Site ranking collection remains unsupported. These reports do not prove tracker accounting or complete replacement of an existing setup.
 
-
 ### Offline ASN lookup
 
 Set `racingASNDatabasePath` in `config.toml` to a local [GeoLite2-ASN database](https://dev.maxmind.com/geoip/docs/databases/asn/) in MMDB format, or use `QUI__RACING_ASN_DATABASE_PATH`. Relative paths resolve against the configuration directory. Obtain and maintain the database separately; qui does not download it or send Peer IP addresses to a lookup service. Empty configuration disables lookup. Restart qui after replacing the database or changing its path.
@@ -57,3 +55,7 @@ Set `racingASNDatabasePath` in `config.toml` to a local [GeoLite2-ASN database](
 The same bounded analysis worker enriches observed endpoints during the reception observation window. Each result records its ASN, organization, matching network, lookup time, database build time and SHA-256 fingerprint. The history distinguishes no matching record, lookup errors and endpoints not yet enriched. Its ASN coverage includes completed no-match lookups and does not change Peer sampling coverage. ASN ownership describes an IP network, not the original uploader or the physical location of a seedbox.
 
 An invalid or unavailable database produces a startup warning in the analysis worker; reception and Peer sampling continue. Previously recorded results retain their original database and lookup timestamps, even if lookup is later disabled. On restart with a new database, endpoints in active observation windows are enriched again. Older, finished histories remain unchanged. The reader uses an immutable in-memory snapshot of at most 64 MiB; no new database schema or network worker is needed.
+
+### Revival source availability
+
+When a rule accepts revived torrents, the editor checks that at least one selected source and its site are enabled and that the adapter supports revival detection for that source type. A disabled source or site does not satisfy this check. The warning does not prevent saving a draft rule, and another enabled, capable source can satisfy it. This configuration check does not prove site connectivity or grant downloader permissions.

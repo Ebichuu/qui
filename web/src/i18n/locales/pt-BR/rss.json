@@ -314,7 +314,7 @@
     "acceptKinds": "Receber qualquer tipo selecionado",
     "acceptHelp": "Os tipos selecionados usam OU. Palavras-chave, tamanho e condições de tempo usam E. Lançamentos oficiais confirmados têm a maior prioridade.",
     "chooseKind": "Selecione pelo menos um tipo de recebimento.",
-    "revivalUnavailable": "As fontes selecionadas não têm capacidade registrada de evidência de revival. Revival permanece desconhecido até que haja evidências.",
+    "revivalUnavailable": "Nenhuma fonte selecionada está ativa e suporta a detecção de torrents reativados. Verifique a fonte, seu site e os recursos do adaptador.",
     "target": "Destino do download",
     "targetHelp": "Escolha um downloader ou um grupo reutilizável. Uma regra vencedora com destino indisponível não recorre a outra regra.",
     "groups": "Grupos de downloaders",

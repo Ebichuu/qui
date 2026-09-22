@@ -270,7 +270,7 @@
       "revival": "Revival"
     },
     "chooseKind": "Wählen Sie mindestens einen Empfangstyp aus.",
-    "revivalUnavailable": "Die ausgewählten Quellen verfügen über keine registrierte Revival-Nachweiskapazität. Revival bleibt unbekannt, bis Nachweise verfügbar sind.",
+    "revivalUnavailable": "Keine ausgewählte Quelle ist aktiviert und unterstützt die Erkennung wiederbelebter Torrents. Prüfe die Quelle, ihre Website und die Adapterfunktionen.",
     "target": "Downloadziel",
     "targetHelp": "Wählen Sie einen Downloader oder eine wiederverwendbare Gruppe. Eine gewinnende Regel mit nicht verfügbarem Ziel fällt nicht auf eine andere Regel zurück.",
     "groups": "Downloader-Gruppen",

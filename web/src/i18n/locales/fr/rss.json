@@ -270,7 +270,7 @@
       "revival": "Revival"
     },
     "chooseKind": "Sélectionnez au moins un type de réception.",
-    "revivalUnavailable": "Les sources sélectionnées n’ont aucune capacité enregistrée de preuve de revival. Le revival reste inconnu jusqu’à disponibilité des preuves.",
+    "revivalUnavailable": "Aucune source sélectionnée n’est activée avec la détection des torrents réactivés. Vérifiez la source, son site et les capacités de l’adaptateur.",
     "target": "Cible de téléchargement",
     "targetHelp": "Choisissez un téléchargeur ou un groupe réutilisable. Une règle gagnante dont la cible est indisponible ne se rabat pas sur une autre règle.",
     "groups": "Groupes de téléchargeurs",

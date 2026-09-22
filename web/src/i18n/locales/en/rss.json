@@ -270,7 +270,7 @@
       "revival": "Revival"
     },
     "chooseKind": "Select at least one reception type.",
-    "revivalUnavailable": "The selected sources have no registered revival evidence capability. Revival remains unknown until evidence is available.",
+    "revivalUnavailable": "No selected source is enabled and supports revival detection. Check the source, its site and adapter capabilities.",
     "target": "Download target",
     "targetHelp": "Choose one downloader or one reusable group. A winning rule with an unavailable target does not fall back to another rule.",
     "groups": "Downloader groups",

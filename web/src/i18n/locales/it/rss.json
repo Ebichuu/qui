@@ -270,7 +270,7 @@
       "revival": "Revival"
     },
     "chooseKind": "Seleziona almeno un tipo di ricezione.",
-    "revivalUnavailable": "Le sorgenti selezionate non hanno capacità registrata di rilevare revival. Revival resta sconosciuto finché non sono disponibili prove.",
+    "revivalUnavailable": "Nessuna fonte selezionata è attiva e supporta il rilevamento dei torrent riattivati. Controlla la fonte, il suo sito e le capacità dell’adattatore.",
     "target": "Destinazione download",
     "targetHelp": "Scegli un downloader o un gruppo riutilizzabile. Una regola vincente con destinazione non disponibile non passa automaticamente a un’altra regola.",
     "groups": "Gruppi di downloader",

@@ -59,7 +59,8 @@ export function RSSConfigurationForm({ selection, config, instances, capabilitie
   const supported = capabilities.find(item => item.id === adapter)?.kinds.includes(kind) ?? false
   const revivalAvailable = sourceIds.some(sourceID => {
     const selected = config.sources.find(item => item.id === sourceID)
-    return selected && capabilities.some(item => item.id === selected.adapter && item.revival && item.kinds.includes(selected.kind))
+    return selected?.enabled && config.sites.some(site => site.id === selected.siteId && site.enabled)
+      && capabilities.some(item => item.id === selected.adapter && item.revival && item.kinds.includes(selected.kind))
   })
   const ruleInvalid = resource === "rules" && (sourceIds.length === 0 || accepted.length === 0 || !target || !windowSeconds || Number(windowSeconds) <= 0)
   const unavailableTarget = target.startsWith("group:") && !config.groups.some(group => group.id === Number(target.split(":")[1]) && group.enabled && group.instanceIds.length > 0)
