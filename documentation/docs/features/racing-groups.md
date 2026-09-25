@@ -59,3 +59,9 @@ An invalid or unavailable database produces a startup warning in the analysis wo
 ### Revival source availability
 
 When a rule accepts revived torrents, the editor checks that at least one selected source and its site are enabled and that the adapter supports revival detection for that source type. A disabled source or site does not satisfy this check. The warning does not prevent saving a draft rule, and another enabled, capable source can satisfy it. This configuration check does not prove site connectivity or grant downloader permissions.
+
+### Reception logs
+
+At the default log level, Racing records the add request result and successful torrent identity confirmation. These records include the candidate key, site and instance IDs, and verified v1/v2 hashes, so they can still be correlated after a torrent is renamed or removed. The request record distinguishes HTTP acceptance from identity confirmation and reports whether the result was persisted. An unaccepted or unpersisted result remains subject to reconciliation; it does not authorize another add request.
+
+Periodic observation of an already confirmed torrent does not repeat its identity confirmation log. These records omit private Tracker URLs and transport errors. Candidate rule evaluation remains a debug log; this does not yet provide the full candidate decision history or name-based search.

@@ -78,7 +78,10 @@ def main():
     mock.running, mock.unexpected = False, []
     threading.Thread(target=mock.serve_forever, daemon=True).start()
     try:
-        with App() as app:
+        app = App()
+        config = app.directory / "config.toml"
+        config.write_text(config.read_text().replace('logLevel="WARN"\n', ""), encoding="utf-8")
+        with app:
             request = app.request
             origin = f"http://127.0.0.1:{mock.server_port}"
             instance = request("/api/instances", dict(name="Synthetic C08 downloader", host=origin, username="synthetic", password="synthetic"), expected=201)["id"]
@@ -109,7 +112,15 @@ def main():
             until(lambda: request("/api/racing/status")["mode"] == "observe_only", "停用未持久化")
             time.sleep(2)
             assert mock.adds == 1 and not mock.unexpected, "重启重复添加或存在非预期写操作"
-            print("PASS C08: default disabled; verified metainfo; one add; paused/transfer stages; restart preserves intent; no duplicate or tracker mutation")
+            app.stop()
+            app.log.seek(0)
+            logs = app.log.read()
+            for message in ("Torrent add request completed; waiting for identity confirmation", "Torrent identity confirmed"):
+                records = [line for line in logs.splitlines() if message in line]
+                assert len(records) == 1, f"默认日志应恰有一次关键记录: {message}"
+                assert HASH in records[0] and "site_id" in records[0] and "instance_id" in records[0]
+                assert ANNOUNCE not in records[0] and "key=synthetic" not in records[0]
+            print("PASS C08: default disabled; verified metainfo; one add; paused/transfer stages; restart preserves intent; no duplicate or tracker mutation; default-level correlated logs emitted once")
     finally:
         mock.shutdown()
         mock.server_close()

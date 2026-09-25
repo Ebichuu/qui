@@ -388,8 +388,8 @@ func (e *executionRunner) execute(parent context.Context, intent models.RacingAd
 	accepted := err == nil && (response == nil || response.FailureCount == 0)
 	persistCtx, persistCancel := context.WithTimeout(parent, 5*time.Second)
 	defer persistCancel()
-	_ = e.store.RecordAddResult(persistCtx, intent.CandidateKey, accepted)
-	log.Debug().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Int("instance_id", intent.InstanceID).Bool("accepted", accepted).Msg("Torrent add request completed; waiting for identity confirmation")
+	persistErr := e.store.RecordAddResult(persistCtx, intent.CandidateKey, accepted)
+	log.Info().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Int("site_id", intent.Plan.SiteID).Int("instance_id", intent.InstanceID).Str("hash_v1", intent.Plan.HashV1).Str("hash_v2", intent.Plan.HashV2).Bool("accepted", accepted).Bool("result_persisted", persistErr == nil).Msg("Torrent add request completed; waiting for identity confirmation")
 }
 
 func (e *executionRunner) confirm(ctx context.Context, intent models.RacingAddIntent, instance qbittorrent.ExecutionObservation, torrent qbittorrent.ExecutionTorrent, expected []string, client ExecutionClient) {
@@ -398,7 +398,10 @@ func (e *executionRunner) confirm(ctx context.Context, intent models.RacingAddIn
 		_ = e.store.RecordIntentReason(ctx, intent.CandidateKey, "tracker_identity_unverified")
 		return
 	}
-	_ = e.store.ConfirmAdd(ctx, intent.CandidateKey, *instance.ObservedAt, torrentRunnable(torrent.State), torrent.DownloadSpeed > 0 || torrent.UploadSpeed > 0 || torrent.Downloaded > 0 || torrent.Uploaded > 0)
+	if err := e.store.ConfirmAdd(ctx, intent.CandidateKey, *instance.ObservedAt, torrentRunnable(torrent.State), torrent.DownloadSpeed > 0 || torrent.UploadSpeed > 0 || torrent.Downloaded > 0 || torrent.Uploaded > 0); err != nil {
+		return
+	}
+	log.Info().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Int("site_id", intent.Plan.SiteID).Int("instance_id", intent.InstanceID).Str("hash_v1", intent.Plan.HashV1).Str("hash_v2", intent.Plan.HashV2).Msg("Torrent identity confirmed")
 }
 
 func executionInstance(observations []qbittorrent.ExecutionObservation, id int) (qbittorrent.ExecutionObservation, bool) {
