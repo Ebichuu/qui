@@ -5,6 +5,11 @@ on:
     branches:
       - racing/develop
   workflow_dispatch:
+    inputs:
+      publish_image:
+        description: Publish an amd64 acceptance image after all checks pass
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -94,3 +99,58 @@ jobs:
         run: make smoke-racing-analysis
       - name: Verify shared reannounce entry points
         run: make smoke-reannounce-shared
+
+      - name: Upload validated frontend for image publication
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_image
+        uses: actions/upload-artifact@v7
+        with:
+          name: racing-web-dist
+          path: internal/web/dist
+          retention-days: 3
+
+  publish:
+    name: Publish isolated acceptance image
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_image && github.ref == 'refs/heads/racing/develop'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/download-artifact@v8
+        with:
+          name: racing-web-dist
+          path: internal/web/dist
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v4.3.0
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/ebichuu/qui
+          tags: type=raw,value=racing-${{ github.sha }}
+          flavor: latest=false
+      - name: Build and publish validated image
+        id: image
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: .
+          file: distrib/docker/ci.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=racing-${{ github.sha }}
+            REVISION=${{ github.sha }}
+            BUILDTIME=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          provenance: false
+      - name: Record deployment digest
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: echo "Acceptance image ghcr.io/ebichuu/qui@$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
