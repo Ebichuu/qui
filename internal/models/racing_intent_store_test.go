@@ -137,6 +137,9 @@ func TestRacingIntentRestartAndUnknownRetainsReservation(t *testing.T) {
 		t.Run(engine, func(t *testing.T) {
 			f := newRacingExecutionFixture(t, engine)
 			input := f.reservation(t, "event:a", "a", 70, f.pools[0])
+			input.Plan.Name = "Example Aurora"
+			input.Plan.Decision = &models.RacingDecisionEvidence{Algorithm: "near-load-history-v1", Candidate: json.RawMessage(`{"item":{"title":"Example Aurora"}}`), Selection: json.RawMessage(`{"state":"ready"}`), Targets: []models.RacingDecisionTarget{{InstanceID: f.instance, AvailableBytes: 100, PoolIDs: input.Plan.PoolIDs}}}
+
 			require.NoError(t, f.store.ReserveAdd(t.Context(), input))
 			var cipher string
 			require.NoError(t, f.db.QueryRowContext(t.Context(), "SELECT metainfo_ciphertext FROM racing_add_intents WHERE candidate_key=?", input.Plan.CandidateKey).Scan(&cipher))
@@ -147,6 +150,8 @@ func TestRacingIntentRestartAndUnknownRetainsReservation(t *testing.T) {
 			require.NoError(t, err)
 			item, err := restart.AddIntent(t.Context(), input.Plan.CandidateKey)
 			require.NoError(t, err)
+			require.Equal(t, input.Plan.Decision, item.Plan.Decision)
+			require.Equal(t, input.Plan.Name, item.Plan.Name)
 			require.Equal(t, "submitted", item.State)
 			require.ErrorIs(t, restart.SubmitAdd(t.Context(), currentIntent(t, restart, input.Plan.CandidateKey), input.Pools, 0, time.Now()), models.ErrRacingIntentState)
 			require.ErrorIs(t, restart.CancelReserved(t.Context(), currentIntent(t, restart, input.Plan.CandidateKey)), models.ErrRacingIntentState)
@@ -174,6 +179,10 @@ func TestRacingIntentRestartAndUnknownRetainsReservation(t *testing.T) {
 			require.Equal(t, "confirmed", item.State)
 			require.NotNil(t, item.RunnableAt)
 			require.NotNil(t, item.TransferredAt)
+			require.NoError(t, restart.InvalidateCandidate(t.Context(), input.Plan.CandidateKey, []byte(`{"state":"rejected","reason":"later_evidence"}`)))
+			frozen, err := restart.AddIntent(t.Context(), input.Plan.CandidateKey)
+			require.NoError(t, err)
+			require.Equal(t, item.Plan, frozen.Plan, "later candidate changes must not rewrite submitted decision evidence")
 		})
 	}
 }

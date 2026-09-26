@@ -103,12 +103,19 @@ def main():
             intent = request("/api/racing/add-intents")["items"][0]
             assert mock.adds == 1 and "acceptedAt" in intent and "runnableAt" not in intent and "transferredAt" not in intent
             assert ANNOUNCE not in json.dumps(intent) and "key=synthetic" not in json.dumps(intent), "记录泄露私密 transport"
+            decision = intent["plan"]["decision"]
+            assert decision["algorithm"] == "near-load-history-v1"
+            chosen = decision["targets"][decision["selectedRank"]]
+            assert chosen["instanceId"] == instance and chosen["availableBytes"] >= 1024
+            assert intent["plan"]["name"] == "Example Aurora"
             mock.running = True
             until(lambda: "transferredAt" in request("/api/racing/add-intents")["items"][0], "首次传输未记录", seconds=40)
             policy["enabled"] = False
             request(f"/api/racing/reception-policies/{instance}", policy, method="PUT", expected=204)
             app.restart()
-            assert request("/api/racing/add-intents")["items"][0]["state"] == "confirmed"
+            restored = request("/api/racing/add-intents")["items"][0]
+            assert restored["state"] == "confirmed"
+            assert restored["plan"]["decision"] == decision, "后来的配置和观察不能重写原始分配依据"
             until(lambda: request("/api/racing/status")["mode"] == "observe_only", "停用未持久化")
             time.sleep(2)
             assert mock.adds == 1 and not mock.unexpected, "重启重复添加或存在非预期写操作"
@@ -118,8 +125,12 @@ def main():
             for message in ("Torrent add request completed; waiting for identity confirmation", "Torrent identity confirmed"):
                 records = [line for line in logs.splitlines() if message in line]
                 assert len(records) == 1, f"默认日志应恰有一次关键记录: {message}"
+                assert "Example Aurora" in records[0]
                 assert HASH in records[0] and "site_id" in records[0] and "instance_id" in records[0]
                 assert ANNOUNCE not in records[0] and "key=synthetic" not in records[0]
+            decisions = [line for line in logs.splitlines() if "Candidate decision changed" in line]
+            assert decisions and all("site_id" in line for line in decisions)
+            assert len(decisions) < 10, "重复来源观察不应持续刷屏"
             print("PASS C08: default disabled; verified metainfo; one add; paused/transfer stages; restart preserves intent; no duplicate or tracker mutation; default-level correlated logs emitted once")
     finally:
         mock.shutdown()

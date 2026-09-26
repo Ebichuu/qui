@@ -3,7 +3,10 @@
 
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // RacingInstancePolicy opts one downloader into new reception. Existing Q1
 // sources and rules alone never acquire automatic-add ownership on upgrade.
@@ -21,24 +24,46 @@ type RacingInstancePolicy struct {
 	UpdatedAt          string `json:"updatedAt"`
 }
 
+type RacingDecisionTarget struct {
+	InstanceID     int       `json:"instanceId"`
+	ObservedAt     time.Time `json:"observedAt"`
+	DownloadSpeed  int64     `json:"downloadSpeed"`
+	UploadSpeed    int64     `json:"uploadSpeed"`
+	Active         int       `json:"active"`
+	Pending        int       `json:"pending"`
+	AvailableBytes int64     `json:"availableBytes"`
+	LastReserved   string    `json:"lastReserved"`
+	PoolIDs        []int     `json:"poolIds"`
+}
+
+type RacingDecisionEvidence struct {
+	Algorithm    string                 `json:"algorithm"`
+	Candidate    json.RawMessage        `json:"candidate"`
+	Selection    json.RawMessage        `json:"selection"`
+	Targets      []RacingDecisionTarget `json:"targets"`
+	SelectedRank int                    `json:"selectedRank"`
+}
+
 // RacingAddPlan is frozen when an intent is submitted. Transport secrets live
 // in separately encrypted metainfo; the public plan can explain the decision.
 type RacingAddPlan struct {
-	TrackerHosts          []string             `json:"trackerHosts"`
-	ConfigurationRevision int64                `json:"configurationRevision"`
-	CandidateUpdatedAt    string               `json:"candidateUpdatedAt"`
-	CandidateKey          string               `json:"candidateKey"`
-	SiteID                int                  `json:"siteId"`
-	InstanceID            int                  `json:"instanceId"`
-	Rule                  RacingRule           `json:"rule"`
-	Policy                RacingInstancePolicy `json:"policy"`
-	HashV1                string               `json:"hashV1,omitempty"`
-	HashV2                string               `json:"hashV2,omitempty"`
-	SizeBytes             int64                `json:"sizeBytes"`
-	Options               map[string]string    `json:"options"`
-	PoolIDs               []int                `json:"poolIds"`
-	Deadline              string               `json:"deadline"`
-	FirstSeenAt           string               `json:"firstSeenAt"`
+	Name                  string                  `json:"name,omitempty"`
+	Decision              *RacingDecisionEvidence `json:"decision,omitempty"`
+	TrackerHosts          []string                `json:"trackerHosts"`
+	ConfigurationRevision int64                   `json:"configurationRevision"`
+	CandidateUpdatedAt    string                  `json:"candidateUpdatedAt"`
+	CandidateKey          string                  `json:"candidateKey"`
+	SiteID                int                     `json:"siteId"`
+	InstanceID            int                     `json:"instanceId"`
+	Rule                  RacingRule              `json:"rule"`
+	Policy                RacingInstancePolicy    `json:"policy"`
+	HashV1                string                  `json:"hashV1,omitempty"`
+	HashV2                string                  `json:"hashV2,omitempty"`
+	SizeBytes             int64                   `json:"sizeBytes"`
+	Options               map[string]string       `json:"options"`
+	PoolIDs               []int                   `json:"poolIds"`
+	Deadline              string                  `json:"deadline"`
+	FirstSeenAt           string                  `json:"firstSeenAt"`
 }
 
 type RacingAddIntent struct {

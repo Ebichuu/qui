@@ -7905,9 +7905,66 @@ components:
         updatedAt:
           type: string
           format: date-time
+    RacingDecisionTarget:
+      type: object
+      required: [instanceId, observedAt, downloadSpeed, uploadSpeed, active, pending, availableBytes, lastReserved, poolIds]
+      properties:
+        instanceId:
+          type: integer
+        observedAt:
+          type: string
+          format: date-time
+        downloadSpeed:
+          type: integer
+          format: int64
+        uploadSpeed:
+          type: integer
+          format: int64
+        active:
+          type: integer
+        pending:
+          type: integer
+        availableBytes:
+          type: integer
+          format: int64
+        lastReserved:
+          type: string
+        poolIds:
+          type: array
+          items:
+            type: integer
+    RacingDecisionEvidence:
+      type: object
+      required: [algorithm, candidate, selection, targets, selectedRank]
+      properties:
+        algorithm:
+          type: string
+          description: Version of the selection algorithm used at reservation time.
+        candidate:
+          type: object
+          additionalProperties: true
+          description: Frozen public candidate evidence, excluding transport secrets.
+        selection:
+          type: object
+          additionalProperties: true
+          description: Frozen winning rule selection.
+        targets:
+          type: array
+          description: Eligible targets in preference order after duplicate participation filtering.
+          items:
+            $ref: '#/components/schemas/RacingDecisionTarget'
+        selectedRank:
+          type: integer
+          minimum: 0
+          description: Zero-based position of the reserved target; earlier targets may fail the atomic capacity recheck.
     RacingAddPlan:
       type: object
       properties:
+        name:
+          type: string
+          description: Verified metainfo name captured at reservation time.
+        decision:
+          $ref: '#/components/schemas/RacingDecisionEvidence'
         candidateKey:
           type: string
         siteId:

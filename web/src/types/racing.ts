@@ -75,9 +75,13 @@ export interface RacingInstancePolicy {
   minFreeBytes: number; savePath: string; category: string; autoTMM: boolean; startPaused: boolean; updatedAt?: string
 }
 export type RacingIntentState = "reserved" | "submitted" | "unknown" | "accepted" | "confirmed" | "cancelled" | "retired"
+export interface RacingDecisionEvidence {
+  algorithm: string; candidate: Record<string, unknown>; selection: Record<string, unknown>; selectedRank: number
+  targets: { instanceId: number; observedAt: string; downloadSpeed: number; uploadSpeed: number; active: number; pending: number; availableBytes: number; lastReserved: string; poolIds: number[] }[]
+}
 export interface RacingAddIntent {
   candidateKey: string; instanceId: number; state: RacingIntentState; reason: string
-  plan: { siteId: number; rule: RacingRule; policy: RacingInstancePolicy; sizeBytes: number; hashV1?: string; hashV2?: string; poolIds: number[]; firstSeenAt: string; deadline: string }
+  plan: { name?: string; decision?: RacingDecisionEvidence; siteId: number; rule: RacingRule; policy: RacingInstancePolicy; sizeBytes: number; hashV1?: string; hashV2?: string; poolIds: number[]; firstSeenAt: string; deadline: string }
   reservedAt: string; submittedAt?: string; acceptedAt?: string; confirmedAt?: string; runnableAt?: string; transferredAt?: string; observedAt?: string; updatedAt: string
 }
 export interface RacingAddIntents { items: RacingAddIntent[]; nextCursor?: string }

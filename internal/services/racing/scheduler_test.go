@@ -110,3 +110,36 @@ func TestReceptionAvoidsAccidentalCrossInstanceParticipation(t *testing.T) {
 	require.Equal(t, 2, filtered[0].instance.InstanceID)
 	require.Empty(t, avoidDuplicateParticipants([]receptionTarget{{instance: observations[0]}}, observations, "verified-hash", ""), "cannot borrow another target when the selected instance does not host existing content")
 }
+
+func TestReceptionHistoryBalancesNearLoadWithoutOverridingSafety(t *testing.T) {
+	config, observations := executionFixture()
+	group := 10
+	config.Groups = []models.RacingGroup{{ID: group, Enabled: true, InstanceIDs: []int{1, 3}}}
+	policies := []models.RacingInstancePolicy{{InstanceID: 1, Enabled: true, MaxConcurrentAdds: 2, MaxActiveDownloads: 4}, {InstanceID: 3, Enabled: true, MaxConcurrentAdds: 2, MaxActiveDownloads: 4}}
+	rule := models.RacingRule{TargetGroupID: &group}
+	slow, near, busy := int64(10<<20), int64(10<<20)+100, int64(100<<20)
+	observations[0].DownloadSpeed = &slow
+	observations[2].DownloadSpeed = &near
+	budgets := executionBudgets(config, observations, nil, time.Now())
+	history := make([]models.RacingAddIntent, 0, 20)
+	counts := map[int]int{}
+	for i := range 20 {
+		targets := receptionTargets(rule, config, policies, observations, history, budgets, 10, time.Now())
+		require.Len(t, targets, 2)
+		id := targets[0].instance.InstanceID
+		counts[id]++
+		history = append(history, models.RacingAddIntent{InstanceID: id, State: "retired", ReservedAt: time.Now().Add(time.Duration(i) * time.Second).UTC().Format(time.RFC3339Nano)})
+	}
+	require.Equal(t, 10, counts[1])
+	require.Equal(t, 10, counts[3], "completed history should still compensate small load differences")
+	observations[2].UploadSpeed = &busy
+	targets := receptionTargets(rule, config, policies, observations, history, budgets, 10, time.Now())
+	require.Equal(t, 1, targets[0].instance.InstanceID, "busy completed uploads remain real pressure")
+	observations[2].UploadSpeed = &slow
+	budgets[1].AvailableBytes = 5
+	targets = receptionTargets(rule, config, policies, observations, history, budgets, 10, time.Now())
+	require.Len(t, targets, 1)
+	require.Equal(t, 1, targets[0].instance.InstanceID, "history cannot override insufficient capacity")
+	observations[0].Fresh = false
+	require.Empty(t, receptionTargets(rule, config, policies, observations, history, budgets, 10, time.Now()))
+}

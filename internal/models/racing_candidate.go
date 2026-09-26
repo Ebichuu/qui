@@ -53,8 +53,9 @@ func (s *RacingStore) PendingDiscoveries(ctx context.Context, afterID, throughID
 }
 
 type RacingCandidateInput struct {
-	Observations []RacingDiscovery
-	FirstSeenAt  string
+	Observations      []RacingDiscovery
+	FirstSeenAt       string
+	PreviousSelection json.RawMessage
 }
 
 func (s *RacingStore) EventDiscoveries(ctx context.Context, key string, siteID int, event string, sourceScope int) (RacingCandidateInput, error) {
@@ -64,7 +65,9 @@ func (s *RacingStore) EventDiscoveries(ctx context.Context, key string, siteID i
 		return result, err
 	}
 	defer func() { _ = tx.Rollback() }()
-	err = tx.QueryRowContext(ctx, `SELECT first_seen_at FROM racing_candidates WHERE candidate_key=?`, key).Scan(&result.FirstSeenAt)
+	var previous string
+	err = tx.QueryRowContext(ctx, `SELECT first_seen_at,selection_json FROM racing_candidates WHERE candidate_key=?`, key).Scan(&result.FirstSeenAt, &previous)
+	result.PreviousSelection = json.RawMessage(previous)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return result, err
 	}

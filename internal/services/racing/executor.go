@@ -202,12 +202,20 @@ func (e *executionRunner) tick(ctx context.Context) {
 			if len(expectedTrackers(raw, hosts)) == 0 {
 				continue
 			}
+			selectionJSON, err := json.Marshal(selection)
+			if err != nil {
+				continue
+			}
+			evidence := []models.RacingDecisionTarget{}
 			for _, target := range targets {
+				evidence = append(evidence, models.RacingDecisionTarget{InstanceID: target.instance.InstanceID, ObservedAt: *target.instance.ObservedAt, DownloadSpeed: *target.instance.DownloadSpeed, UploadSpeed: *target.instance.UploadSpeed, Active: target.active, Pending: target.pending, AvailableBytes: target.available, LastReserved: target.lastReserved, PoolIDs: target.pools})
+			}
+			for rank, target := range targets {
 				deadline := *selection.Deadline
 				if candidate.Item.FreeExpiresAt != nil && candidate.Item.FreeExpiresAt.After(time.Now()) && candidate.Item.FreeExpiresAt.Before(deadline) {
 					deadline = *candidate.Item.FreeExpiresAt
 				}
-				plan := models.RacingAddPlan{CandidateKey: record.Key, SiteID: record.SiteID, InstanceID: target.instance.InstanceID, Rule: *selection.Rule, Policy: target.policy, HashV1: proof.HashV1, HashV2: proof.HashV2, SizeBytes: proof.SizeBytes, Options: target.options, PoolIDs: target.pools, Deadline: deadline.UTC().Format(time.RFC3339Nano), FirstSeenAt: record.FirstSeenAt, ConfigurationRevision: config.Revision, CandidateUpdatedAt: record.UpdatedAt, TrackerHosts: hosts}
+				plan := models.RacingAddPlan{Name: proof.Name, Decision: &models.RacingDecisionEvidence{Algorithm: "near-load-history-v1", Candidate: record.Candidate, Selection: selectionJSON, Targets: evidence, SelectedRank: rank}, CandidateKey: record.Key, SiteID: record.SiteID, InstanceID: target.instance.InstanceID, Rule: *selection.Rule, Policy: target.policy, HashV1: proof.HashV1, HashV2: proof.HashV2, SizeBytes: proof.SizeBytes, Options: target.options, PoolIDs: target.pools, Deadline: deadline.UTC().Format(time.RFC3339Nano), FirstSeenAt: record.FirstSeenAt, ConfigurationRevision: config.Revision, CandidateUpdatedAt: record.UpdatedAt, TrackerHosts: hosts}
 				err := e.store.ReserveAdd(ctx, models.RacingReservation{Plan: plan, Metainfo: raw, Pools: budgets, ActiveDownloads: target.active, ObservedAt: *target.instance.ObservedAt})
 				if err != nil {
 					if errors.Is(err, models.ErrRacingCapacity) {
@@ -389,7 +397,7 @@ func (e *executionRunner) execute(parent context.Context, intent models.RacingAd
 	persistCtx, persistCancel := context.WithTimeout(parent, 5*time.Second)
 	defer persistCancel()
 	persistErr := e.store.RecordAddResult(persistCtx, intent.CandidateKey, accepted)
-	log.Info().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Int("site_id", intent.Plan.SiteID).Int("instance_id", intent.InstanceID).Str("hash_v1", intent.Plan.HashV1).Str("hash_v2", intent.Plan.HashV2).Bool("accepted", accepted).Bool("result_persisted", persistErr == nil).Msg("Torrent add request completed; waiting for identity confirmation")
+	log.Info().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Str("name", intent.Plan.Name).Int("site_id", intent.Plan.SiteID).Int("instance_id", intent.InstanceID).Str("hash_v1", intent.Plan.HashV1).Str("hash_v2", intent.Plan.HashV2).Bool("accepted", accepted).Bool("result_persisted", persistErr == nil).Msg("Torrent add request completed; waiting for identity confirmation")
 }
 
 func (e *executionRunner) confirm(ctx context.Context, intent models.RacingAddIntent, instance qbittorrent.ExecutionObservation, torrent qbittorrent.ExecutionTorrent, expected []string, client ExecutionClient) {
@@ -401,7 +409,7 @@ func (e *executionRunner) confirm(ctx context.Context, intent models.RacingAddIn
 	if err := e.store.ConfirmAdd(ctx, intent.CandidateKey, *instance.ObservedAt, torrentRunnable(torrent.State), torrent.DownloadSpeed > 0 || torrent.UploadSpeed > 0 || torrent.Downloaded > 0 || torrent.Uploaded > 0); err != nil {
 		return
 	}
-	log.Info().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Int("site_id", intent.Plan.SiteID).Int("instance_id", intent.InstanceID).Str("hash_v1", intent.Plan.HashV1).Str("hash_v2", intent.Plan.HashV2).Msg("Torrent identity confirmed")
+	log.Info().Str("component", "racing").Str("candidate_key", intent.CandidateKey).Str("name", intent.Plan.Name).Int("site_id", intent.Plan.SiteID).Int("instance_id", intent.InstanceID).Str("hash_v1", intent.Plan.HashV1).Str("hash_v2", intent.Plan.HashV2).Msg("Torrent identity confirmed")
 }
 
 func executionInstance(observations []qbittorrent.ExecutionObservation, id int) (qbittorrent.ExecutionObservation, bool) {

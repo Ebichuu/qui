@@ -4,6 +4,7 @@
 package racing
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -94,7 +95,13 @@ func (e *candidateEvaluator) evaluate(ctx context.Context, siteID int, event str
 	rows := input.Observations
 	if len(rows) == 0 {
 		selection, _ := json.Marshal(RuleSelection{State: "rejected", Reason: "source_removed", Priority: "unknown", MatchedKinds: []string{}, MissingFields: []string{}})
-		return e.store.InvalidateCandidate(ctx, key, selection)
+		if err := e.store.InvalidateCandidate(ctx, key, selection); err != nil {
+			return err
+		}
+		if !bytes.Equal(input.PreviousSelection, selection) {
+			log.Info().Str("component", "racing").Str("candidate_key", key).Int("site_id", siteID).Str("state", "rejected").Str("reason", "source_removed").Msg("Candidate decision changed")
+		}
+		return nil
 	}
 	candidate, err := MergeDiscoveries(rows)
 	if err != nil {
@@ -173,7 +180,16 @@ func (e *candidateEvaluator) evaluate(ctx context.Context, siteID int, event str
 	if err := e.store.SaveCandidate(ctx, models.RacingCandidateRecord{Key: key, SiteID: siteID, EventKey: event, SourceScope: scope, FirstSeenAt: candidate.FirstSeenAt.Format(time.RFC3339Nano), Candidate: public, Selection: decision, State: selection.State, NextEvaluationAt: next}, rows); err != nil {
 		return err
 	}
-	log.Debug().Str("component", "racing").Str("candidate_key", key).Str("state", selection.State).Str("reason", selection.Reason).Strs("missing", selection.MissingFields).Msg("Candidate rules evaluated")
+	if !bytes.Equal(input.PreviousSelection, decision) {
+		event := log.Info().Str("component", "racing").Str("candidate_key", key).Int("site_id", siteID).Str("name", candidate.Item.Title).Str("state", selection.State).Str("reason", selection.Reason).Strs("missing", selection.MissingFields)
+		if selection.Rule != nil {
+			event.Int("rule_id", selection.Rule.ID)
+		}
+		if candidate.VerifiedMetadata != nil {
+			event.Str("hash_v1", candidate.VerifiedMetadata.HashV1).Str("hash_v2", candidate.VerifiedMetadata.HashV2)
+		}
+		event.Msg("Candidate decision changed")
+	}
 	if needsMetainfo(selection, candidate) && e.service.metadata != nil {
 		e.service.metadata.enqueue(metadataJob{key: key, siteID: siteID, event: event, scope: scope, rows: rows})
 	}

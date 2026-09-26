@@ -233,8 +233,8 @@ func receptionTargetsWithCapacity(rule models.RacingRule, config *models.RacingC
 			}
 		}
 		for _, intent := range intents {
-			if intent.InstanceID == instance.InstanceID && intent.State != "cancelled" && intent.State != "retired" {
-				if intent.State != "confirmed" {
+			if intent.InstanceID == instance.InstanceID && intent.State != "cancelled" {
+				if intent.State != "confirmed" && intent.State != "retired" {
 					target.pending++
 				}
 				if intent.ReservedAt > target.lastReserved {
@@ -281,25 +281,44 @@ func receptionTargetsWithCapacity(rule models.RacingRule, config *models.RacingC
 			result = append(result, target)
 		}
 	}
+	// Use one fixed reference for the whole sort, rather than pairwise
+	// tolerances (which would make the comparator non-transitive).
+	minimumLoad := int64(math.MaxInt64)
+	for _, target := range result {
+		minimumLoad = min(minimumLoad, receptionLoad(target))
+	}
+	tolerance := max(int64(1<<20), minimumLoad/10)
 	sort.SliceStable(result, func(i, j int) bool {
 		a, b := result[i], result[j]
-		// Compare real current transfer load first, then promised running slots.
-		aLoad, bLoad := max(int64(0), *a.instance.DownloadSpeed), max(int64(0), *b.instance.DownloadSpeed)
-		if aLoad != bLoad {
+		aLoad, bLoad := receptionLoad(a), receptionLoad(b)
+		aNear, bNear := aLoad-minimumLoad <= tolerance, bLoad-minimumLoad <= tolerance
+		if aNear != bNear {
+			return aNear
+		}
+		if !aNear && aLoad != bLoad {
 			return aLoad < bLoad
 		}
 		if a.active+a.pending != b.active+b.pending {
 			return a.active+a.pending < b.active+b.pending
 		}
-		if a.available != b.available {
-			return a.available > b.available
-		}
+		// Capacity is already a hard eligibility constraint. Among similarly
+		// loaded eligible instances, history must beat minor capacity noise.
 		if a.lastReserved != b.lastReserved {
 			return a.lastReserved < b.lastReserved
+		}
+		if aLoad != bLoad {
+			return aLoad < bLoad
+		}
+		if a.available != b.available {
+			return a.available > b.available
 		}
 		return a.instance.InstanceID < b.instance.InstanceID
 	})
 	return result
+}
+
+func receptionLoad(target receptionTarget) int64 {
+	return max(int64(0), *target.instance.DownloadSpeed, *target.instance.UploadSpeed)
 }
 
 func makeReceptionTarget(config *models.RacingConfiguration, instance qbittorrent.ExecutionObservation, policy models.RacingInstancePolicy) (receptionTarget, bool) {
