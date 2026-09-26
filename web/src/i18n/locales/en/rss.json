@@ -276,7 +276,7 @@
     "groups": "Downloader groups",
     "instances": "Downloaders",
     "manageGroups": "Manage downloader groups",
-    "targetUnavailable": "This group is disabled or has no members. Matching candidates will wait.",
+    "targetUnavailable": "The selected target has no enabled downloader. Matching candidates will wait.",
     "options": "Reception options",
     "window": "Reception window (seconds)",
     "windowHelp": "Measured from the source event time. Set this explicitly for the rule; later sources do not restart it.",

@@ -276,7 +276,7 @@
     "groups": "下載器群組",
     "instances": "下載器",
     "manageGroups": "管理下載器群組",
-    "targetUnavailable": "此群組已停用或沒有成員。符合條件的候選將等待。",
+    "targetUnavailable": "所選目標沒有已啟用的下載器，符合條件的候選將等待。",
     "options": "接收選項",
     "window": "接收視窗（秒）",
     "windowHelp": "從來源事件時間起算。請為此規則明確設定；後續來源不會重新開始計時。",

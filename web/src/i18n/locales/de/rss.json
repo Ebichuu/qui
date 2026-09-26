@@ -276,7 +276,7 @@
     "groups": "Downloader-Gruppen",
     "instances": "Downloader",
     "manageGroups": "Downloader-Gruppen verwalten",
-    "targetUnavailable": "Diese Gruppe ist deaktiviert oder enthält keine Mitglieder. Übereinstimmende Kandidaten warten.",
+    "targetUnavailable": "Das ausgewählte Ziel hat keinen aktivierten Downloader. Passende Kandidaten warten.",
     "options": "Empfangsoptionen",
     "window": "Empfangsfenster (Sekunden)",
     "windowHelp": "Gemessen ab dem Ereigniszeitpunkt der Quelle. Für diese Regel ausdrücklich festlegen; spätere Quellen starten es nicht neu.",

@@ -276,7 +276,7 @@
     "groups": "Groupes de téléchargeurs",
     "instances": "Téléchargeurs",
     "manageGroups": "Gérer les groupes de téléchargeurs",
-    "targetUnavailable": "Ce groupe est désactivé ou sans membre. Les candidats correspondants attendront.",
+    "targetUnavailable": "La cible sélectionnée ne comporte aucun client de téléchargement activé. Les candidats correspondants attendront.",
     "options": "Options de réception",
     "window": "Fenêtre de réception (secondes)",
     "windowHelp": "Mesurée depuis l’heure de l’événement de la source. Définissez-la explicitement pour la règle ; les sources ultérieures ne la relancent pas.",

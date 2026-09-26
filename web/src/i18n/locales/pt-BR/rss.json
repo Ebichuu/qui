@@ -320,7 +320,7 @@
     "groups": "Grupos de downloaders",
     "instances": "Downloaders",
     "manageGroups": "Gerenciar grupos de downloaders",
-    "targetUnavailable": "Este grupo está desativado ou não tem membros. Os candidatos correspondentes aguardarão.",
+    "targetUnavailable": "O destino selecionado não tem um cliente de download ativado. Os candidatos correspondentes aguardarão.",
     "options": "Opções de recebimento",
     "window": "Janela de recebimento (segundos)",
     "windowHelp": "Medida a partir do horário do evento da fonte. Defina explicitamente para esta regra; fontes posteriores não a reiniciam.",

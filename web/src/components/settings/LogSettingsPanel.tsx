@@ -635,11 +635,12 @@ function LiveLogViewer({ configPath }: { configPath?: string }) {
       // Filter by search query
       if (query) {
         const matchesMessage = e.message.toLowerCase().includes(query)
+        const matchesTime = e.time.toLowerCase().includes(query)
         const matchesExtra = Object.values(e.extra).some((v) => {
           const text = typeof v === "string" ? v : JSON.stringify(v) ?? ""
           return text.toLowerCase().includes(query)
         })
-        if (!matchesMessage && !matchesExtra) return false
+        if (!matchesMessage && !matchesTime && !matchesExtra) return false
       }
 
       return true

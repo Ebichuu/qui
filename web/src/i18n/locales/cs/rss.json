@@ -276,7 +276,7 @@
     "groups": "Skupiny stahovačů",
     "instances": "Stahovače",
     "manageGroups": "Spravovat skupiny stahovačů",
-    "targetUnavailable": "Tato skupina je zakázaná nebo nemá členy. Odpovídající kandidáti počkají.",
+    "targetUnavailable": "Vybraný cíl nemá povoleného klienta pro stahování. Odpovídající kandidáti budou čekat.",
     "options": "Možnosti příjmu",
     "window": "Okno příjmu (sekundy)",
     "windowHelp": "Měří se od času události zdroje. Pro toto pravidlo jej nastavte výslovně; pozdější zdroje jej nespustí znovu.",

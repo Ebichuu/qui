@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { api } from "@/lib/api"
+import type { InstanceResponse } from "@/types/instances"
 import type { RacingConfiguration, RacingCapability } from "@/types/racing"
 import { RSSConfigurationForm, type RSSSelection } from "./RSSConfigurationForm"
 
@@ -14,11 +15,19 @@ const config: RacingConfiguration = { sites: [{ id: 1, name: "Site", baseUrl: "h
 const capabilities: RacingCapability[] = [{ id: "chd", site: "CHDBits", kinds: ["rss", "web", "revival"], pagination: true, official: true, free: true, revival: true, validation: "synthetic_fixtures" }]
 beforeEach(() => { vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} }); vi.mocked(api.saveRacingResource).mockResolvedValue({ id: 1 }) })
 afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals() })
-function mount(selection: RSSSelection, configuration = config) {
+function mount(selection: RSSSelection, configuration = config, instances: InstanceResponse[] = []) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
-  render(<QueryClientProvider client={client}><TooltipProvider><RSSConfigurationForm selection={selection} config={configuration} instances={[]} capabilities={capabilities} onClose={() => {}} /></TooltipProvider></QueryClientProvider>)
+  render(<QueryClientProvider client={client}><TooltipProvider><RSSConfigurationForm selection={selection} config={configuration} instances={instances} capabilities={capabilities} onClose={() => {}} /></TooltipProvider></QueryClientProvider>)
 }
 describe("central RSS configuration", () => {
+  it.each([false, true])("checks whether the selected group has an active member: %s", (isActive) => {
+    mount({ resource: "rules", id: null }, config, [{ id: 7, name: "Synthetic downloader", isActive } as InstanceResponse])
+    fireEvent.change(screen.getByLabelText("central.target"), { target: { value: "group:3" } })
+    expect(screen.queryByText("central.targetUnavailable") !== null).toBe(!isActive)
+    fireEvent.change(screen.getByLabelText("central.target"), { target: { value: "instance:7" } })
+    expect(screen.queryByText("central.targetUnavailable") !== null).toBe(!isActive)
+  })
+
   it.each([
     { sourceEnabled: false, siteEnabled: true, warning: true },
     { sourceEnabled: true, siteEnabled: false, warning: true },

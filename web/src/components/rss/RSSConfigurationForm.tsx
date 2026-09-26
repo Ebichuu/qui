@@ -63,7 +63,10 @@ export function RSSConfigurationForm({ selection, config, instances, capabilitie
       && capabilities.some(item => item.id === selected.adapter && item.revival && item.kinds.includes(selected.kind))
   })
   const ruleInvalid = resource === "rules" && (sourceIds.length === 0 || accepted.length === 0 || !target || !windowSeconds || Number(windowSeconds) <= 0)
-  const unavailableTarget = target.startsWith("group:") && !config.groups.some(group => group.id === Number(target.split(":")[1]) && group.enabled && group.instanceIds.length > 0)
+  const targetID = Number(target.split(":")[1])
+  const unavailableTarget = target.startsWith("group:")
+    ? !config.groups.some(group => group.id === targetID && group.enabled && group.instanceIds.some(id => instances.some(instance => instance.id === id && instance.isActive)))
+    : !instances.some(instance => instance.id === targetID && instance.isActive)
   return <form className="space-y-4" onSubmit={event => {
     event.preventDefault()
     if (ruleInvalid || (resource === "sources" && !supported)) return

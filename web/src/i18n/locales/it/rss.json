@@ -276,7 +276,7 @@
     "groups": "Gruppi di downloader",
     "instances": "Downloader",
     "manageGroups": "Gestisci gruppi di downloader",
-    "targetUnavailable": "Questo gruppo è disabilitato o non ha membri. I candidati corrispondenti attenderanno.",
+    "targetUnavailable": "La destinazione selezionata non ha client di download abilitati. I candidati corrispondenti rimarranno in attesa.",
     "options": "Opzioni di ricezione",
     "window": "Finestra di ricezione (secondi)",
     "windowHelp": "Misurata dall’ora dell’evento della sorgente. Impostala esplicitamente per la regola; le sorgenti successive non la riavviano.",
